@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+
+function printHelp() {
+  echo "Usage: "
+  echo "  hlfn.sh <mode> [-n <nodename name>]"
+  echo "    <mode> - one of 'up', 'down'"
+  echo "      - 'up' - bring up the network with docker-compose up"
+  echo "      - 'down' - clear the network with docker-compose down"
+  echo
+  echo "Taking all defaults:"
+  echo "	hlfn.sh up"
+  echo "	hlfn.sh down"
+}
+
 if [[ ! -f "../bin/hlf-deploy" ]]; then
     curl -L -O https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy
     chmod +x ../bin/hlf-deploy
@@ -11,14 +24,23 @@ fi
 mode=${1}
 shift
 
-while getopts ":h:" opt; do
-  case ${opt} in
-  h)
-    hostname=${OPTARG}
-    ;;
-  ?)
-    echo "there is unrecognized parameter."
+if [[ "${mode}" == "up" ]]; then
+    :
+elif [[ "${mode}" == "down" ]]; then
+    :
+else
+    printHelp
     exit 1
+fi
+
+while getopts "h?:n:" opt; do
+  case ${opt} in
+  h | \?)
+    printHelp
+    exit 0
+    ;;
+  n)
+    nodename=${OPTARG}
     ;;
   esac
 done
@@ -28,7 +50,7 @@ function upNetwork() {
         ORDERER_DOMAIN=example.com \
         ORDERER_GENERAL_LOCALMSPID=OrdererMSP \
         FABRIC_LOGGING_SPEC=info \
-        NODE_HOSTNAME=${hostname} \
+        NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
         PORT=7050 \
         NFS_ADDR=127.0.0.1 \
@@ -39,7 +61,7 @@ function upNetwork() {
         PEER_DOMAIN=org1.example.com \
         FABRIC_LOGGING_SPEC=info \
         CORE_PEER_LOCALMSPID=Org1MSP \
-        NODE_HOSTNAME=${hostname} \
+        NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
         PORT=7051 \
         NFS_ADDR=127.0.0.1 \
@@ -50,7 +72,7 @@ function upNetwork() {
         PEER_DOMAIN=org1.example.com \
         FABRIC_LOGGING_SPEC=info \
         CORE_PEER_LOCALMSPID=Org1MSP \
-        NODE_HOSTNAME=${hostname} \
+        NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
         PORT=8051 \
         NFS_ADDR=127.0.0.1 \
@@ -61,7 +83,7 @@ function upNetwork() {
         PEER_DOMAIN=org2.example.com \
         FABRIC_LOGGING_SPEC=info \
         CORE_PEER_LOCALMSPID=Org2MSP \
-        NODE_HOSTNAME=${hostname} \
+        NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
         PORT=9051 \
         NFS_ADDR=127.0.0.1 \
@@ -72,7 +94,7 @@ function upNetwork() {
         PEER_DOMAIN=org2.example.com \
         FABRIC_LOGGING_SPEC=info \
         CORE_PEER_LOCALMSPID=Org2MSP \
-        NODE_HOSTNAME=${hostname} \
+        NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
         PORT=10051 \
         NFS_ADDR=127.0.0.1 \

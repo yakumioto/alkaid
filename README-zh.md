@@ -53,6 +53,8 @@ crypto-config
 
 **将 nfs 目录创建在 `/nfsvolume` !**
 
+**以 root 权限运行**
+
 ```text
 # nfs 配置编写
 # 编辑 /etc/exports 
