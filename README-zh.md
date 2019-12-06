@@ -8,9 +8,10 @@
 ## 前期准备工作
 
 1. docker swarm 集群 (可单节点)
-2. nfs server client (用于共享证书等文件)
-3. channel-artifacts
-4. crypto-config
+2. fabric all images
+3. nfs server client (用于共享证书等文件)
+4. channel-artifacts
+5. crypto-config
 
 ```text
 channel-artifacts
@@ -27,6 +28,22 @@ crypto-config
 └── peerOrganizations
     ├── org1.example.com
     └── org2.example.com
+```
+
+## 启动测试网络
+
+**请保证上方所有准备工作已经完毕!**
+
+**将 nfs 目录创建在 `/nfsvolume` !**
+
+```text
+# nfs 配置编写
+# 编辑 /etc/exports 
+# 添加以下行, 并保存
+# 并执行 exportfs -arv 重新加载
+# 如实在不懂可 google
+
+/nfsvolume *(ro,sync,no_root_squash)
 ```
 
 ## 启动网络 (单节点为例子)
@@ -49,7 +66,7 @@ ORDERER_HOSTNAME=orderer \
     NODE_HOSTNAME=master \
     NETWORK=hlf \
     PORT=7050 \
-    NFS_ADDR=192.168.51.10 \
+    NFS_ADDR=127.0.0.1 \
     NFS_PATH=/nfsvolume \
     docker stack up -c orderer.yaml orderer
 ```
@@ -66,7 +83,7 @@ PEER_HOSTNAME=peer0 \
     NODE_HOSTNAME=master \
     NETWORK=hlf \
     PORT=7051 \
-    NFS_ADDR=192.168.51.10 \
+    NFS_ADDR=127.0.0.1 \
     NFS_PATH=/nfsvolume \
     docker stack up -c peer-leveldb.yaml peer0org1
 ```
@@ -81,7 +98,7 @@ PEER_HOSTNAME=peer0 \
     NODE_HOSTNAME=master \
     NETWORK=hlf \
     PORT=7051 \
-    NFS_ADDR=192.168.51.10 \
+    NFS_ADDR=127.0.0.1 \
     NFS_PATH=/nfsvolume \
     docker stack up -c peer-couchdb.yaml peer0org1
 ```
@@ -95,7 +112,7 @@ PEER_DOMAIN=org1.example.com \
     PASSWORD=adminpwd \
     NETWORK=hlf \
     PORT=7054 \
-    NFS_ADDR=192.168.51.10 \
+    NFS_ADDR=127.0.0.1 \
     NFS_PATH=/nfsvolume \
     CA_PRIVEATE_KEY=$(cd ${NFS_PATH}/crypto-config/peerOrganizations/${PEER_DOMAIN}/ca && ls *_sk) \
     docker stack up -c ca.yaml peer0org1ca
@@ -108,7 +125,7 @@ PEER_DOMAIN=org1.example.com \
 ```bash
 hlf-deploy createChannel --configFile config.yaml \
     --channelTxFile channel.tx \
-    --channelName testchannel \
+    --channelName mychannel \
     --ordererOrgName OrdererOrg \
     Org1 Org2
 ```
@@ -118,7 +135,7 @@ hlf-deploy createChannel --configFile config.yaml \
 ```bash
 hlf-deploy uptateAnchorPeer --configFile config.yaml \
     --anchorPeerTxFile anchor.tx \
-    --channelName testchannel \
+    --channelName mychannel \
     --ordererOrgName OrdererOrg \
     Org1
 ```
@@ -127,7 +144,7 @@ hlf-deploy uptateAnchorPeer --configFile config.yaml \
 
 ```bash
 hlf-deploy joinChannel --configFile config.yaml \
-    --channeName testchannel \
+    --channelName mychannel \
     Org1 Org2
 ```
 
@@ -136,9 +153,9 @@ hlf-deploy joinChannel --configFile config.yaml \
 ```bash
 hlf-deploy installChaincode --configFile config.yaml \
     --goPath ./chaincode \
-    --chaincodePath example02 \
+    --chaincodePath example_02 \
     --chaincodeName example \
-    --chaincodeVersion v0.1.0 \
+    --chaincodeVersion v1.0 \
     Org1 Org2
 ```
 
@@ -149,13 +166,13 @@ hlf-deploy installChaincode --configFile config.yaml \
 
 ```bash
 hlf-deploy upgradeChaincode --configFile config.yaml \
-    --channelName testchannel \
+    --channelName mychannel \
     --orgName Org1 \
     --chaincodePolicy Org1MSP,Org2MSP \
     --chaincodePolicyNOutOf 2 \
-    --chaincodePath example02 \
-    --chaincodeName example \
-    --chaincodeVersion v0.1.0 \
+    --chaincodePath example_02 \
+    --chaincodeName mycc \
+    --chaincodeVersion v1.0 \
     a 200 b 100
 ```
 
@@ -163,7 +180,7 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 
 ```bash
 hlf-deploy instantiateChaincode --configFile config.yaml \
-    --channelName testchannel \
+    --channelName mychannel \
     --orgName Org1 \
     --chaincodePolicy Org1MSP,Org2MSP \
     --chaincodePolicyNOutOf 1 \
@@ -177,7 +194,7 @@ hlf-deploy instantiateChaincode --configFile config.yaml \
 
 ```bash
 hlf-deploy queryChaincode --configFile config.yaml \
-    --channelName testchannel \
+    --channelName mychannel \
     --orgName Org1 \
     --chaincodeName example \
     query a
@@ -187,7 +204,7 @@ hlf-deploy queryChaincode --configFile config.yaml \
 
 ```bash
 hlf-deploy invokeChaincode --configFile config.yaml \
-    --channelName testchannel \
+    --channelName mychannel \
     --orgName Org1 \
     --endorsementOrgsName Org1,Org2 \
     --chaincodeName example \

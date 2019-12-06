@@ -94,7 +94,7 @@ hlf-deploy uptateAnchorPeer --configFile config.yaml \
 
 ```bash
 hlf-deploy joinChannel --configFile config.yaml \
-    --channeName testchannel \
+    --channelName testchannel \
     Org1 Org2
 ```
 
