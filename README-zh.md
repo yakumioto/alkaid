@@ -5,6 +5,23 @@
 
 本项目基于 `Docker swarm` 进行多机部署
 
+# 已支持功能
+
+- createChannel
+- updateAnchorPeer
+- joinChannel
+- installChaincode
+- instantiateChaincode
+- upgradeChaincode
+- invokeChaincode
+- queryChaincode
+- addOrgChannel (动态添加组织)
+
+# 在实现中
+
+- deleteOrgChannel (动态删除组织)
+- changeOrgCertificate (动态修改组织证书)
+
 ## 前期准备工作
 
 1. docker swarm 集群 (可单节点)
