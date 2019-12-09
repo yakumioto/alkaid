@@ -83,9 +83,11 @@ func init() {
 	invokeChaincodeCmd.Flags().StringSliceVar(&endorsementOrgsName, "endorsementOrgsName", nil, "Set the endorsement organitztions name.")
 	invokeChaincodeCmd.Flags().StringVar(&chaincodeName, "chaincodeName", "chaincode", "Chaincode name.")
 
+	addOrgChannelCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
 	addOrgChannelCmd.Flags().StringVar(&ordererOrgName, "ordererOrgName", "OrdererOrg", "Orderer organitztion name.")
 	addOrgChannelCmd.Flags().BoolVar(&sysChannel, "sysChannel", false, "Channel is system channel.")
 	addOrgChannelCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
-	addOrgChannelCmd.Flags().StringVar(&newOrgConfig, "OrgConfig", "org.json", "New organitztion config material in JSON.")
-	addOrgChannelCmd.Flags().StringVar(&newOrgMSPID, "OrgMSPID", "mspid", "New organitztion MSP id.")
+	addOrgChannelCmd.Flags().StringVar(&newOrgConfig, "orgConfig", "org.json", "New organitztion config material in JSON.")
+	addOrgChannelCmd.Flags().StringVar(&newOrgMSPID, "orgMSPID", "mspid", "New organitztion MSP id.")
+	addOrgChannelCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
 }

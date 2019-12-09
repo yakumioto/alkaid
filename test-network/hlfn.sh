@@ -49,7 +49,7 @@ function upNetwork() {
     ORDERER_HOSTNAME=orderer \
         ORDERER_DOMAIN=example.com \
         ORDERER_GENERAL_LOCALMSPID=OrdererMSP \
-        FABRIC_LOGGING_SPEC=info \
+        FABRIC_LOGGING_SPEC=debug \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
         PORT=7050 \
@@ -59,7 +59,7 @@ function upNetwork() {
 
     PEER_HOSTNAME=peer0 \
         PEER_DOMAIN=org1.example.com \
-        FABRIC_LOGGING_SPEC=info \
+        FABRIC_LOGGING_SPEC=debug \
         CORE_PEER_LOCALMSPID=Org1MSP \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
@@ -70,7 +70,7 @@ function upNetwork() {
 
     PEER_HOSTNAME=peer1 \
         PEER_DOMAIN=org1.example.com \
-        FABRIC_LOGGING_SPEC=info \
+        FABRIC_LOGGING_SPEC=debug \
         CORE_PEER_LOCALMSPID=Org1MSP \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
@@ -81,7 +81,7 @@ function upNetwork() {
 
     PEER_HOSTNAME=peer0 \
         PEER_DOMAIN=org2.example.com \
-        FABRIC_LOGGING_SPEC=info \
+        FABRIC_LOGGING_SPEC=debug \
         CORE_PEER_LOCALMSPID=Org2MSP \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
@@ -92,7 +92,7 @@ function upNetwork() {
 
     PEER_HOSTNAME=peer1 \
         PEER_DOMAIN=org2.example.com \
-        FABRIC_LOGGING_SPEC=info \
+        FABRIC_LOGGING_SPEC=debug \
         CORE_PEER_LOCALMSPID=Org2MSP \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \

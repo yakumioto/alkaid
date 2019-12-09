@@ -99,15 +99,8 @@ func ComputeUpdate(channelName string, origin, updated []byte) ([]byte, error) {
 	return reply, nil
 }
 
-func GetStdConfigBytes(sysChannel bool, mspID string, configBytes []byte) []byte {
-	var format string
-
-	if sysChannel {
-		format = `{"channel_group":{"groups":{"Consortiums":{"groups":{"SampleConsortium":{"groups":{"%s":%s}}}}}}}`
-	} else {
-		format = `{"channel_group":{"groups":{"Application":{"groups":{"%s":%s}}}}}`
-	}
-
+func GetStdConfigBytes(mspID string, configBytes []byte) []byte {
+	format := `{"channel_group":{"groups":{"Application":{"groups":{"%s":%s}}}}}`
 	return []byte(fmt.Sprintf(format, mspID, string(configBytes)))
 }
 

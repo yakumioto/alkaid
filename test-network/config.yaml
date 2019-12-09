@@ -2,21 +2,21 @@
 version: 1.0.0
 
 client:
-  organization: org1
+  organization: ordererorg
   logging:
-    level: info
+    level: debug
   cryptoconfig:
     path: /nfsvolume/crypto-config
   credentialStore:
     path: /tmp/state-store
   cryptoStore:
     path: /tmp/msp
-  tlsCerts:
-    client:
-      key:
-        path: /nfsvolume/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.key
-      cert:
-        path: /nfsvolume/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.crt
+#  tlsCerts:
+#    client:
+#      key:
+#        path: /nfsvolume/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.key
+#      cert:
+#        path: /nfsvolume/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.crt
 
 channels:
   _default:

@@ -251,6 +251,8 @@ func queryAdnInvokeChaincode(cmd *cobra.Command, args []string) {
 }
 
 func addOrgChannel(_ *cobra.Command, args []string) {
+	var block, config interface{}
+
 	utils.InitRPCClient(rpcAddress)
 
 	sdk := utils.SDKNew(fabconfig)
@@ -276,12 +278,20 @@ func addOrgChannel(_ *cobra.Command, args []string) {
 		log.Fatalln("proto decode common.Block error:", err)
 	}
 
-	block := new(Block)
+	if sysChannel {
+		block = new(SystemBlock)
+	} else {
+		block = new(Block)
+	}
 	if err := json.Unmarshal(blockBytes, block); err != nil {
 		log.Fatalln("unmarshal block json error:", err)
 	}
 
-	config := block.Data.Data[0].Payload.Data.Config
+	if sysChannel {
+		config = block.(*SystemBlock).Data.Data[0].Payload.Data.Config
+	} else {
+		config = block.(*Block).Data.Data[0].Payload.Data.Config
+	}
 
 	configBytes, err := json.Marshal(config)
 	if err != nil {
@@ -294,7 +304,7 @@ func addOrgChannel(_ *cobra.Command, args []string) {
 		log.Fatalln(err)
 	}
 
-	newOrgConfigBytes := utils.GetStdConfigBytes(sysChannel, newOrgMSPID, newOrgFileBytes)
+	newOrgConfigBytes := utils.GetStdConfigBytes(newOrgMSPID, newOrgFileBytes)
 
 	newOrgConfig := new(Config)
 	if err := json.Unmarshal(newOrgConfigBytes, newOrgConfig); err != nil {
@@ -302,8 +312,14 @@ func addOrgChannel(_ *cobra.Command, args []string) {
 	}
 
 	// get modified config.json
-	for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
-		config.ChannelGroup.Groups.Application.Groups[orgName] = org
+	if sysChannel {
+		for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
+			config.(*SystemConfig).ChannelGroup.Groups.Consortiums.Groups.SampleConsortium.Groups[orgName] = org
+		}
+	} else {
+		for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
+			config.(*Config).ChannelGroup.Groups.Application.Groups[orgName] = org
+		}
 	}
 
 	modifiedConfigBytes, err := json.Marshal(config)
