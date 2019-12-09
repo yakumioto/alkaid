@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   ca:
-    image: hyperledger/fabric-ca:1.4.3
+    image: hyperledger/fabric-ca:${FABRIC_VERSION}
     networks:
       hlf:
         aliases:

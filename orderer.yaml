@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   orderer:
-    image: hyperledger/fabric-orderer:1.4.3
+    image: hyperledger/fabric-orderer:${FABRIC_VERSION}
     networks:
       hlf:
         aliases:

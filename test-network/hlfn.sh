@@ -7,9 +7,11 @@ function printHelp() {
   echo "    <mode> - one of 'up', 'down'"
   echo "      - 'up' - bring up the network with docker-compose up"
   echo "      - 'down' - clear the network with docker-compose down"
+  echo "      - 'addOrgChannel' - add new organization to channel"
   echo
   echo "Taking all defaults:"
   echo "	hlfn.sh up"
+  echo "	hlfn.sh addOrgChannel"
   echo "	hlfn.sh down"
 }
 
@@ -18,38 +20,12 @@ if [[ ! -f "../bin/hlf-deploy" ]]; then
     chmod +x ../bin/hlf-deploy
 fi
 
-if [[ "${1}" = "-m" ]]; then
-  shift
-fi
-mode=${1}
-shift
-
-if [[ "${mode}" == "up" ]]; then
-    :
-elif [[ "${mode}" == "down" ]]; then
-    :
-else
-    printHelp
-    exit 1
-fi
-
-while getopts "h?:n:" opt; do
-  case ${opt} in
-  h | \?)
-    printHelp
-    exit 0
-    ;;
-  n)
-    nodename=${OPTARG}
-    ;;
-  esac
-done
-
 function upNetwork() {
-    ORDERER_HOSTNAME=orderer \
+    FABRIC_VERSION=1.4.4 \
+        ORDERER_HOSTNAME=orderer \
         ORDERER_DOMAIN=example.com \
         ORDERER_GENERAL_LOCALMSPID=OrdererMSP \
-        FABRIC_LOGGING_SPEC=debug \
+        FABRIC_LOGGING_SPEC=info \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
         PORT=7050 \
@@ -57,9 +33,10 @@ function upNetwork() {
         NFS_PATH=/nfsvolume \
         docker stack up -c ../orderer.yaml orderer
 
-    PEER_HOSTNAME=peer0 \
+    FABRIC_VERSION=1.4.4 \
+        PEER_HOSTNAME=peer0 \
         PEER_DOMAIN=org1.example.com \
-        FABRIC_LOGGING_SPEC=debug \
+        FABRIC_LOGGING_SPEC=info \
         CORE_PEER_LOCALMSPID=Org1MSP \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
@@ -68,9 +45,10 @@ function upNetwork() {
         NFS_PATH=/nfsvolume \
         docker stack up -c ../peer-leveldb.yaml peer0org1
 
-    PEER_HOSTNAME=peer1 \
+    FABRIC_VERSION=1.4.4 \
+        PEER_HOSTNAME=peer1 \
         PEER_DOMAIN=org1.example.com \
-        FABRIC_LOGGING_SPEC=debug \
+        FABRIC_LOGGING_SPEC=info \
         CORE_PEER_LOCALMSPID=Org1MSP \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
@@ -79,9 +57,10 @@ function upNetwork() {
         NFS_PATH=/nfsvolume \
         docker stack up -c ../peer-leveldb.yaml peer1org1
 
-    PEER_HOSTNAME=peer0 \
+    FABRIC_VERSION=1.4.4 \
+        PEER_HOSTNAME=peer0 \
         PEER_DOMAIN=org2.example.com \
-        FABRIC_LOGGING_SPEC=debug \
+        FABRIC_LOGGING_SPEC=info \
         CORE_PEER_LOCALMSPID=Org2MSP \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
@@ -90,9 +69,10 @@ function upNetwork() {
         NFS_PATH=/nfsvolume \
         docker stack up -c ../peer-leveldb.yaml peer0org2
 
-    PEER_HOSTNAME=peer1 \
+    FABRIC_VERSION=1.4.4 \
+        PEER_HOSTNAME=peer1 \
         PEER_DOMAIN=org2.example.com \
-        FABRIC_LOGGING_SPEC=debug \
+        FABRIC_LOGGING_SPEC=info \
         CORE_PEER_LOCALMSPID=Org2MSP \
         NODE_HOSTNAME=${nodename} \
         NETWORK=hlf \
@@ -162,6 +142,16 @@ function invokeChaincode() {
         invoke a b 50
 }
 
+function addOrganization() {
+    ../bin/hlf-deploy addOrgChannel --configFile config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --orgConfig channel-artifacts/org3.json \
+        --orgMSPID Org3MSP \
+        --rpcAddress localhost:1234 \
+        Org1 Org2
+}
+
 function cleanNetwork() {
     docker stack rm orderer
     docker stack rm peer0org1
@@ -179,6 +169,35 @@ if [[ ! -f "../bin/hlf-deploy" ]]; then
     exit 1
 fi
 
+if [[ "${1}" = "-m" ]]; then
+  shift
+fi
+mode=${1}
+shift
+
+if [[ "${mode}" == "up" ]]; then
+    :
+elif [[ "${mode}" == "down" ]]; then
+    :
+elif [[ "${mode}" == "addOrgChannel" ]]; then
+    :
+else
+    printHelp
+    exit 1
+fi
+
+while getopts "h?:n:" opt; do
+  case ${opt} in
+  h | \?)
+    printHelp
+    exit 0
+    ;;
+  n)
+    nodename=${OPTARG}
+    ;;
+  esac
+done
+
 if [[ "${mode}" == "up" ]]; then
     upNetwork
     createChannel
@@ -193,6 +212,8 @@ if [[ "${mode}" == "up" ]]; then
     invokeChaincode
     queryChaincode a
     queryChaincode b
+elif [[ "${mode}" == "addOrgChannel" ]]; then ## Clear the network
+    addOrganization
 elif [[ "${mode}" == "down" ]]; then ## Clear the network
     cleanNetwork
 fi
