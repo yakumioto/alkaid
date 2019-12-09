@@ -312,12 +312,13 @@ func addOrgChannel(_ *cobra.Command, args []string) {
 	}
 
 	// get modified config.json
+	var org interface{}
 	if sysChannel {
-		for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
+		for orgName, org = range newOrgConfig.ChannelGroup.Groups.Application.Groups {
 			config.(*SystemConfig).ChannelGroup.Groups.Consortiums.Groups.SampleConsortium.Groups[orgName] = org
 		}
 	} else {
-		for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
+		for orgName, org = range newOrgConfig.ChannelGroup.Groups.Application.Groups {
 			config.(*Config).ChannelGroup.Groups.Application.Groups[orgName] = org
 		}
 	}
@@ -369,6 +370,7 @@ func addOrgChannel(_ *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatalf("%s get signing identity error: %s", orgName, err)
 		}
+
 		signingIdentities = append(signingIdentities, identity)
 	}
 
@@ -378,10 +380,10 @@ func addOrgChannel(_ *cobra.Command, args []string) {
 		SigningIdentities: signingIdentities,
 	}
 
-	txID, err := resMgmt.SaveChannel(req, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
+	txID, err := resMgmt.SaveChannel(req)
 	if err != nil {
-		log.Fatalf("add organization to %s error: %s", channelName, err)
+		log.Fatalf("add %s to %s error: %s", orgName, channelName, err)
 	}
 
-	log.Printf("add organization to %s txID: %s", channelName, txID.TransactionID)
+	log.Printf("add %s to %s txID: %s", orgName, channelName, txID.TransactionID)
 }

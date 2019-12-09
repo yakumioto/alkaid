@@ -17,7 +17,7 @@ services:
       - COUCHDB_PASSWORD=
 
   peer:
-    image: hyperledger/fabric-peer:1.4.3
+    image: hyperledger/fabric-peer:${FABRIC_VERSION}
     networks:
       hlf:
         aliases:
