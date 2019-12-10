@@ -14,6 +14,7 @@ function printHelp() {
 }
 
 if [[ ! -f "../bin/hlf-deploy" ]]; then
+    mkdir -p ../bin
     curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy
     chmod +x ../bin/hlf-deploy
 fi
