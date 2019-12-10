@@ -14,7 +14,7 @@ function printHelp() {
 }
 
 if [[ ! -f "../bin/hlf-deploy" ]]; then
-    curl -L -O https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy
+    curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy
     chmod +x ../bin/hlf-deploy
 fi
 
