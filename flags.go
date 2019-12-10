@@ -18,8 +18,8 @@ var (
 	endorsementOrgsName   []string
 	rpcAddress            string
 	sysChannel            bool
-	newOrgConfig          string
-	newOrgMSPID           string
+	orgConfig             string
+	orgMSPID              string
 )
 
 func init() {
@@ -34,6 +34,8 @@ func init() {
 	rootCmd.AddCommand(queryChaincodeCmd)
 	rootCmd.AddCommand(invokeChaincodeCmd)
 	rootCmd.AddCommand(addOrgChannelCmd)
+	rootCmd.AddCommand(updateOrgChannelCmd)
+	rootCmd.AddCommand(delOrgChannelCmd)
 
 	createChannelCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
 	createChannelCmd.Flags().StringVar(&channelTX, "channelTxFile", "channel.tx", "Channel TX file path.")
@@ -87,7 +89,22 @@ func init() {
 	addOrgChannelCmd.Flags().StringVar(&ordererOrgName, "ordererOrgName", "OrdererOrg", "Orderer organitztion name.")
 	addOrgChannelCmd.Flags().BoolVar(&sysChannel, "sysChannel", false, "Channel is system channel.")
 	addOrgChannelCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
-	addOrgChannelCmd.Flags().StringVar(&newOrgConfig, "orgConfig", "org.json", "New organitztion config material in JSON.")
-	addOrgChannelCmd.Flags().StringVar(&newOrgMSPID, "orgMSPID", "mspid", "New organitztion MSP id.")
+	addOrgChannelCmd.Flags().StringVar(&orgConfig, "orgConfig", "org.json", "New organitztion config material in JSON.")
+	addOrgChannelCmd.Flags().StringVar(&orgMSPID, "orgMSPID", "mspid", "New organitztion MSP id.")
 	addOrgChannelCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
+
+	updateOrgChannelCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
+	updateOrgChannelCmd.Flags().StringVar(&ordererOrgName, "ordererOrgName", "OrdererOrg", "Orderer organitztion name.")
+	updateOrgChannelCmd.Flags().BoolVar(&sysChannel, "sysChannel", false, "Channel is system channel.")
+	updateOrgChannelCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
+	updateOrgChannelCmd.Flags().StringVar(&orgConfig, "orgConfig", "org.json", "New organitztion config material in JSON.")
+	updateOrgChannelCmd.Flags().StringVar(&orgMSPID, "orgMSPID", "mspid", "New organitztion MSP id.")
+	updateOrgChannelCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
+
+	delOrgChannelCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
+	delOrgChannelCmd.Flags().StringVar(&ordererOrgName, "ordererOrgName", "OrdererOrg", "Orderer organitztion name.")
+	delOrgChannelCmd.Flags().BoolVar(&sysChannel, "sysChannel", false, "Channel is system channel.")
+	delOrgChannelCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
+	delOrgChannelCmd.Flags().StringVar(&orgMSPID, "orgMSPID", "mspid", "New organitztion MSP id.")
+	delOrgChannelCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
 }

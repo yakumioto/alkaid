@@ -59,6 +59,18 @@ var (
 	addOrgChannelCmd = &cobra.Command{
 		Use:   `addOrgChannel`,
 		Short: `add organization to channel.`,
-		Run:   addOrgChannel,
+		Run:   addAdnUpdateOrgChannel,
+	}
+
+	updateOrgChannelCmd = &cobra.Command{
+		Use:   `updateOrgChannel`,
+		Short: `update organization to channel.`,
+		Run:   addAdnUpdateOrgChannel,
+	}
+
+	delOrgChannelCmd = &cobra.Command{
+		Use:   `delOrgChannel`,
+		Short: `delete organization to channel.`,
+		Run:   delOrgChannel,
 	}
 )

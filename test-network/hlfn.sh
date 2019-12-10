@@ -3,15 +3,13 @@
 
 function printHelp() {
   echo "Usage: "
-  echo "  hlfn.sh <mode> [-n <nodename name>]"
+  echo "  hlfn.sh <mode>"
   echo "    <mode> - one of 'up', 'down'"
   echo "      - 'up' - bring up the network with docker-compose up"
   echo "      - 'down' - clear the network with docker-compose down"
-  echo "      - 'addOrgChannel' - add new organization to channel"
   echo
   echo "Taking all defaults:"
   echo "	hlfn.sh up"
-  echo "	hlfn.sh addOrgChannel"
   echo "	hlfn.sh down"
 }
 
@@ -20,66 +18,13 @@ if [[ ! -f "../bin/hlf-deploy" ]]; then
     chmod +x ../bin/hlf-deploy
 fi
 
+if [[ -z "$(docker images -q yakumioto/hlf-tools:latest)" ]]; then
+    echo "docker pull yakumioto/hlf-tools:latest"
+    docker pull yakumioto/hlf-tools:latest
+fi
+
 function upNetwork() {
-    FABRIC_VERSION=1.4.4 \
-        ORDERER_HOSTNAME=orderer \
-        ORDERER_DOMAIN=example.com \
-        ORDERER_GENERAL_LOCALMSPID=OrdererMSP \
-        FABRIC_LOGGING_SPEC=info \
-        NODE_HOSTNAME=${nodename} \
-        NETWORK=hlf \
-        PORT=7050 \
-        NFS_ADDR=127.0.0.1 \
-        NFS_PATH=/nfsvolume \
-        docker stack up -c ../orderer.yaml orderer
-
-    FABRIC_VERSION=1.4.4 \
-        PEER_HOSTNAME=peer0 \
-        PEER_DOMAIN=org1.example.com \
-        FABRIC_LOGGING_SPEC=info \
-        CORE_PEER_LOCALMSPID=Org1MSP \
-        NODE_HOSTNAME=${nodename} \
-        NETWORK=hlf \
-        PORT=7051 \
-        NFS_ADDR=127.0.0.1 \
-        NFS_PATH=/nfsvolume \
-        docker stack up -c ../peer-leveldb.yaml peer0org1
-
-    FABRIC_VERSION=1.4.4 \
-        PEER_HOSTNAME=peer1 \
-        PEER_DOMAIN=org1.example.com \
-        FABRIC_LOGGING_SPEC=info \
-        CORE_PEER_LOCALMSPID=Org1MSP \
-        NODE_HOSTNAME=${nodename} \
-        NETWORK=hlf \
-        PORT=8051 \
-        NFS_ADDR=127.0.0.1 \
-        NFS_PATH=/nfsvolume \
-        docker stack up -c ../peer-leveldb.yaml peer1org1
-
-    FABRIC_VERSION=1.4.4 \
-        PEER_HOSTNAME=peer0 \
-        PEER_DOMAIN=org2.example.com \
-        FABRIC_LOGGING_SPEC=info \
-        CORE_PEER_LOCALMSPID=Org2MSP \
-        NODE_HOSTNAME=${nodename} \
-        NETWORK=hlf \
-        PORT=9051 \
-        NFS_ADDR=127.0.0.1 \
-        NFS_PATH=/nfsvolume \
-        docker stack up -c ../peer-leveldb.yaml peer0org2
-
-    FABRIC_VERSION=1.4.4 \
-        PEER_HOSTNAME=peer1 \
-        PEER_DOMAIN=org2.example.com \
-        FABRIC_LOGGING_SPEC=info \
-        CORE_PEER_LOCALMSPID=Org2MSP \
-        NODE_HOSTNAME=${nodename} \
-        NETWORK=hlf \
-        PORT=10051 \
-        NFS_ADDR=127.0.0.1 \
-        NFS_PATH=/nfsvolume \
-        docker stack up -c ../peer-leveldb.yaml peer1org2
+    docker-compose up -d
 }
 
 function createChannel() {
@@ -152,16 +97,31 @@ function addOrganization() {
         Org1 Org2
 }
 
+function updateOrganization() {
+    ../bin/hlf-deploy updateOrgChannel --configFile config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --orgConfig channel-artifacts/modify-org3.json \
+        --orgMSPID Org3MSP \
+        --rpcAddress localhost:1234 \
+        Org3
+}
+
+function deleteOrganization() {
+    ../bin/hlf-deploy delOrgChannel --configFile config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --orgMSPID Org3MSP \
+        --rpcAddress localhost:1234 \
+        Org1 Org2
+}
+
 function cleanNetwork() {
-    docker stack rm orderer
-    docker stack rm peer0org1
-    docker stack rm peer1org1
-    docker stack rm peer0org2
-    docker stack rm peer1org2
+    docker-compose down
 
-    sleep 10s
+    sleep 5s
 
-    docker volume prune
+    docker volume prune -f
 }
 
 if [[ ! -f "../bin/hlf-deploy" ]]; then
@@ -179,21 +139,16 @@ if [[ "${mode}" == "up" ]]; then
     :
 elif [[ "${mode}" == "down" ]]; then
     :
-elif [[ "${mode}" == "addOrgChannel" ]]; then
-    :
 else
     printHelp
     exit 1
 fi
 
-while getopts "h?:n:" opt; do
+while getopts "h?:" opt; do
   case ${opt} in
   h | \?)
     printHelp
     exit 0
-    ;;
-  n)
-    nodename=${OPTARG}
     ;;
   esac
 done
@@ -212,8 +167,9 @@ if [[ "${mode}" == "up" ]]; then
     invokeChaincode
     queryChaincode a
     queryChaincode b
-elif [[ "${mode}" == "addOrgChannel" ]]; then ## Clear the network
     addOrganization
+    updateOrganization
+    deleteOrganization
 elif [[ "${mode}" == "down" ]]; then ## Clear the network
     cleanNetwork
 fi

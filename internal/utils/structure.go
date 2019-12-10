@@ -1,4 +1,4 @@
-package main
+package utils
 
 type SystemBlock struct {
 	Data struct {
