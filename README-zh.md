@@ -3,8 +3,6 @@
 本项目不建议零基础直接上手, 可以先根据官方的 
 [fabric-samples/first-network](https://github.com/hyperledger/fabric-samples) 入门
 
-本项目基于 `Docker swarm` 进行多机部署
-
 ## 已支持功能
 
 - createChannel
@@ -16,90 +14,46 @@
 - invokeChaincode
 - queryChaincode
 - addOrgChannel (动态添加组织, 支持 system channel)
-
-## 在实现中
-
-- deleteOrgChannel (动态删除组织)
-- changeOrgCertificate (动态修改组织证书)
-
-## 前期准备工作
-
-1. docker swarm 集群 (可单节点)
-2. fabric all images
-3. nfs server client (用于共享证书等文件)
-4. channel-artifacts
-5. crypto-config
-
-```text
-channel-artifacts
-├── channel.tx
-├── genesis.block
-├── Org1MSPanchors.tx
-└── Org2MSPanchors.tx
-```
-
-```text
-crypto-config
-├── ordererOrganizations
-│   └── example.com
-└── peerOrganizations
-    ├── org1.example.com
-    └── org2.example.com
-```
+- deleteOrgChannel (动态删除组织, 支持 system channel)
+- changeOrgCertificate (动态修改组织证书, 支持 system channel)
 
 ## 启动测试网络
-
-**请保证上方所有准备工作已经完毕!**
-
-**将 nfs 目录创建在 `/nfsvolume` !**
-
-**以 root 权限运行**
-
-```text
-# nfs 配置编写
-# 编辑 /etc/exports 
-# 添加以下行, 并保存
-# 并执行 exportfs -arv 重新加载
-# 如实在不懂可 google
-
-/nfsvolume *(ro,sync,no_root_squash)
-```
 
 进入 `test-network` 目录
 
 ### 启动网络
 
 ```bash
-./hlfn.sh up -n manjaro
+./hlfn.sh up
 
 # output
-Creating service orderer_orderer
-Creating service peer0org1_peer
-Creating service peer1org1_peer
-Creating service peer0org2_peer
-Creating service peer1org2_peer
-2019/12/09 18:11:33 create channel txID: 009e848cea0b1731f2c5ff11d08435f9dcb045bfbb472c0cf66e64c7c25af535
-2019/12/09 18:11:33 Org1 update anchor peer txID: 0831972c4a4c52a45fade69c82c14ec0c2a9fdc79657e4cb5ff6093d96ecd2c4
-2019/12/09 18:11:33 Org2 update anchor peer txID: 1791b42f58e309dfb8517cf049884c1da58c865ff5bb16300610bc2a87f35ff4
-2019/12/09 18:11:33 Org1 join channel successful
-2019/12/09 18:11:36 Org2 join channel successful
-2019/12/09 18:11:36 Org1 install chaincode successful
-2019/12/09 18:11:36 Org2 install chaincode successful
-2019/12/09 18:11:41 Org1 instantiate chaincode txID: b2dfb3b59ebf732f5c9a765863af40394da349077c554cd1c78f2833059c6bc6 args: [a 100 b 200]
-2019/12/09 18:11:51 Org1 query chaincode txID: ce8f61708298abfc5337e362c8be48655cdb7b6e7a504f13ba07751051c4c369 args: [query a] result: 100
-2019/12/09 18:11:51 Org1 query chaincode txID: a3dad9a3ffadbb85696c9a7a3b3590bc010433dffdacc9a75f16bf450107414e args: [query b] result: 200
-2019/12/09 18:11:53 Org1 invoke chaincode txID: 74d8acd5218a169825b0daea535b99e8dd1b6bba83b96c27e2481747704dd698 args: [invoke a b 50]
-2019/12/09 18:11:53 Org1 query chaincode txID: 0f9c2e19de066b915813f4bc676b181fb8d9ba967c4915a7fa8c90e30d25b041 args: [query a] result: 50
-2019/12/09 18:11:53 Org1 query chaincode txID: ef9086e500e2f6da399cb5b1a197a175a6987ac8bcb2862e1f9805f56a21fd0c args: [query b] result: 250
-```
-
-### 动态添加组织
-
-```bash
-./hlfn.sh addOrgChannel
-
-# output
-2019/12/09 18:22:13 add Org3MSP to mychannel txID: 3ef3711dea377a5611f036c8b787993779e8610f4e055a3c84b101c3d992aa3d
+Creating network "test-network_byfn" with the default driver
+Creating volume "test-network_orderer.example.com" with default driver
+Creating volume "test-network_peer0.org1.example.com" with default driver
+Creating volume "test-network_peer0.org2.example.com" with default driver
+Creating volume "test-network_peer1.org1.example.com" with default driver
+Creating volume "test-network_peer1.org2.example.com" with default driver
+Creating peer0.org2.example.com ... done
+Creating peer1.org2.example.com ... done
+Creating peer0.org1.example.com ... done
+Creating peer1.org1.example.com ... done
+Creating orderer.example.com    ... done
+2019/12/10 17:55:18 create channel txID: ec92b11651b4457cb10cceb4f67670ddc90f938c0f329fbce6116be6b1a50602
+2019/12/10 17:55:18 Org1 update anchor peer txID: abd5de7ea4cc72728a60fa9437da766c8df990ebfb47de49d95353a210dcc81f
+2019/12/10 17:55:18 Org2 update anchor peer txID: 2e4680f3c0409387cd499f4d521555f638612714de37355b9cfa6d87b17741fc
+2019/12/10 17:55:18 Org1 join channel successful
+2019/12/10 17:55:18 Org2 join channel successful
+2019/12/10 17:55:18 Org1 install chaincode successful
+2019/12/10 17:55:18 Org2 install chaincode successful
+2019/12/10 17:55:24 Org1 instantiate chaincode txID: 969805f856bf98ac6aa9fc1afa2b52ff2343f5711c51677031d73e090c634beb args: [a 100 b 200]
+2019/12/10 17:55:34 Org1 query chaincode txID: 356450b292f3636d6cbe913c1e2ffe7286c17e30819160170d49a093916cb669 args: [query a] result: 100
+2019/12/10 17:55:34 Org1 query chaincode txID: fef70c04942c28308d30df3e62dccac1f7eb2244491c34ecb7b6b2a3af8134f4 args: [query b] result: 200
+2019/12/10 17:55:36 Org1 invoke chaincode txID: 3fce7db1f779d9d8187f26cd66431aa88807ed32ca7996dc1c94c37c140e4296 args: [invoke a b 50]
+2019/12/10 17:55:36 Org1 query chaincode txID: 09323d03d505a09918c9585d25c5dce2456702bda167b1f127ea80d5930979bb args: [query a] result: 50
+2019/12/10 17:55:37 Org1 query chaincode txID: 01e939dc3aef2fc32100dba1cfc6c446448fcb103fbe84f20f2cf645b405235c args: [query b] result: 250
+2019/12/10 17:55:37 save Org3MSP to mychannel txID: b9146c47a22470d31d9456abdfb7cf106384f019a5c1f2b0ad8a6fe172d736c9
+2019/12/10 17:55:37 save Org3MSP to mychannel txID: 3d31bbdb4ad19d42be364ac1ae2326ee0a7ebbee799ae9751b840813e587b977
+2019/12/10 17:55:37 delete Org3MSP to mychannel txID: 4ea217bf2d2ded1304e9df2b9dc3ef6764d4d4e72aab033e99880184834889e1
 ```
 
 ### 停止网络
@@ -108,21 +62,26 @@ Creating service peer1org2_peer
 ./hlfn.sh down
 
 # output
-Removing service orderer_orderer
-Removing service peer0org1_peer
-Removing service peer1org1_peer
-Removing service peer0org2_peer
-Removing service peer1org2_peer
-WARNING! This will remove all local volumes not used by at least one container.
-Are you sure you want to continue? [y/N] y
+Stopping orderer.example.com    ... done
+Stopping peer1.org2.example.com ... done
+Stopping peer1.org1.example.com ... done
+Stopping peer0.org1.example.com ... done
+Stopping peer0.org2.example.com ... done
+Removing orderer.example.com    ... done
+Removing peer1.org2.example.com ... done
+Removing peer1.org1.example.com ... done
+Removing peer0.org1.example.com ... done
+Removing peer0.org2.example.com ... done
+Removing network test-network_byfn
 Deleted Volumes:
-orderer.example.com.data
-peer1.org1.example.com.data
-peer0.org2.example.com.data
-peer0.org1.example.com.data
-peer1.org2.example.com.data
+test-network_orderer.example.com
+test-network_peer0.org1.example.com
+test-network_peer1.org2.example.com
+test-network_peer0.org2.example.com
+test-network_peer1.org1.example.com
 
-Total reclaimed space: 1.033MB
+Total reclaimed space: 1.475MB
+
 ```
 
 ## 启动网络 (单节点为例子)

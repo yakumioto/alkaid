@@ -2,11 +2,8 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
-	"io/ioutil"
 	"log"
 
-	"github.com/gogo/protobuf/proto"
 	mspprotos "github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
@@ -17,7 +14,7 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl"
 	"github.com/spf13/cobra"
-	"github.com/yakumioto/hlf-deploy/utils"
+	"github.com/yakumioto/hlf-deploy/internal/utils"
 )
 
 func createChannel(_ *cobra.Command, args []string) {
@@ -33,24 +30,10 @@ func createChannel(_ *cobra.Command, args []string) {
 		log.Fatalln("resmgmt new error: ", err)
 	}
 
-	signingIdentities := make([]msp.SigningIdentity, 0)
-
-	for _, orgName := range args {
-		mspClient, err := mspclient.New(sdk.Context(), mspclient.WithOrg(orgName))
-		if err != nil {
-			log.Fatalf("%s msp new error: %s", orgName, err)
-		}
-		identity, err := mspClient.GetSigningIdentity("Admin")
-		if err != nil {
-			log.Fatalf("%s get signing identity error: %s", orgName, err)
-		}
-		signingIdentities = append(signingIdentities, identity)
-	}
-
 	req := resmgmt.SaveChannelRequest{
 		ChannelID:         channelName,
 		ChannelConfigPath: channelTX,
-		SigningIdentities: signingIdentities,
+		SigningIdentities: utils.GetSigningIdentities(sdk.Context(), args),
 	}
 
 	txID, err := resMgmt.SaveChannel(req, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
@@ -250,11 +233,8 @@ func queryAdnInvokeChaincode(cmd *cobra.Command, args []string) {
 	}
 }
 
-func addOrgChannel(_ *cobra.Command, args []string) {
-	var block, config interface{}
-
+func addAdnUpdateOrgChannel(_ *cobra.Command, args []string) {
 	utils.InitRPCClient(rpcAddress)
-
 	sdk := utils.SDKNew(fabconfig)
 
 	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))
@@ -263,127 +243,61 @@ func addOrgChannel(_ *cobra.Command, args []string) {
 		log.Fatalln("resmgmt new error: ", err)
 	}
 
-	// get last config.block witch channelName
-	blockPB, err := resMgmt.QueryConfigBlockFromOrderer(channelName)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	blockPBBytes, err := proto.Marshal(blockPB)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// get newest config
+	configBytes := utils.GetNewestConfigWithConfigBlock(resMgmt, channelName, sysChannel)
 
-	blockBytes, err := utils.ProtoDecode("common.Block", blockPBBytes)
-	if err != nil {
-		log.Fatalln("proto decode common.Block error:", err)
-	}
+	// get new organization config
+	newOrgConfigBytes := utils.GetNewOrgConfigWithFielePath(orgConfig, orgMSPID)
 
-	if sysChannel {
-		block = new(SystemBlock)
-	} else {
-		block = new(Block)
-	}
-	if err := json.Unmarshal(blockBytes, block); err != nil {
-		log.Fatalln("unmarshal block json error:", err)
-	}
-
-	if sysChannel {
-		config = block.(*SystemBlock).Data.Data[0].Payload.Data.Config
-	} else {
-		config = block.(*Block).Data.Data[0].Payload.Data.Config
-	}
-
-	configBytes, err := json.Marshal(config)
-	if err != nil {
-		log.Fatalln("marshal config json error:", err)
-	}
-
-	// get new org config.json
-	newOrgFileBytes, err := ioutil.ReadFile(newOrgConfig)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	newOrgConfigBytes := utils.GetStdConfigBytes(newOrgMSPID, newOrgFileBytes)
-
-	newOrgConfig := new(Config)
-	if err := json.Unmarshal(newOrgConfigBytes, newOrgConfig); err != nil {
-		log.Fatalln(err)
-	}
-
-	// get modified config.json
-	var org interface{}
-	if sysChannel {
-		for orgName, org = range newOrgConfig.ChannelGroup.Groups.Application.Groups {
-			config.(*SystemConfig).ChannelGroup.Groups.Consortiums.Groups.SampleConsortium.Groups[orgName] = org
-		}
-	} else {
-		for orgName, org = range newOrgConfig.ChannelGroup.Groups.Application.Groups {
-			config.(*Config).ChannelGroup.Groups.Application.Groups[orgName] = org
-		}
-	}
-
-	modifiedConfigBytes, err := json.Marshal(config)
-	if err != nil {
-		log.Fatalln("marshal modified config json error:", err)
-	}
+	// get modified config
+	modifiedConfigBytes := utils.GetModifiedConfig(configBytes, newOrgConfigBytes, utils.ModifiedModAdd, sysChannel)
 
 	// get config.pb
-	configPBBytes, err := utils.ProtoEncode("common.Config", configBytes)
-	if err != nil {
-		log.Fatalln("proto encode common.Config error:", err)
-	}
-
-	// get modified config.pb
-	modifiedConfigPBBytes, err := utils.ProtoEncode("common.Config", modifiedConfigBytes)
-	if err != nil {
-		log.Fatalln("proto encode common.Config error:", err)
-	}
-
-	// get update.pb
-	updateConfigPBBytes, err := utils.ComputeUpdate(channelName, configPBBytes, modifiedConfigPBBytes)
-	if err != nil {
-		log.Fatalln("compute update error:", err)
-	}
-
-	// get update.json
-	updateConfigBytes, err := utils.ProtoDecode("common.ConfigUpdate", updateConfigPBBytes)
-	if err != nil {
-		log.Fatalln("proto decode common.ConfigUpdate error:", err)
-	}
-	updateEnvelopeBytes := utils.GetStdUpdateEnvelopBytes(channelName, updateConfigBytes)
-
-	// get update.pb
-	updateEnvelopePBBytes, err := utils.ProtoEncode("common.Envelope", updateEnvelopeBytes)
-	if err != nil {
-		log.Fatalln("proto encode common.Envelope error:", err)
-	}
-
-	// sign envelope
-	signingIdentities := make([]msp.SigningIdentity, 0)
-	for _, orgName := range args {
-		mspClient, err := mspclient.New(sdk.Context(), mspclient.WithOrg(orgName))
-		if err != nil {
-			log.Fatalf("%s msp new error: %s", orgName, err)
-		}
-		identity, err := mspClient.GetSigningIdentity("Admin")
-		if err != nil {
-			log.Fatalf("%s get signing identity error: %s", orgName, err)
-		}
-
-		signingIdentities = append(signingIdentities, identity)
-	}
+	updateEnvelopePBBytes := utils.GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes, channelName)
 
 	req := resmgmt.SaveChannelRequest{
 		ChannelID:         channelName,
 		ChannelConfig:     bytes.NewBuffer(updateEnvelopePBBytes),
-		SigningIdentities: signingIdentities,
+		SigningIdentities: utils.GetSigningIdentities(sdk.Context(), args),
 	}
 
 	txID, err := resMgmt.SaveChannel(req)
 	if err != nil {
-		log.Fatalf("add %s to %s error: %s", orgName, channelName, err)
+		log.Fatalf("save %s to %s error: %s", orgMSPID, channelName, err)
 	}
 
-	log.Printf("add %s to %s txID: %s", orgName, channelName, txID.TransactionID)
+	log.Printf("save %s to %s txID: %s", orgMSPID, channelName, txID.TransactionID)
+}
+
+func delOrgChannel(_ *cobra.Command, args []string) {
+	utils.InitRPCClient(rpcAddress)
+	sdk := utils.SDKNew(fabconfig)
+
+	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))
+	resMgmt, err := resmgmt.New(ordererCtx)
+	if err != nil {
+		log.Fatalln("resmgmt new error: ", err)
+	}
+
+	// get newest config
+	configBytes := utils.GetNewestConfigWithConfigBlock(resMgmt, channelName, sysChannel)
+
+	// get modified config
+	modifiedConfigBytes := utils.GetModifiedConfig(configBytes, []byte(orgMSPID), utils.ModifiedModDel, sysChannel)
+
+	// get config.pb
+	updateEnvelopePBBytes := utils.GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes, channelName)
+
+	req := resmgmt.SaveChannelRequest{
+		ChannelID:         channelName,
+		ChannelConfig:     bytes.NewBuffer(updateEnvelopePBBytes),
+		SigningIdentities: utils.GetSigningIdentities(sdk.Context(), args),
+	}
+
+	txID, err := resMgmt.SaveChannel(req)
+	if err != nil {
+		log.Fatalf("delete %s to %s error: %s", orgMSPID, channelName, err)
+	}
+
+	log.Printf("delete %s to %s txID: %s", orgMSPID, channelName, txID.TransactionID)
 }
