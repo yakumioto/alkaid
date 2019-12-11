@@ -6,7 +6,7 @@ client:
   logging:
     level: info
   cryptoconfig:
-    path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config
+    path: ./crypto-config
   credentialStore:
     path: /tmp/state-store
   cryptoStore:
@@ -14,9 +14,9 @@ client:
 #  tlsCerts:
 #    client:
 #      key:
-#        path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.key
+#        path: ./crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.key
 #      cert:
-#        path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.crt
+#        path: ./crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.crt
 
 channels:
   _default:
@@ -63,7 +63,7 @@ orderers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
+      path: ./crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
 
 peers:
   peer0.org1.example.com:
@@ -76,7 +76,7 @@ peers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
+      path: ./crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
   peer1.org1.example.com:
     url: peer1.org1.example.com:8051
     grpcOptions:
@@ -87,7 +87,7 @@ peers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
+      path: ./crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
 
   peer0.org2.example.com:
     url: peer0.org2.example.com:9051
@@ -99,7 +99,7 @@ peers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
+      path: ./crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
   peer1.org2.example.com:
     url: peer1.org2.example.com:10051
     grpcOptions:
@@ -110,7 +110,7 @@ peers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
+      path: ./crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
 
   peer0.org3.example.com:
     url: peer0.org3.example.com:9051
@@ -122,7 +122,7 @@ peers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config/peerOrganizations/org3.example.com/tlsca/tlsca.org3.example.com-cert.pem
+      path: ./crypto-config/peerOrganizations/org3.example.com/tlsca/tlsca.org3.example.com-cert.pem
   peer1.org3.example.com:
     url: peer1.org3.example.com:10051
     grpcOptions:
@@ -133,7 +133,7 @@ peers:
       fail-fast: false
       allow-insecure: false
     tlsCACerts:
-      path: /home/mioto/Workspace/me/hlf-deploy/test-network/crypto-config/peerOrganizations/org3.example.com/tlsca/tlsca.org3.example.com-cert.pem
+      path: ./crypto-config/peerOrganizations/org3.example.com/tlsca/tlsca.org3.example.com-cert.pem
 
 entityMatchers:
   peer:
