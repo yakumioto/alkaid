@@ -19,9 +19,13 @@
 
 ## 启动测试网络
 
-进入 `test-network` 目录
+```bash
+git clone https://github.com/yakumioto/hlf-deploy.git && \
+    cd hlf-deploy/test-network && \
+    ./hlfn.sh up
+```
 
-### 启动网络
+以下是输出示例
 
 ```bash
 ./hlfn.sh up
@@ -56,8 +60,6 @@ Creating orderer.example.com    ... done
 2019/12/10 17:55:37 delete Org3MSP to mychannel txID: 4ea217bf2d2ded1304e9df2b9dc3ef6764d4d4e72aab033e99880184834889e1
 ```
 
-### 停止网络
-
 ```bash
 ./hlfn.sh down
 
@@ -81,7 +83,6 @@ test-network_peer0.org2.example.com
 test-network_peer1.org1.example.com
 
 Total reclaimed space: 1.475MB
-
 ```
 
 ## 启动网络 (单节点为例子)
@@ -154,13 +155,25 @@ PEER_DOMAIN=org1.example.com \
     docker stack up -c ca.yaml peer0org1ca
 ```
 
-## 部署
+## 手动部署网络(单节点栗子)
+
+看看有没有下载二进制程序和动态添加组织的 `hlf-tools` 镜像, 如果没有下载的话, 先下载
+
+`curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy`
+
+`docker pull yakumioto/hlf-tools:latest`
+
+### 启动网络
+
+进入 `test-network` 目录
+
+`docker-compose up -d`
 
 ### 创建 Channel
 
 ```bash
-hlf-deploy createChannel --configFile config.yaml \
-    --channelTxFile channel.tx \
+../bin/hlf-deploy createChannel --configFile config.yaml \
+    --channelTxFile channel-artifacts/channel.tx \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     Org1 Org2
@@ -169,17 +182,23 @@ hlf-deploy createChannel --configFile config.yaml \
 ### 更新 Anchor Peer
 
 ```bash
-hlf-deploy uptateAnchorPeer --configFile config.yaml \
-    --anchorPeerTxFile anchor.tx \
+../bin/hlf-deploy updateAnchorPeer --configFile config.yaml \
+    --anchorPeerTxFile channel-artifacts/Org1MSPanchors.tx \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     Org1
+    
+../bin/hlf-deploy updateAnchorPeer --configFile config.yaml \
+    --anchorPeerTxFile channel-artifacts/Org2MSPanchors.tx \
+    --channelName mychannel \
+    --ordererOrgName OrdererOrg \
+    Org2
 ```
 
 ### 加入 Channel
 
 ```bash
-hlf-deploy joinChannel --configFile config.yaml \
+../bin/hlf-deploy joinChannel --configFile config.yaml \
     --channelName mychannel \
     Org1 Org2
 ```
@@ -187,18 +206,31 @@ hlf-deploy joinChannel --configFile config.yaml \
 ### 安装 Chaincode
 
 ```bash
-hlf-deploy installChaincode --configFile config.yaml \
-    --goPath ./chaincode \
+../bin/hlf-deploy installChaincode --configFile config.yaml \
+    --goPath chaincode \
     --chaincodePath example_02 \
-    --chaincodeName example \
+    --chaincodeName mycc \
     --chaincodeVersion v1.0 \
     Org1 Org2
 ```
-
-### 更新 Chaincode
+### 实例化 Chaincode
 
 `chaincodePolicy`: 设置需要哪些组织签名 (目前只支持 Member)
 `chaincodePolicyNOutOf`: 用来设置多少个组织签名检验成功后返回 true
+
+```bash
+../bin/hlf-deploy instantiateChaincode --configFile config.yaml \
+    --channelName mychannel \
+    --orgName Org1 \
+    --chaincodePolicy Org1MSP,Org2MSP \
+    --chaincodePolicyNOutOf 2 \
+    --chaincodePath example_02 \
+    --chaincodeName mycc \
+    --chaincodeVersion v1.0 \
+    a 100 b 200
+```
+
+### 更新 Chaincode
 
 ```bash
 hlf-deploy upgradeChaincode --configFile config.yaml \
@@ -208,41 +240,68 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
     --chaincodePolicyNOutOf 2 \
     --chaincodePath example_02 \
     --chaincodeName mycc \
-    --chaincodeVersion v1.0 \
-    a 200 b 100
-```
-
-### 实例化 Chaincode
-
-```bash
-hlf-deploy instantiateChaincode --configFile config.yaml \
-    --channelName mychannel \
-    --orgName Org1 \
-    --chaincodePolicy Org1MSP,Org2MSP \
-    --chaincodePolicyNOutOf 1 \
-    --chaincodePath example02 \
-    --chaincodeName example \
-    --chaincodeVersion v0.0.0 \
+    --chaincodeVersion v2.0 \
     a 100 b 200
 ```
 
 ### 查询 Chaincode
 
 ```bash
-hlf-deploy queryChaincode --configFile config.yaml \
+../bin/hlf-deploy queryChaincode --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
-    --chaincodeName example \
+    --chaincodeName mycc \
     query a
+
+../bin/hlf-deploy queryChaincode --configFile config.yaml \
+    --channelName mychannel \
+    --orgName Org1 \
+    --chaincodeName mycc \
+    query b
 ```
 
 ### 调用 Chaincode
 
 ```bash
-hlf-deploy invokeChaincode --configFile config.yaml \
+    ../bin/hlf-deploy invokeChaincode --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --endorsementOrgsName Org1,Org2 \
-    --chaincodeName example \
+    --chaincodeName mycc \
     invoke a b 50
+```
+
+### 动态添加 Org3 组织
+
+```bash
+../bin/hlf-deploy addOrgChannel --configFile config.yaml \
+    --channelName mychannel \
+    --ordererOrgName OrdererOrg \
+    --orgConfig channel-artifacts/org3.json \
+    --orgMSPID Org3MSP \
+    --rpcAddress localhost:1234 \
+    Org1 Org2
+```
+
+### 动态更新 Org3 组织
+
+```bash
+../bin/hlf-deploy updateOrgChannel --configFile config.yaml \
+    --channelName mychannel \
+    --ordererOrgName OrdererOrg \
+    --orgConfig channel-artifacts/modify-org3.json \
+    --orgMSPID Org3MSP \
+    --rpcAddress localhost:1234 \
+    Org3
+```
+
+### 动态删除 Org3 组织
+
+```bash
+../bin/hlf-deploy delOrgChannel --configFile config.yaml \
+    --channelName mychannel \
+    --ordererOrgName OrdererOrg \
+    --orgMSPID Org3MSP \
+    --rpcAddress localhost:1234 \
+    Org1 Org2
 ```
