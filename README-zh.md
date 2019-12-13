@@ -208,7 +208,7 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     --orgConfig channel-artifacts/org3.json \
-    --orgMSPID Org3MSP \
+    --orgName Org3MSP \
     --rpcAddress localhost:1234 \
     Org1 Org2
 ```
@@ -220,7 +220,7 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     --orgConfig channel-artifacts/modify-org3.json \
-    --orgMSPID Org3MSP \
+    --orgName Org3MSP \
     --rpcAddress localhost:1234 \
     Org3
 ```
@@ -231,7 +231,20 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ../bin/hlf-deploy delOrgChannel --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
-    --orgMSPID Org3MSP \
+    --orgName Org3MSP \
     --rpcAddress localhost:1234 \
     Org1 Org2
+```
+
+### 动态添加 OrdererOrg2 组织
+
+```bash
+../bin/hlf-deploy addOrgChannel --configFile config.yaml \
+    --channelName mychannel \
+    --ordererOrgName OrdererOrg \
+    --orgConfig channel-artifacts/newOrderer.json \
+    --orgName OrdererOrg2 \
+    --rpcAddress localhost:1234 \
+    --ordererOrg \
+    OrdererOrg
 ```
