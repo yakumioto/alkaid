@@ -93,7 +93,7 @@ function addOrganization() {
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
         --orgConfig channel-artifacts/org3.json \
-        --orgMSPID Org3MSP \
+        --orgName Org3MSP \
         --rpcAddress localhost:1234 \
         Org1 Org2
 }
@@ -103,7 +103,7 @@ function updateOrganization() {
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
         --orgConfig channel-artifacts/modify-org3.json \
-        --orgMSPID Org3MSP \
+        --orgName Org3MSP \
         --rpcAddress localhost:1234 \
         Org3
 }
@@ -112,9 +112,20 @@ function deleteOrganization() {
     ../bin/hlf-deploy delOrgChannel --configFile config.yaml \
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
-        --orgMSPID Org3MSP \
+        --orgName Org3MSP \
         --rpcAddress localhost:1234 \
         Org1 Org2
+}
+
+function addOrdererOrganization() {
+    ../bin/hlf-deploy addOrgChannel --configFile config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --orgConfig channel-artifacts/newOrderer.json \
+        --orgName OrdererOrg2 \
+        --rpcAddress localhost:1234 \
+        --ordererOrg \
+        OrdererOrg
 }
 
 function cleanNetwork() {
@@ -169,8 +180,10 @@ if [[ "${mode}" == "up" ]]; then
     queryChaincode a
     queryChaincode b
     addOrganization
+    addOrdererOrganization
     updateOrganization
     deleteOrganization
+
 elif [[ "${mode}" == "down" ]]; then ## Clear the network
     cleanNetwork
 fi

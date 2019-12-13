@@ -247,10 +247,10 @@ func addAdnUpdateOrgChannel(_ *cobra.Command, args []string) {
 	configBytes := utils.GetNewestConfigWithConfigBlock(resMgmt, channelName, sysChannel)
 
 	// get new organization config
-	newOrgConfigBytes := utils.GetNewOrgConfigWithFielePath(orgConfig, orgMSPID)
+	newOrgConfigBytes := utils.GetNewOrgConfigWithFielePath(orgConfig, orgName)
 
 	// get modified config
-	modifiedConfigBytes := utils.GetModifiedConfig(configBytes, newOrgConfigBytes, utils.ModifiedModAdd, sysChannel)
+	modifiedConfigBytes := utils.GetModifiedConfig(configBytes, newOrgConfigBytes, utils.ModifiedModAdd, ordererOrg, sysChannel)
 
 	// get config.pb
 	updateEnvelopePBBytes := utils.GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes, channelName)
@@ -263,10 +263,10 @@ func addAdnUpdateOrgChannel(_ *cobra.Command, args []string) {
 
 	txID, err := resMgmt.SaveChannel(req)
 	if err != nil {
-		log.Fatalf("save %s to %s error: %s", orgMSPID, channelName, err)
+		log.Fatalf("save %s to %s error: %s", orgName, channelName, err)
 	}
 
-	log.Printf("save %s to %s txID: %s", orgMSPID, channelName, txID.TransactionID)
+	log.Printf("save %s to %s txID: %s", orgName, channelName, txID.TransactionID)
 }
 
 func delOrgChannel(_ *cobra.Command, args []string) {
@@ -283,7 +283,7 @@ func delOrgChannel(_ *cobra.Command, args []string) {
 	configBytes := utils.GetNewestConfigWithConfigBlock(resMgmt, channelName, sysChannel)
 
 	// get modified config
-	modifiedConfigBytes := utils.GetModifiedConfig(configBytes, []byte(orgMSPID), utils.ModifiedModDel, sysChannel)
+	modifiedConfigBytes := utils.GetModifiedConfig(configBytes, []byte(orgName), utils.ModifiedModDel, ordererOrg, sysChannel)
 
 	// get config.pb
 	updateEnvelopePBBytes := utils.GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes, channelName)
@@ -296,8 +296,8 @@ func delOrgChannel(_ *cobra.Command, args []string) {
 
 	txID, err := resMgmt.SaveChannel(req)
 	if err != nil {
-		log.Fatalf("delete %s to %s error: %s", orgMSPID, channelName, err)
+		log.Fatalf("delete %s to %s error: %s", orgName, channelName, err)
 	}
 
-	log.Printf("delete %s to %s txID: %s", orgMSPID, channelName, txID.TransactionID)
+	log.Printf("delete %s to %s txID: %s", orgName, channelName, txID.TransactionID)
 }

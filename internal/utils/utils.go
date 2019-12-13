@@ -192,7 +192,7 @@ func GetNewOrgConfigWithFielePath(filePath, mspID string) []byte {
 	return GetStdConfigBytes(mspID, newOrgFileBytes)
 }
 
-func GetModifiedConfig(configBytes []byte, newOrgConfigBytes []byte, mod Mod, sysChannel bool) []byte {
+func GetModifiedConfig(configBytes []byte, newOrgConfigBytes []byte, mod Mod, ordererOrg, sysChannel bool) []byte {
 	var cfg interface{}
 
 	if configBytes != nil {
@@ -223,18 +223,37 @@ func GetModifiedConfig(configBytes []byte, newOrgConfigBytes []byte, mod Mod, sy
 	switch mod {
 	case ModifiedModAdd:
 		if sysChannel {
+			if ordererOrg {
+				for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
+					cfg.(*SystemConfig).ChannelGroup.Groups.Orderer.Groups[orgName] = org
+				}
+				break
+			}
 			for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
 				cfg.(*SystemConfig).ChannelGroup.Groups.Consortiums.Groups.SampleConsortium.Groups[orgName] = org
 			}
 		} else {
+			if ordererOrg {
+				for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
+					cfg.(*Config).ChannelGroup.Groups.Orderer.Groups[orgName] = org
+				}
+				break
+			}
 			for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
 				cfg.(*Config).ChannelGroup.Groups.Application.Groups[orgName] = org
 			}
 		}
 	case ModifiedModDel:
 		if sysChannel {
+			if ordererOrg {
+				delete(cfg.(*SystemConfig).ChannelGroup.Groups.Orderer.Groups, orgName)
+				break
+			}
 			delete(cfg.(*SystemConfig).ChannelGroup.Groups.Consortiums.Groups.SampleConsortium.Groups, orgName)
 		} else {
+			if ordererOrg {
+				delete(cfg.(*Config).ChannelGroup.Groups.Orderer.Groups, orgName)
+			}
 			delete(cfg.(*Config).ChannelGroup.Groups.Application.Groups, orgName)
 		}
 	}
