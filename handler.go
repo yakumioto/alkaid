@@ -301,3 +301,36 @@ func delOrgChannel(_ *cobra.Command, args []string) {
 
 	log.Printf("delete %s to %s txID: %s", orgName, channelName, txID.TransactionID)
 }
+
+func updateOrdererParam(_ *cobra.Command, args []string) {
+	utils.InitRPCClient(rpcAddress)
+	sdk := utils.SDKNew(fabconfig)
+
+	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))
+	resMgmt, err := resmgmt.New(ordererCtx)
+	if err != nil {
+		log.Fatalln("resmgmt new error: ", err)
+	}
+
+	// get newest config
+	configBytes := utils.GetNewestConfigWithConfigBlock(resMgmt, channelName, sysChannel)
+
+	// get modified config
+	modifiedConfigBytes := utils.GetChannelParamsModifiedConfig(configBytes, batchTimeout, batchSizeAbsolute, batchSizePreferred, batchSizeMessage, true)
+
+	// get config.pb
+	updateEnvelopePBBytes := utils.GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes, channelName)
+
+	req := resmgmt.SaveChannelRequest{
+		ChannelID:         channelName,
+		ChannelConfig:     bytes.NewBuffer(updateEnvelopePBBytes),
+		SigningIdentities: utils.GetSigningIdentities(sdk.Context(), args),
+	}
+
+	txID, err := resMgmt.SaveChannel(req)
+	if err != nil {
+		log.Fatalf("update %s channel parameters error: %s", channelName, err)
+	}
+
+	log.Printf("Update %s channel parameters successfully txID: %s", channelName, txID.TransactionID)
+}

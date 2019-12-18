@@ -48,7 +48,7 @@ type Config struct {
 				Groups    map[string]interface{} `json:"groups"`
 				ModPolicy string                 `json:"mod_policy"`
 				Policies  map[string]interface{} `json:"policies"`
-				Values    map[string]interface{} `json:"values"`
+				Values    *OrdererValues         `json:"values"`
 				Version   string                 `json:"version"`
 			} `json:"Orderer"`
 		} `json:"groups"`
@@ -78,7 +78,7 @@ type SystemConfig struct {
 				Groups    map[string]interface{} `json:"groups"`
 				ModPolicy string                 `json:"mod_policy"`
 				Policies  map[string]interface{} `json:"policies"`
-				Values    map[string]interface{} `json:"values"`
+				Values    *OrdererValues         `json:"values"`
 				Version   string                 `json:"version"`
 			} `json:"Orderer"`
 		} `json:"groups"`
@@ -88,4 +88,23 @@ type SystemConfig struct {
 		Version   string                 `json:"version"`
 	} `json:"channel_group"`
 	Sequence string `json:"sequence"`
+}
+
+type OrdererValues struct {
+	BatchSize struct {
+		ModPolicy string `json:"mod_policy"`
+		Value     struct {
+			AbsoluteMaxBytes  int64 `json:"absolute_max_bytes"`
+			MaxMessageCount   int   `json:"max_message_count"`
+			PreferredMaxBytes int64 `json:"preferred_max_bytes"`
+		} `json:"value"`
+		Version string `json:"version"`
+	} `json:"BatchSize"`
+	BatchTimeout struct {
+		ModPolicy string `json:"mod_policy"`
+		Value     struct {
+			Timeout string `json:"timeout"`
+		} `json:"value"`
+		Version string `json:"version"`
+	} `json:"BatchTimeout"`
 }

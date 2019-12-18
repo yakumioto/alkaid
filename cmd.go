@@ -73,4 +73,10 @@ var (
 		Short: `delete organization to channel.`,
 		Run:   delOrgChannel,
 	}
+
+	updateChannelParamCmd = &cobra.Command{
+		Use:   `updateChannelParam`,
+		Short: `update channel params.`,
+		Run:   updateOrdererParam,
+	}
 )

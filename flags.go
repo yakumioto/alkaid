@@ -20,6 +20,10 @@ var (
 	sysChannel            bool
 	orgConfig             string
 	ordererOrg            bool
+	batchTimeout          string
+	batchSizeAbsolute     string
+	batchSizeMessage      int
+	batchSizePreferred    string
 )
 
 func init() {
@@ -36,6 +40,7 @@ func init() {
 	rootCmd.AddCommand(addOrgChannelCmd)
 	rootCmd.AddCommand(updateOrgChannelCmd)
 	rootCmd.AddCommand(delOrgChannelCmd)
+	rootCmd.AddCommand(updateChannelParamCmd)
 
 	createChannelCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
 	createChannelCmd.Flags().StringVar(&channelTX, "channelTxFile", "channel.tx", "Channel TX file path.")
@@ -110,4 +115,14 @@ func init() {
 	delOrgChannelCmd.Flags().StringVar(&orgName, "orgName", "", "New organitztion MSP id.")
 	delOrgChannelCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
 	delOrgChannelCmd.Flags().BoolVar(&ordererOrg, "ordererOrg", false, "Organization is the orderer organization")
+
+	updateChannelParamCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
+	updateChannelParamCmd.Flags().StringVar(&ordererOrgName, "ordererOrgName", "OrdererOrg", "Orderer organitztion name.")
+	updateChannelParamCmd.Flags().BoolVar(&sysChannel, "sysChannel", false, "Channel is system channel.")
+	updateChannelParamCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
+	updateChannelParamCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
+	updateChannelParamCmd.Flags().StringVar(&batchTimeout, "batchTimeout", "2s", "set batch timeout.")
+	updateChannelParamCmd.Flags().StringVar(&batchSizeAbsolute, "absoluteMaxBytes", "99MB", "set batch size absolute max bytes.")
+	updateChannelParamCmd.Flags().StringVar(&batchSizePreferred, "preferredMaxBytes", "512KB", "set batch size preferred max bytes.")
+	updateChannelParamCmd.Flags().IntVar(&batchSizeMessage, "sizeMessageMaxCount", 10, "set batch size max message count.")
 }

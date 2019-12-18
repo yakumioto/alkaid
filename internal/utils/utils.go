@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/rpc"
+	"strconv"
 	"strings"
 
 	"github.com/gogo/protobuf/proto"
@@ -266,6 +267,54 @@ func GetModifiedConfig(configBytes []byte, newOrgConfigBytes []byte, mod Mod, or
 	return modifiedConfigBytes
 }
 
+func GetChannelParamsModifiedConfig(configBytes []byte,
+	batchTimeout, batchSizeAbsolute, batchSizePreferred string, batchSizeMessage int, sysChannel bool) []byte {
+
+	var cfg interface{}
+
+	if configBytes != nil {
+		if sysChannel {
+			cfg = new(SystemConfig)
+		} else {
+			cfg = new(Config)
+		}
+
+		if err := json.Unmarshal(configBytes, cfg); err != nil {
+			log.Fatalln(err)
+		}
+	}
+
+	var values = new(OrdererValues)
+	if sysChannel {
+		values = cfg.(*SystemConfig).ChannelGroup.Groups.Orderer.Values
+	} else {
+		values = cfg.(*Config).ChannelGroup.Groups.Orderer.Values
+	}
+
+	if batchTimeout != "" {
+		values.BatchTimeout.Value.Timeout = batchTimeout
+	}
+
+	if batchSizeAbsolute != "" {
+		values.BatchSize.Value.AbsoluteMaxBytes = convertStorageUnit(batchSizeAbsolute)
+	}
+
+	if batchSizeMessage != 0 {
+		values.BatchSize.Value.MaxMessageCount = batchSizeMessage
+	}
+
+	if batchSizePreferred != "" {
+		values.BatchSize.Value.PreferredMaxBytes = convertStorageUnit(batchSizePreferred)
+	}
+
+	modifiedConfigBytes, err := json.Marshal(cfg)
+	if err != nil {
+		log.Fatalln("marshal modified cfg json error:", err)
+	}
+
+	return modifiedConfigBytes
+}
+
 func GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes []byte, channelName string) []byte {
 	configPBBytes, err := protoEncode("common.Config", configBytes)
 	if err != nil {
@@ -298,4 +347,25 @@ func GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes []byte, channe
 	}
 
 	return updateEnvelopePBBytes
+}
+
+func convertStorageUnit(data string) int64 {
+	var KB int64 = 1024
+	var MB = 1024 * KB
+
+	num, err := strconv.Atoi(data[:len(data)-2])
+	if err != nil {
+		log.Fatalln("strconv atoi error:", err)
+	}
+
+	data = strings.ToLower(data)
+	if strings.Contains(data, "kb") {
+		return int64(num) * KB
+	}
+
+	if strings.Contains(data, "mb") {
+		return int64(num) * MB
+	}
+
+	return 0
 }

@@ -179,10 +179,10 @@ if [[ "${mode}" == "up" ]]; then
     invokeChaincode
     queryChaincode a
     queryChaincode b
-    addOrganization
-    addOrdererOrganization
-    updateOrganization
-    deleteOrganization
+#    addOrganization
+#    addOrdererOrganization
+#    updateOrganization
+#    deleteOrganization
 
 elif [[ "${mode}" == "down" ]]; then ## Clear the network
     cleanNetwork
