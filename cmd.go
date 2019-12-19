@@ -8,8 +8,23 @@ var (
 		Long: `Hyperledger Fabric Deploy`,
 	}
 
+	channelCmd = &cobra.Command{
+		Use:   `channel`,
+		Short: `Channel subcommand.`,
+	}
+
+	chaincodeCmd = &cobra.Command{
+		Use:   `chaincode`,
+		Short: `Chaincode subcommand.`,
+	}
+
+	organiztionCmd = &cobra.Command{
+		Use:   `organization`,
+		Short: `Organization subcommand.`,
+	}
+
 	createChannelCmd = &cobra.Command{
-		Use:   `createChannel`,
+		Use:   `create`,
 		Short: `Create channel.`,
 		Run:   createChannel,
 	}
@@ -21,61 +36,61 @@ var (
 	}
 
 	joinChannelCmd = &cobra.Command{
-		Use:   `joinChannel`,
+		Use:   `join`,
 		Short: `Join channel.`,
 		Run:   joinChannel,
 	}
 
 	installChaincodeCmd = &cobra.Command{
-		Use:   `installChaincode`,
+		Use:   `install`,
 		Short: `Install chaincode.`,
 		Run:   installChaincode,
 	}
 
 	instantiateChaincodeCmd = &cobra.Command{
-		Use:   `instantiateChaincode`,
+		Use:   `instantiate`,
 		Short: `Instantiate chaincode.`,
 		Run:   instantiateAndUpgradeChaincode,
 	}
 
 	upgradeChaincodeCmd = &cobra.Command{
-		Use:   `upgradeChaincode`,
+		Use:   `upgrade`,
 		Short: `Upgrade chaincode.`,
 		Run:   instantiateAndUpgradeChaincode,
 	}
 
 	queryChaincodeCmd = &cobra.Command{
-		Use:   `queryChaincode`,
+		Use:   `query`,
 		Short: `Query chaincode.`,
 		Run:   queryAdnInvokeChaincode,
 	}
 
 	invokeChaincodeCmd = &cobra.Command{
-		Use:   `invokeChaincode`,
+		Use:   `invoke`,
 		Short: `Invoke chaincode.`,
 		Run:   queryAdnInvokeChaincode,
 	}
 
 	addOrgChannelCmd = &cobra.Command{
-		Use:   `addOrgChannel`,
+		Use:   `join`,
 		Short: `add organization to channel.`,
-		Run:   addAdnUpdateOrgChannel,
+		Run:   addAndUpdateOrgChannel,
 	}
 
 	updateOrgChannelCmd = &cobra.Command{
-		Use:   `updateOrgChannel`,
+		Use:   `update`,
 		Short: `update organization to channel.`,
-		Run:   addAdnUpdateOrgChannel,
+		Run:   addAndUpdateOrgChannel,
 	}
 
 	delOrgChannelCmd = &cobra.Command{
-		Use:   `delOrgChannel`,
+		Use:   `delete`,
 		Short: `delete organization to channel.`,
 		Run:   delOrgChannel,
 	}
 
 	updateChannelParamCmd = &cobra.Command{
-		Use:   `updateChannelParam`,
+		Use:   `update`,
 		Short: `update channel params.`,
 		Run:   updateOrdererParam,
 	}

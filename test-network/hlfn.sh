@@ -29,7 +29,7 @@ function upNetwork() {
 }
 
 function createChannel() {
-    ../bin/hlf-deploy createChannel --configFile config.yaml \
+    ../bin/hlf-deploy channel create --configFile config.yaml \
         --channelTxFile channel-artifacts/channel.tx \
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
@@ -37,7 +37,7 @@ function createChannel() {
 }
 
 function updateAnchorPeer() {
-    ../bin/hlf-deploy updateAnchorPeer --configFile config.yaml \
+    ../bin/hlf-deploy channel updateAnchorPeer --configFile config.yaml \
         --anchorPeerTxFile ${1} \
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
@@ -45,13 +45,13 @@ function updateAnchorPeer() {
 }
 
 function joinChannel() {
-    ../bin/hlf-deploy joinChannel --configFile config.yaml \
+    ../bin/hlf-deploy channel join --configFile config.yaml \
         --channelName mychannel \
         Org1 Org2
 }
 
 function installChaincode() {
-    ../bin/hlf-deploy installChaincode --configFile config.yaml \
+    ../bin/hlf-deploy chaincode install --configFile config.yaml \
         --goPath chaincode \
         --chaincodePath example_02 \
         --chaincodeName mycc \
@@ -60,7 +60,7 @@ function installChaincode() {
 }
 
 function instantiateChaincode() {
-    ../bin/hlf-deploy instantiateChaincode --configFile config.yaml \
+    ../bin/hlf-deploy chaincode instantiate --configFile config.yaml \
         --channelName mychannel \
         --orgName Org1 \
         --chaincodePolicy Org1MSP,Org2MSP \
@@ -72,7 +72,7 @@ function instantiateChaincode() {
 }
 
 function queryChaincode() {
-    ../bin/hlf-deploy queryChaincode --configFile config.yaml \
+    ../bin/hlf-deploy chaincode query --configFile config.yaml \
         --channelName mychannel \
         --orgName Org1 \
         --chaincodeName mycc \
@@ -80,7 +80,7 @@ function queryChaincode() {
 }
 
 function invokeChaincode() {
-    ../bin/hlf-deploy invokeChaincode --configFile config.yaml \
+    ../bin/hlf-deploy chaincode invoke --configFile config.yaml \
         --channelName mychannel \
         --orgName Org1 \
         --endorsementOrgsName Org1,Org2 \
@@ -89,7 +89,7 @@ function invokeChaincode() {
 }
 
 function addOrganization() {
-    ../bin/hlf-deploy addOrgChannel --configFile config.yaml \
+    ../bin/hlf-deploy organization join --configFile config.yaml \
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
         --orgConfig channel-artifacts/org3.json \
@@ -99,7 +99,7 @@ function addOrganization() {
 }
 
 function updateOrganization() {
-    ../bin/hlf-deploy updateOrgChannel --configFile config.yaml \
+    ../bin/hlf-deploy organization update --configFile config.yaml \
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
         --orgConfig channel-artifacts/modify-org3.json \
@@ -109,7 +109,7 @@ function updateOrganization() {
 }
 
 function deleteOrganization() {
-    ../bin/hlf-deploy delOrgChannel --configFile config.yaml \
+    ../bin/hlf-deploy organization delete --configFile config.yaml \
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
         --orgName Org3MSP \
@@ -118,7 +118,7 @@ function deleteOrganization() {
 }
 
 function addOrdererOrganization() {
-    ../bin/hlf-deploy addOrgChannel --configFile config.yaml \
+    ../bin/hlf-deploy organization join --configFile config.yaml \
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
         --orgConfig channel-artifacts/newOrderer.json \
@@ -179,10 +179,10 @@ if [[ "${mode}" == "up" ]]; then
     invokeChaincode
     queryChaincode a
     queryChaincode b
-#    addOrganization
-#    addOrdererOrganization
-#    updateOrganization
-#    deleteOrganization
+    addOrganization
+    addOrdererOrganization
+    updateOrganization
+    deleteOrganization
 
 elif [[ "${mode}" == "down" ]]; then ## Clear the network
     cleanNetwork

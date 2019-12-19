@@ -284,7 +284,7 @@ func GetChannelParamsModifiedConfig(configBytes []byte,
 		}
 	}
 
-	var values = new(OrdererValues)
+	var values interface{}
 	if sysChannel {
 		values = cfg.(*SystemConfig).ChannelGroup.Groups.Orderer.Values
 	} else {
@@ -292,19 +292,19 @@ func GetChannelParamsModifiedConfig(configBytes []byte,
 	}
 
 	if batchTimeout != "" {
-		values.BatchTimeout.Value.Timeout = batchTimeout
+		values.(map[string]interface{})["BatchTimeout"].(map[string]interface{})["value"].(map[string]interface{})["timeout"] = batchTimeout
 	}
 
 	if batchSizeAbsolute != "" {
-		values.BatchSize.Value.AbsoluteMaxBytes = convertStorageUnit(batchSizeAbsolute)
+		values.(map[string]interface{})["BatchSize"].(map[string]interface{})["value"].(map[string]interface{})["absolute_max_bytes"] = convertStorageUnit(batchSizeAbsolute)
 	}
 
 	if batchSizeMessage != 0 {
-		values.BatchSize.Value.MaxMessageCount = batchSizeMessage
+		values.(map[string]interface{})["BatchSize"].(map[string]interface{})["value"].(map[string]interface{})["max_message_count"] = batchSizeMessage
 	}
 
 	if batchSizePreferred != "" {
-		values.BatchSize.Value.PreferredMaxBytes = convertStorageUnit(batchSizePreferred)
+		values.(map[string]interface{})["BatchSize"].(map[string]interface{})["value"].(map[string]interface{})["preferred_max_bytes"] = convertStorageUnit(batchSizePreferred)
 	}
 
 	modifiedConfigBytes, err := json.Marshal(cfg)
