@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"io/ioutil"
 	"log"
 
+	"github.com/gogo/protobuf/proto"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
@@ -113,7 +115,7 @@ func updateOrdererParam(_ *cobra.Command, args []string) {
 	configBytes := utils.GetNewestConfigWithConfigBlock(resMgmt, channelName, sysChannel)
 
 	// get modified config
-	modifiedConfigBytes := utils.GetChannelParamsModifiedConfig(configBytes, batchTimeout, batchSizeAbsolute, batchSizePreferred, batchSizeMessage, true)
+	modifiedConfigBytes := utils.GetChannelParamsModifiedConfig(configBytes, batchTimeout, batchSizeAbsolute, batchSizePreferred, batchSizeMessage, sysChannel)
 
 	// get config.pb
 	updateEnvelopePBBytes := utils.GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes, channelName)
@@ -129,5 +131,34 @@ func updateOrdererParam(_ *cobra.Command, args []string) {
 		log.Fatalf("update %s channel parameters error: %s", channelName, err)
 	}
 
-	log.Printf("Update %s channel parameters successfully txID: %s", channelName, txID.TransactionID)
+	log.Printf("update %s channel parameters successfully txID: %s", channelName, txID.TransactionID)
+}
+
+func getChannelConfigBlock(_ *cobra.Command, args []string) {
+	if len(args) != 1 {
+		log.Fatal("no output path")
+	}
+
+	sdk := utils.SDKNew(fabconfig)
+
+	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))
+	resMgmt, err := resmgmt.New(ordererCtx)
+	if err != nil {
+		log.Fatalln("resmgmt new error: ", err)
+	}
+
+	blockPB, err := resMgmt.QueryConfigBlockFromOrderer(channelName)
+	if err != nil {
+		log.Fatalln("query config block error:", err)
+	}
+	blockPBBytes, err := proto.Marshal(blockPB)
+	if err != nil {
+		log.Fatalln("proto marshal error:", err)
+	}
+
+	if err := ioutil.WriteFile(args[0], blockPBBytes, 0664); err != nil {
+		log.Fatalln("write file error:", err)
+	}
+
+	log.Printf("write latest config block to %s", args[0])
 }

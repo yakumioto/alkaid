@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,15 +23,29 @@ import (
 )
 
 type Mod string
+type ConsensusState string
 
 const (
 	ModifiedModAdd Mod = "Add"
 	ModifiedModDel Mod = "Del"
+
+	StateNormal      ConsensusState = "STATE_NORMAL"
+	StateMaintenance ConsensusState = "STATE_MAINTENANCE"
 )
 
 var (
 	client *rpc.Client
 )
+
+func GetConsensusState(status string) ConsensusState {
+	switch status {
+	case "Normal":
+		return StateNormal
+	case "Maintenance":
+		return StateMaintenance
+	}
+	return ""
+}
 
 func SDKNew(fabconfig string) *fabsdk.FabricSDK {
 	sdk, err := fabsdk.New(config.FromFile(fabconfig))
@@ -284,27 +299,209 @@ func GetChannelParamsModifiedConfig(configBytes []byte,
 		}
 	}
 
-	var values interface{}
+	var values map[string]interface{}
 	if sysChannel {
 		values = cfg.(*SystemConfig).ChannelGroup.Groups.Orderer.Values
 	} else {
 		values = cfg.(*Config).ChannelGroup.Groups.Orderer.Values
 	}
 
+	batchTimoutValueMap := getMap(getMap(values, "BatchTimeout"), "value")
+	batchSizeValueMap := getMap(getMap(values, "BatchTimeout"), "value")
+
 	if batchTimeout != "" {
-		values.(map[string]interface{})["BatchTimeout"].(map[string]interface{})["value"].(map[string]interface{})["timeout"] = batchTimeout
+		batchTimoutValueMap["timeout"] = batchTimeout
 	}
 
 	if batchSizeAbsolute != "" {
-		values.(map[string]interface{})["BatchSize"].(map[string]interface{})["value"].(map[string]interface{})["absolute_max_bytes"] = convertStorageUnit(batchSizeAbsolute)
+		batchSizeValueMap["absolute_max_bytes"] = convertStorageUnit(batchSizeAbsolute)
 	}
 
 	if batchSizeMessage != 0 {
-		values.(map[string]interface{})["BatchSize"].(map[string]interface{})["value"].(map[string]interface{})["max_message_count"] = batchSizeMessage
+		batchSizeValueMap["max_message_count"] = batchSizeMessage
 	}
 
 	if batchSizePreferred != "" {
-		values.(map[string]interface{})["BatchSize"].(map[string]interface{})["value"].(map[string]interface{})["preferred_max_bytes"] = convertStorageUnit(batchSizePreferred)
+		batchSizeValueMap["preferred_max_bytes"] = convertStorageUnit(batchSizePreferred)
+	}
+
+	modifiedConfigBytes, err := json.Marshal(cfg)
+	if err != nil {
+		log.Fatalln("marshal modified cfg json error:", err)
+	}
+
+	return modifiedConfigBytes
+}
+
+type ConsensusOptions struct {
+	State              string
+	Type               string
+	OrdererAddress     string
+	KafkaBrokerAddress string
+}
+
+type EtcdRaftOptions struct {
+	ElectionTick         int
+	HeartbeatTick        int
+	MaxInflightBlocks    int
+	SnapshotIntervalSize string
+	TickInterval         string
+	Host                 string
+	Port                 int
+	ClientTLSCertPath    string
+	ServerTLSCertPath    string
+}
+
+func GetChannelConsensusStateModifiedConfig(configBytes []byte, consensus ConsensusOptions, raftOptions EtcdRaftOptions,
+	sysChannel bool) []byte {
+	var cfg interface{}
+
+	if configBytes != nil {
+		if sysChannel {
+			cfg = new(SystemConfig)
+		} else {
+			cfg = new(Config)
+		}
+
+		if err := json.Unmarshal(configBytes, cfg); err != nil {
+			log.Fatalln(err)
+		}
+	}
+
+	var ordererValues map[string]interface{}
+	var configValues map[string]interface{}
+	if sysChannel {
+		ordererValues = cfg.(*SystemConfig).ChannelGroup.Groups.Orderer.Values
+		configValues = cfg.(*SystemConfig).ChannelGroup.Values
+	} else {
+		ordererValues = cfg.(*Config).ChannelGroup.Groups.Orderer.Values
+		configValues = cfg.(*Config).ChannelGroup.Values
+	}
+
+	state := GetConsensusState(consensus.State)
+
+	consensusTypeMap := getMap(ordererValues, "ConsensusType")
+	valueMap := getMap(consensusTypeMap, "value")
+
+	if state != "" {
+		valueMap["state"] = state
+	}
+
+	if consensus.Type != "" {
+		if consensus.Type == "etcdraft" {
+
+			optionsMap := getMap(getMap(valueMap, "metadata"), "options")
+
+			// If the latest configuration block consensus type is not etcdraft, set the default optsions.
+			if valueMap["type"] != "etcdraft" {
+				if raftOptions.ElectionTick == 0 {
+					raftOptions.ElectionTick = 10
+				}
+				if raftOptions.HeartbeatTick == 0 {
+					raftOptions.HeartbeatTick = 1
+				}
+				if raftOptions.MaxInflightBlocks == 0 {
+					raftOptions.MaxInflightBlocks = 5
+				}
+				if raftOptions.SnapshotIntervalSize == "" {
+					raftOptions.SnapshotIntervalSize = "20MB"
+				}
+				if raftOptions.TickInterval == "" {
+					raftOptions.TickInterval = "500ms"
+				}
+			}
+
+			if raftOptions.ElectionTick != 0 {
+				optionsMap["election_tick"] = raftOptions.ElectionTick
+			}
+
+			if raftOptions.HeartbeatTick != 0 {
+				optionsMap["heartbeat_tick"] = raftOptions.HeartbeatTick
+			}
+
+			if raftOptions.MaxInflightBlocks != 0 {
+				optionsMap["max_inflight_blocks"] = raftOptions.MaxInflightBlocks
+			}
+
+			if raftOptions.SnapshotIntervalSize != "" {
+				optionsMap["snapshot_interval_size"] = convertStorageUnit(raftOptions.SnapshotIntervalSize)
+			}
+
+			if raftOptions.TickInterval != "" {
+				optionsMap["tick_interval"] = raftOptions.TickInterval
+			}
+		}
+
+		valueMap["type"] = consensus.Type
+	}
+
+	if raftOptions.Host != "" && raftOptions.Port != 0 && valueMap["type"] == "etcdraft" {
+
+		metadataMap := getMap(valueMap, "metadata")
+		consenters := make([]Consenters, 0)
+		if metadataMap["consenters"] != nil {
+			data, _ := json.Marshal(metadataMap["consenters"])
+			_ = json.Unmarshal(data, &consenters)
+		}
+
+		var del bool
+		for i, consenter := range consenters {
+			if consenter.Host == raftOptions.Host {
+				consenters = append(consenters[:i], consenters[i+1:]...)
+				del = true
+				break
+			}
+		}
+
+		if !del {
+			consenters = append(consenters, Consenters{
+				Host:          raftOptions.Host,
+				Port:          raftOptions.Port,
+				ClientTLSCert: readCert2base64(raftOptions.ClientTLSCertPath),
+				ServerTLSCert: readCert2base64(raftOptions.ServerTLSCertPath),
+			})
+		}
+
+		metadataMap["consenters"] = consenters
+	}
+
+	if consensus.OrdererAddress != "" {
+		valueMap := getMap(getMap(configValues, "OrdererAddresses"), "value")
+		addresses := valueMap["addresses"].([]interface{})
+
+		var del bool
+		for i, address := range addresses {
+			if consensus.OrdererAddress == address.(string) {
+				addresses = append(addresses[:i], addresses[i+1:]...)
+				del = true
+				break
+			}
+		}
+
+		if !del {
+			addresses = append(addresses, consensus.OrdererAddress)
+		}
+
+		valueMap["addresses"] = addresses
+	}
+
+	if consensus.KafkaBrokerAddress != "" {
+		valueMap := getMap(getMap(ordererValues, "KafkaBrokers"), "value")
+		addresses := valueMap["brokers"].([]interface{})
+		var del bool
+		for i, address := range addresses {
+			if consensus.OrdererAddress == address.(string) {
+				addresses = append(addresses[:i], addresses[i+1:]...)
+				del = true
+				break
+			}
+		}
+
+		if !del {
+			addresses = append(addresses, consensus.KafkaBrokerAddress)
+		}
+
+		valueMap["brokers"] = addresses
 	}
 
 	modifiedConfigBytes, err := json.Marshal(cfg)
@@ -368,4 +565,20 @@ func convertStorageUnit(data string) int64 {
 	}
 
 	return 0
+}
+
+func getMap(data map[string]interface{}, key string) map[string]interface{} {
+	if data[key] == nil {
+		data[key] = make(map[string]interface{})
+	}
+	return data[key].(map[string]interface{})
+}
+
+func readCert2base64(path string) string {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("read file error: %s", err)
+	}
+
+	return base64.StdEncoding.EncodeToString(data)
 }

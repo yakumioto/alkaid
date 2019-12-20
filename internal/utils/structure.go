@@ -75,11 +75,11 @@ type SystemConfig struct {
 				} `json:"groups"`
 			} `json:"Consortiums"`
 			Orderer struct {
-				Groups    map[string]interface{}  `json:"groups"`
-				ModPolicy string                  `json:"mod_policy"`
-				Policies  map[string]interface{}  `json:"policies"`
-				Values    *map[string]interface{} `json:"values"`
-				Version   string                  `json:"version"`
+				Groups    map[string]interface{} `json:"groups"`
+				ModPolicy string                 `json:"mod_policy"`
+				Policies  map[string]interface{} `json:"policies"`
+				Values    map[string]interface{} `json:"values"`
+				Version   string                 `json:"version"`
 			} `json:"Orderer"`
 		} `json:"groups"`
 		ModPolicy string                 `json:"mod_policy"`
@@ -88,4 +88,11 @@ type SystemConfig struct {
 		Version   string                 `json:"version"`
 	} `json:"channel_group"`
 	Sequence string `json:"sequence"`
+}
+
+type Consenters struct {
+	Host          string `json:"host"`
+	Port          int    `json:"port"`
+	ClientTLSCert string `json:"client_tls_cert"`
+	ServerTLSCert string `json:"server_tls_cert"`
 }

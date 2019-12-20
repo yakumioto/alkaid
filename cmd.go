@@ -23,6 +23,11 @@ var (
 		Short: `Organization subcommand.`,
 	}
 
+	consensusCmd = &cobra.Command{
+		Use:   `consensus`,
+		Short: `Consensus subcommand.`,
+	}
+
 	createChannelCmd = &cobra.Command{
 		Use:   `create`,
 		Short: `Create channel.`,
@@ -93,5 +98,17 @@ var (
 		Use:   `update`,
 		Short: `update channel params.`,
 		Run:   updateOrdererParam,
+	}
+
+	updateChannelStateCmd = &cobra.Command{
+		Use:   `consensus`,
+		Short: `update consensus type.`,
+		Run:   updateConsensusState,
+	}
+
+	getChannelConfigBlockCmd = &cobra.Command{
+		Use:   `config`,
+		Short: `get channel latest config block.`,
+		Run:   getChannelConfigBlock,
 	}
 )

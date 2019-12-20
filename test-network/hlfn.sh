@@ -25,7 +25,12 @@ if [[ -z "$(docker images -q yakumioto/hlf-tools:latest)" ]]; then
 fi
 
 function upNetwork() {
-    docker-compose up -d
+    docker-compose up -d hlf-tools \
+        orderer.example.com \
+        peer0.org1.example.com \
+        peer1.org1.example.com \
+        peer0.org2.example.com \
+        peer1.org2.example.com
 }
 
 function createChannel() {
@@ -85,7 +90,7 @@ function invokeChaincode() {
         --orgName Org1 \
         --endorsementOrgsName Org1,Org2 \
         --chaincodeName mycc \
-        invoke a b 50
+        invoke ${1} ${2} ${3}
 }
 
 function addOrganization() {
@@ -126,6 +131,204 @@ function addOrdererOrganization() {
         --rpcAddress localhost:1234 \
         --ordererOrg \
         OrdererOrg
+}
+
+function soloToRaftConsensus() {
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --state Maintenance
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --state Maintenance
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --type etcdraft
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --type etcdraft
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer2.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer2.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer3.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer3.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer4.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer4.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer5.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --host orderer5.example.com \
+        --port 7050 \
+        --clientTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt \
+        --serverTLSCertPath ./crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --ordererAddress orderer2.example.com:7050
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --ordererAddress orderer2.example.com:7050
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --ordererAddress orderer3.example.com:7050
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --ordererAddress orderer3.example.com:7050
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --ordererAddress orderer4.example.com:7050
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --ordererAddress orderer4.example.com:7050
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --ordererAddress orderer5.example.com:7050
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --ordererAddress orderer5.example.com:7050
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName mychannel \
+        --ordererOrgName OrdererOrg \
+        --state Normal
+
+    ../bin/hlf-deploy channel consensus \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        --state Normal
+
+    go run ../*.go channel config \
+        --configFile ./config.yaml \
+        --channelName byfn-sys-channel \
+        --sysChannel \
+        --ordererOrgName OrdererOrg \
+        ./channel-artifacts/newGenesis.block
+
+    docker-compose restart
+    docker-compose up -d
 }
 
 function cleanNetwork() {
@@ -176,14 +379,17 @@ if [[ "${mode}" == "up" ]]; then
     sleep 10s
     queryChaincode a
     queryChaincode b
-    invokeChaincode
+    invokeChaincode a b 50
     queryChaincode a
     queryChaincode b
     addOrganization
-    addOrdererOrganization
     updateOrganization
     deleteOrganization
-
+    soloToRaftConsensus
+    sleep 20s
+    invokeChaincode b a 50
+    queryChaincode a
+    queryChaincode b
 elif [[ "${mode}" == "down" ]]; then ## Clear the network
     cleanNetwork
 fi
