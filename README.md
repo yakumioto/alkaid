@@ -4,17 +4,19 @@
 
 ## Supported features
 
-- createChannel
-- updateAnchorPeer
-- joinChannel
-- installChaincode
-- instantiateChaincode
-- upgradeChaincode
-- invokeChaincode
-- queryChaincode
-- addOrgChannel (Add organization dynamically, supported system channel)
-- deleteOrgChannel (Delete organization dynamically, supported system channel)
-- changeOrgCertificate (Dynamically modify organization certificate, supported system channel)
+- channel create
+- channel updateAnchorPeer
+- channel join
+- channel update (Update BatchTimeout, BatchSize)
+- chaincode install
+- chaincode instantiate
+- chaincode upgrade
+- chaincode invoke
+- chaincode query
+- organization join (Add organization dynamically, supported system channel)
+- organization delete (Delete organization dynamically, supported system channel)
+- organization update (Dynamically modify organization certificate, supported system channel)
+- channel consensus (Switch consensus algorithm, supported solo, kafka, etcdraft)
 
 ## Launch test network
 
@@ -101,7 +103,7 @@ Go to the test-network directory
 ### Create Channel
 
 ```bash
-../bin/hlf-deploy createChannel --configFile config.yaml \
+../bin/hlf-deploy channel create --configFile config.yaml \
     --channelTxFile channel-artifacts/channel.tx \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
@@ -111,13 +113,13 @@ Go to the test-network directory
 ### Update Anchor Peer
 
 ```bash
-../bin/hlf-deploy updateAnchorPeer --configFile config.yaml \
+../bin/hlf-deploy channel updateAnchorPeer --configFile config.yaml \
     --anchorPeerTxFile channel-artifacts/Org1MSPanchors.tx \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     Org1
     
-../bin/hlf-deploy updateAnchorPeer --configFile config.yaml \
+../bin/hlf-deploy channel updateAnchorPeer --configFile config.yaml \
     --anchorPeerTxFile channel-artifacts/Org2MSPanchors.tx \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
@@ -127,7 +129,7 @@ Go to the test-network directory
 ### Join Channel
 
 ```bash
-../bin/hlf-deploy joinChannel --configFile config.yaml \
+../bin/hlf-deploy channel join --configFile config.yaml \
     --channelName mychannel \
     Org1 Org2
 ```
@@ -135,7 +137,7 @@ Go to the test-network directory
 ### Install Chaincode
 
 ```bash
-../bin/hlf-deploy installChaincode --configFile config.yaml \
+../bin/hlf-deploy chaincode install --configFile config.yaml \
     --goPath chaincode \
     --chaincodePath example_02 \
     --chaincodeName mycc \
@@ -148,7 +150,7 @@ Go to the test-network directory
 `chaincodePolicyNOutOf`: Set how many organization endorsement signatures are checked to return true
 
 ```bash
-../bin/hlf-deploy instantiateChaincode --configFile config.yaml \
+../bin/hlf-deploy chaincode instantiate --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --chaincodePolicy Org1MSP,Org2MSP \
@@ -162,7 +164,7 @@ Go to the test-network directory
 ### Update Chaincode
 
 ```bash
-hlf-deploy upgradeChaincode --configFile config.yaml \
+hlf-deploy chaincode upgrade --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --chaincodePolicy Org1MSP,Org2MSP \
@@ -176,13 +178,13 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### Query Chaincode
 
 ```bash
-../bin/hlf-deploy queryChaincode --configFile config.yaml \
+../bin/hlf-deploy chaincode query --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --chaincodeName mycc \
     query a
 
-../bin/hlf-deploy queryChaincode --configFile config.yaml \
+../bin/hlf-deploy chaincode query --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --chaincodeName mycc \
@@ -192,7 +194,7 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### Invoke Chaincode
 
 ```bash
-    ../bin/hlf-deploy invokeChaincode --configFile config.yaml \
+    ../bin/hlf-deploy chaincode invoke --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --endorsementOrgsName Org1,Org2 \
@@ -203,7 +205,7 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### Add Org3 organization dynamically
 
 ```bash
-../bin/hlf-deploy addOrgChannel --configFile config.yaml \
+../bin/hlf-deploy organization join --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     --orgConfig channel-artifacts/org3.json \
@@ -215,7 +217,7 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### Update Org3 organization dynamically
 
 ```bash
-../bin/hlf-deploy updateOrgChannel --configFile config.yaml \
+../bin/hlf-deploy organization update --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     --orgConfig channel-artifacts/modify-org3.json \
@@ -227,23 +229,10 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### Delete Org3 organization dynamically
 
 ```bash
-../bin/hlf-deploy delOrgChannel --configFile config.yaml \
+../bin/hlf-deploy organization delete --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     --orgName Org3MSP \
     --rpcAddress localhost:1234 \
     Org1 Org2
-```
-
-### Add OrdererOrg2 organization dynamically
-
-```bash
-../bin/hlf-deploy addOrgChannel --configFile config.yaml \
-    --channelName mychannel \
-    --ordererOrgName OrdererOrg \
-    --orgConfig channel-artifacts/newOrderer.json \
-    --orgName OrdererOrg2 \
-    --rpcAddress localhost:1234 \
-    --ordererOrg \
-    OrdererOrg
 ```

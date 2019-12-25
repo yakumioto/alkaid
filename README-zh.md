@@ -5,17 +5,19 @@
 
 ## 已支持功能
 
-- createChannel
-- updateAnchorPeer
-- joinChannel
-- installChaincode
-- instantiateChaincode
-- upgradeChaincode
-- invokeChaincode
-- queryChaincode
-- addOrgChannel (动态添加组织, 支持 system channel)
-- deleteOrgChannel (动态删除组织, 支持 system channel)
-- changeOrgCertificate (动态修改组织证书, 支持 system channel)
+- channel create
+- channel updateAnchorPeer
+- channel join
+- channel update (支持 BatchTimeout, BatchSize)
+- chaincode install
+- chaincode instantiate
+- chaincode upgrade
+- chaincode invoke
+- chaincode query
+- organization join (动态添加组织, 支持 system channel)
+- organization delete (动态删除组织, 支持 system channel)
+- organization update (动态更新组织, 支持 system channel)
+- channel consensus (切换 orderer 共识, 支持 solo, kafka, etcdraft)
 
 ## 启动测试网络
 
@@ -102,7 +104,7 @@ Total reclaimed space: 1.475MB
 ### 创建 Channel
 
 ```bash
-../bin/hlf-deploy createChannel --configFile config.yaml \
+../bin/hlf-deploy channel create --configFile config.yaml \
     --channelTxFile channel-artifacts/channel.tx \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
@@ -112,7 +114,7 @@ Total reclaimed space: 1.475MB
 ### 更新 Anchor Peer
 
 ```bash
-../bin/hlf-deploy updateAnchorPeer --configFile config.yaml \
+../bin/hlf-deploy channel updateAnchorPeer --configFile config.yaml \
     --anchorPeerTxFile channel-artifacts/Org1MSPanchors.tx \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
@@ -128,7 +130,7 @@ Total reclaimed space: 1.475MB
 ### 加入 Channel
 
 ```bash
-../bin/hlf-deploy joinChannel --configFile config.yaml \
+../bin/hlf-deploy channel join --configFile config.yaml \
     --channelName mychannel \
     Org1 Org2
 ```
@@ -136,7 +138,7 @@ Total reclaimed space: 1.475MB
 ### 安装 Chaincode
 
 ```bash
-../bin/hlf-deploy installChaincode --configFile config.yaml \
+../bin/hlf-deploy chaincode install --configFile config.yaml \
     --goPath chaincode \
     --chaincodePath example_02 \
     --chaincodeName mycc \
@@ -149,7 +151,7 @@ Total reclaimed space: 1.475MB
 `chaincodePolicyNOutOf`: 用来设置多少个组织签名检验成功后返回 true
 
 ```bash
-../bin/hlf-deploy instantiateChaincode --configFile config.yaml \
+../bin/hlf-deploy chaincode instantiate --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --chaincodePolicy Org1MSP,Org2MSP \
@@ -163,7 +165,7 @@ Total reclaimed space: 1.475MB
 ### 更新 Chaincode
 
 ```bash
-hlf-deploy upgradeChaincode --configFile config.yaml \
+hlf-deploy chaincode upgrade --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --chaincodePolicy Org1MSP,Org2MSP \
@@ -177,13 +179,13 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### 查询 Chaincode
 
 ```bash
-../bin/hlf-deploy queryChaincode --configFile config.yaml \
+../bin/hlf-deploy chaincode query --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --chaincodeName mycc \
     query a
 
-../bin/hlf-deploy queryChaincode --configFile config.yaml \
+../bin/hlf-deploy chaincode query --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --chaincodeName mycc \
@@ -193,7 +195,7 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### 调用 Chaincode
 
 ```bash
-    ../bin/hlf-deploy invokeChaincode --configFile config.yaml \
+    ../bin/hlf-deploy chaincode invoke --configFile config.yaml \
     --channelName mychannel \
     --orgName Org1 \
     --endorsementOrgsName Org1,Org2 \
@@ -204,7 +206,7 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### 动态添加 Org3 组织
 
 ```bash
-../bin/hlf-deploy addOrgChannel --configFile config.yaml \
+../bin/hlf-deploy organization join --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     --orgConfig channel-artifacts/org3.json \
@@ -216,7 +218,7 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### 动态更新 Org3 组织
 
 ```bash
-../bin/hlf-deploy updateOrgChannel --configFile config.yaml \
+../bin/hlf-deploy organization update --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     --orgConfig channel-artifacts/modify-org3.json \
@@ -228,23 +230,10 @@ hlf-deploy upgradeChaincode --configFile config.yaml \
 ### 动态删除 Org3 组织
 
 ```bash
-../bin/hlf-deploy delOrgChannel --configFile config.yaml \
+../bin/hlf-deploy organization delete --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     --orgName Org3MSP \
     --rpcAddress localhost:1234 \
     Org1 Org2
-```
-
-### 动态添加 OrdererOrg2 组织
-
-```bash
-../bin/hlf-deploy addOrgChannel --configFile config.yaml \
-    --channelName mychannel \
-    --ordererOrgName OrdererOrg \
-    --orgConfig channel-artifacts/newOrderer.json \
-    --orgName OrdererOrg2 \
-    --rpcAddress localhost:1234 \
-    --ordererOrg \
-    OrdererOrg
 ```
