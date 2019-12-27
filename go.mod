@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/hyperledger/fabric-amcl v0.0.0-20190902191507-f66264322317 // indirect
 	github.com/hyperledger/fabric-protos-go v0.0.0-20191121202242-f5500d5e3e85
-	github.com/hyperledger/fabric-sdk-go v1.0.0-beta1
+	github.com/hyperledger/fabric-sdk-go v1.0.0-beta1.0.20191229152645-4f8dd0dc5107
 	github.com/klauspost/cpuid v1.2.2 // indirect
 	github.com/miekg/pkcs11 v1.0.3 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect

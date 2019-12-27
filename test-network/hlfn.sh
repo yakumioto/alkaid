@@ -57,10 +57,11 @@ function joinChannel() {
 
 function installChaincode() {
     ../bin/hlf-deploy chaincode install --configFile config.yaml \
-        --goPath chaincode \
-        --chaincodePath example_02 \
+        --lang ${1} \
+        --goPath ${2} \
+        --chaincodePath ${3} \
         --chaincodeName mycc \
-        --chaincodeVersion v1.0 \
+        --chaincodeVersion ${4} \
         Org1 Org2
 }
 
@@ -70,9 +71,23 @@ function instantiateChaincode() {
         --orgName Org1 \
         --chaincodePolicy Org1MSP,Org2MSP \
         --chaincodePolicyNOutOf 2 \
-        --chaincodePath example_02 \
+        --lang ${1} \
+        --chaincodePath ${2} \
         --chaincodeName mycc \
-        --chaincodeVersion v1.0 \
+        --chaincodeVersion ${3} \
+        a 100 b 200
+}
+
+function upgradeChaincode() {
+    ../bin/hlf-deploy chaincode upgrade --configFile config.yaml \
+        --channelName mychannel \
+        --orgName Org1 \
+        --chaincodePolicy Org1MSP,Org2MSP \
+        --chaincodePolicyNOutOf 2 \
+        --lang ${1} \
+        --chaincodePath ${2} \
+        --chaincodeName mycc \
+        --chaincodeVersion ${3} \
         a 100 b 200
 }
 
@@ -370,25 +385,51 @@ done
 
 if [[ "${mode}" == "up" ]]; then
     upNetwork
+    sleep 2s
     createChannel
+    sleep 2s
     updateAnchorPeer channel-artifacts/Org1MSPanchors.tx Org1
+    sleep 2s
     updateAnchorPeer channel-artifacts/Org2MSPanchors.tx Org2
+    sleep 2s
     joinChannel
-    installChaincode
-    instantiateChaincode
-    sleep 10s
+    sleep 2s
+    installChaincode  golang chaincode/go example_02 v1.0
+    sleep 2s
+    instantiateChaincode golang example_02 v1.0
+    sleep 5s
     queryChaincode a
+    sleep 2s
     queryChaincode b
+    sleep 2s
     invokeChaincode a b 50
+    sleep 2s
     queryChaincode a
+    sleep 2s
     queryChaincode b
+    sleep 2s
     addOrganization
+    sleep 2s
     updateOrganization
+    sleep 2s
     deleteOrganization
+    sleep 2s
     soloToRaftConsensus
-    sleep 20s
+    sleep 10s
     invokeChaincode b a 50
+    sleep 2s
     queryChaincode a
+    sleep 2s
+    queryChaincode b
+    sleep 2s
+    installChaincode java chaincode/go chaincode/java v2.0
+    sleep 2s
+    upgradeChaincode java chaincode/java v2.0
+    sleep 2s
+    invokeChaincode b a 50
+    sleep 5s
+    queryChaincode a
+    sleep 2s
     queryChaincode b
 elif [[ "${mode}" == "down" ]]; then ## Clear the network
     cleanNetwork

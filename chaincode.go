@@ -2,12 +2,16 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	mspprotos "github.com/hyperledger/fabric-protos-go/msp"
+	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/ccpackager/gopackager"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/ccpackager/javapackager"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl"
 	"github.com/spf13/cobra"
@@ -21,9 +25,20 @@ func installChaincode(_ *cobra.Command, args []string) {
 
 	sdk := utils.SDKNew(fabconfig)
 
-	ccpkg, err := gopackager.NewCCPackage(chaincodePath, goPath)
-	if err != nil {
-		log.Fatalln("new chaincode package error:", err)
+	var ccpkg *resource.CCPackage
+	var err error
+
+	switch strings.ToUpper(lang) {
+	case pb.ChaincodeSpec_Type_name[int32(pb.ChaincodeSpec_GOLANG)]:
+		ccpkg, err = gopackager.NewCCPackage(chaincodePath, goPath)
+		if err != nil {
+			log.Fatalln("new golang chaincode package error:", err)
+		}
+	case pb.ChaincodeSpec_Type_name[int32(pb.ChaincodeSpec_JAVA)]:
+		ccpkg, err = javapackager.NewCCPackage(chaincodePath)
+		if err != nil {
+			log.Fatalln("new java chaincode package error:", err)
+		}
 	}
 
 	for _, orgName := range args {
@@ -63,12 +78,19 @@ func instantiateAndUpgradeChaincode(cmd *cobra.Command, args []string) {
 		ccArgs = append(ccArgs, []byte(arg))
 	}
 
+	langType := pb.ChaincodeSpec_GOLANG
+	switch lang {
+	case "java":
+		langType = pb.ChaincodeSpec_JAVA
+	}
+
 	switch cmd.Use {
 	case "instantiate":
 		res, err := resMgmt.InstantiateCC(channelName, resmgmt.InstantiateCCRequest{
 			Name:    chaincodeName,
 			Path:    chaincodePath,
 			Version: chaincodeVersion,
+			Lang:    langType,
 			Args:    ccArgs,
 			Policy:  ccPolicy,
 		}, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
@@ -83,6 +105,7 @@ func instantiateAndUpgradeChaincode(cmd *cobra.Command, args []string) {
 			Name:    chaincodeName,
 			Path:    chaincodePath,
 			Version: chaincodeVersion,
+			Lang:    langType,
 			Args:    ccArgs,
 			Policy:  ccPolicy,
 		}, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
