@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/yakumioto/hlf-deploy/internal/utils"
+
+	"github.com/spf13/cobra"
 )
 
 var (

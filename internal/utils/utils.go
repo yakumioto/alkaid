@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -58,12 +57,12 @@ func SDKNew(fabconfig string) *fabsdk.FabricSDK {
 func GetOrgsTargetPeers(sdk *fabsdk.FabricSDK, orgsName []string) ([]string, error) {
 	configBackend, err := sdk.Config()
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("get orgs target peers error: %s", err))
+		return nil, fmt.Errorf("get orgs target peers error: %s", err)
 	}
 
 	networkConfig := fab.NetworkConfig{}
 	if err := lookup.New(configBackend).UnmarshalKey("organizations", &networkConfig.Organizations); err != nil {
-		return nil, errors.New(fmt.Sprintf("lookup unmarshal key error: %s", err))
+		return nil, fmt.Errorf("lookup unmarshal key error: %s", err)
 	}
 
 	var peers []string
@@ -102,7 +101,7 @@ func InitRPCClient(address string) {
 	if client == nil {
 		client, err = rpc.DialHTTP("tcp", address)
 		if err != nil {
-			log.Fatalln("dialling rpc error:", err)
+			log.Fatalln("dialing rpc error:", err)
 		}
 	}
 }
@@ -180,7 +179,9 @@ func GetNewestConfigWithConfigBlock(resMgmt *resmgmt.Client, channelName string,
 	} else {
 		block = new(Block)
 	}
-	if err := json.Unmarshal(blockBytes, block); err != nil {
+
+	err = json.Unmarshal(blockBytes, block)
+	if err != nil {
 		log.Fatalln("unmarshal block json error:", err)
 	}
 
@@ -208,7 +209,7 @@ func GetNewOrgConfigWithFielePath(filePath, mspID string) []byte {
 	return GetStdConfigBytes(mspID, newOrgFileBytes)
 }
 
-func GetModifiedConfig(configBytes []byte, newOrgConfigBytes []byte, mod Mod, ordererOrg, sysChannel bool) []byte {
+func GetModifiedConfig(configBytes, newOrgConfigBytes []byte, mod Mod, ordererOrg, sysChannel bool) []byte {
 	var cfg interface{}
 
 	if configBytes != nil {

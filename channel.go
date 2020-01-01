@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/yakumioto/hlf-deploy/internal/utils"
+
 	"github.com/gogo/protobuf/proto"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
@@ -12,7 +14,6 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/spf13/cobra"
-	"github.com/yakumioto/hlf-deploy/internal/utils"
 )
 
 func createChannel(_ *cobra.Command, args []string) {
