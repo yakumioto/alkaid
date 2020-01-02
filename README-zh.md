@@ -37,11 +37,11 @@ git clone https://github.com/yakumioto/hlf-deploy.git && \
 6. Instantiate go chaincode (mycc v1.0)
 7. Query go chaincode
 8. Invoke go chaincode
-9. Add Org3 to mychannel
-10. Modify Org3's certificate
-11. Remove Org3 from mychannel
-12. Upgrade from solo consensus to etcdraft consensus
-13. Invoke and query chaincode to ensure that the consensus upgrade is successful
+9. Add Org3 to mychannel (动态添加组织)
+10. Modify Org3's certificate (动态修改组织证书)
+11. Remove Org3 from mychannel (动态删除组织)
+12. Upgrade from solo consensus to etcdraft consensus (从 solo 升级到 etcdraft)
+13. Invoke and query chaincode to ensure that the consensus upgrade is successful (测试升级后的网络)
 14. Install java chaincode (mycc v2.0)
 15. Upgrade java chaincode (mycc v2.0)
 16. Invoke java chaincode
