@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/yakumioto/hlf-deploy/internal/utils"
+
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -22,21 +23,21 @@ var (
 	chaincodePolicyNOutOf int32
 	endorsementOrgsName   []string
 
-	rpcAddress         string
-	sysChannel         bool
-	orgConfig          string
-	ordererOrg         bool
-	batchTimeout       string
-	batchSizeAbsolute  string
-	batchSizeMessage   int
-	batchSizePreferred string
+	sysChannel bool
+	orgConfig  string
+	ordererOrg bool
 
-	consensusOption utils.ConsensusOptions
-	etcdOption      utils.EtcdRaftOptions
+	batchOpts     *utils.ChannelOpts
+	consensusOpts *utils.ConsensusOpts
+	raftOpts      *utils.RaftOpts
 )
 
 func init() {
 	cobra.OnInitialize()
+
+	batchOpts = &utils.ChannelOpts{}
+	consensusOpts = &utils.ConsensusOpts{}
+	raftOpts = &utils.RaftOpts{}
 
 	rootCmd.AddCommand(channelCmd)
 	channelCmd.AddCommand(createChannelCmd)
@@ -115,7 +116,6 @@ func init() {
 	addOrgChannelCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
 	addOrgChannelCmd.Flags().StringVar(&orgConfig, "orgConfig", "org.json", "New organitztion config material in JSON.")
 	addOrgChannelCmd.Flags().StringVar(&orgName, "orgName", "", "New organitztion MSP id.")
-	addOrgChannelCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
 	addOrgChannelCmd.Flags().BoolVar(&ordererOrg, "ordererOrg", false, "Organization is the orderer organization.")
 
 	updateOrgChannelCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
@@ -124,7 +124,6 @@ func init() {
 	updateOrgChannelCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
 	updateOrgChannelCmd.Flags().StringVar(&orgConfig, "orgConfig", "org.json", "New organitztion config material in JSON.")
 	updateOrgChannelCmd.Flags().StringVar(&orgName, "orgName", "", "New organitztion MSP id.")
-	updateOrgChannelCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
 	updateOrgChannelCmd.Flags().BoolVar(&ordererOrg, "ordererOrg", false, "Organization is the orderer organization")
 
 	delOrgChannelCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
@@ -132,37 +131,34 @@ func init() {
 	delOrgChannelCmd.Flags().BoolVar(&sysChannel, "sysChannel", false, "Channel is system channel.")
 	delOrgChannelCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
 	delOrgChannelCmd.Flags().StringVar(&orgName, "orgName", "", "New organitztion MSP id.")
-	delOrgChannelCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
 	delOrgChannelCmd.Flags().BoolVar(&ordererOrg, "ordererOrg", false, "Organization is the orderer organization")
 
 	updateChannelParamCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
 	updateChannelParamCmd.Flags().StringVar(&ordererOrgName, "ordererOrgName", "OrdererOrg", "Orderer organitztion name.")
 	updateChannelParamCmd.Flags().BoolVar(&sysChannel, "sysChannel", false, "Channel is system channel.")
 	updateChannelParamCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
-	updateChannelParamCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
-	updateChannelParamCmd.Flags().StringVar(&batchTimeout, "batchTimeout", "2s", "set batch timeout.")
-	updateChannelParamCmd.Flags().StringVar(&batchSizeAbsolute, "absoluteMaxBytes", "99MB", "set batch size absolute max bytes.")
-	updateChannelParamCmd.Flags().StringVar(&batchSizePreferred, "preferredMaxBytes", "512KB", "set batch size preferred max bytes.")
-	updateChannelParamCmd.Flags().IntVar(&batchSizeMessage, "sizeMessageMaxCount", 10, "set batch size max message count.")
+	updateChannelParamCmd.Flags().StringVar(&batchOpts.BatchTimeout, "batchTimeout", "2s", "set batch timeout.")
+	updateChannelParamCmd.Flags().StringVar(&batchOpts.BatchSizeAbsolute, "absoluteMaxBytes", "99MB", "set batch size absolute max bytes.")
+	updateChannelParamCmd.Flags().StringVar(&batchOpts.BatchSizePreferred, "preferredMaxBytes", "512KB", "set batch size preferred max bytes.")
+	updateChannelParamCmd.Flags().IntVar(&batchOpts.BatchSizeMessage, "sizeMessageMaxCount", 10, "set batch size max message count.")
 
 	updateChannelStateCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
 	updateChannelStateCmd.Flags().StringVar(&ordererOrgName, "ordererOrgName", "OrdererOrg", "Orderer organitztion name.")
 	updateChannelStateCmd.Flags().BoolVar(&sysChannel, "sysChannel", false, "Channel is system channel.")
 	updateChannelStateCmd.Flags().StringVar(&channelName, "channelName", "mychannel", "Channel name.")
-	updateChannelStateCmd.Flags().StringVar(&rpcAddress, "rpcAddress", "localhost:1234", "hlf-tools Address.")
-	updateChannelStateCmd.Flags().StringVar(&consensusOption.State, "state", "", "Channel consensus state.")
-	updateChannelStateCmd.Flags().StringVar(&consensusOption.Type, "type", "", "Channel consensus type.")
-	updateChannelStateCmd.Flags().StringVar(&consensusOption.OrdererAddress, "ordererAddress", "", "Channel consensus orderer address.")
-	updateChannelStateCmd.Flags().StringVar(&consensusOption.KafkaBrokerAddress, "kafkaBrokerAddress", "", "Channel consensus kafka broker address.")
-	updateChannelStateCmd.Flags().IntVar(&etcdOption.ElectionTick, "electionTick", 0, "Channel consensus etcdraft option election tick.")
-	updateChannelStateCmd.Flags().IntVar(&etcdOption.HeartbeatTick, "heartbeatTick", 0, "Channel consensus etcdraft option heartbeat tick.")
-	updateChannelStateCmd.Flags().IntVar(&etcdOption.MaxInflightBlocks, "maxInflightBlocks", 0, "Channel consensus etcdraft option max inflight blocks.")
-	updateChannelStateCmd.Flags().StringVar(&etcdOption.SnapshotIntervalSize, "snapshotIntervalSize", "", "Channel consensus etcdraft option snapshot interval size.")
-	updateChannelStateCmd.Flags().StringVar(&etcdOption.TickInterval, "tickInterval", "", "Channel consensus etcdraft option tick interval.")
-	updateChannelStateCmd.Flags().StringVar(&etcdOption.Host, "host", "", "Channel consensus etcdraft consenters host.")
-	updateChannelStateCmd.Flags().IntVar(&etcdOption.Port, "port", 0, "Channel consensus etcdraft consenters port.")
-	updateChannelStateCmd.Flags().StringVar(&etcdOption.ClientTLSCertPath, "clientTLSCertPath", "", "Channel consensus etcdraft consenters client tls cert path.")
-	updateChannelStateCmd.Flags().StringVar(&etcdOption.ServerTLSCertPath, "serverTLSCertPath", "", "Channel consensus etcdraft consenters server tls cert path.")
+	updateChannelStateCmd.Flags().StringVar(&consensusOpts.State, "state", "", "Channel consensus state.")
+	updateChannelStateCmd.Flags().StringVar(&consensusOpts.Type, "type", "", "Channel consensus type.")
+	updateChannelStateCmd.Flags().StringVar(&consensusOpts.OrdererAddress, "ordererAddress", "", "Channel consensus orderer address.")
+	updateChannelStateCmd.Flags().StringVar(&consensusOpts.KafkaBrokerAddress, "kafkaBrokerAddress", "", "Channel consensus kafka broker address.")
+	updateChannelStateCmd.Flags().IntVar(&raftOpts.ElectionTick, "electionTick", 0, "Channel consensus etcdraft option election tick.")
+	updateChannelStateCmd.Flags().IntVar(&raftOpts.HeartbeatTick, "heartbeatTick", 0, "Channel consensus etcdraft option heartbeat tick.")
+	updateChannelStateCmd.Flags().IntVar(&raftOpts.MaxInflightBlocks, "maxInflightBlocks", 0, "Channel consensus etcdraft option max inflight blocks.")
+	updateChannelStateCmd.Flags().StringVar(&raftOpts.SnapshotIntervalSize, "snapshotIntervalSize", "", "Channel consensus etcdraft option snapshot interval size.")
+	updateChannelStateCmd.Flags().StringVar(&raftOpts.TickInterval, "tickInterval", "", "Channel consensus etcdraft option tick interval.")
+	updateChannelStateCmd.Flags().StringVar(&raftOpts.Host, "host", "", "Channel consensus etcdraft consenters host.")
+	updateChannelStateCmd.Flags().IntVar(&raftOpts.Port, "port", 0, "Channel consensus etcdraft consenters port.")
+	updateChannelStateCmd.Flags().StringVar(&raftOpts.ClientTLSCertPath, "clientTLSCertPath", "", "Channel consensus etcdraft consenters client tls cert path.")
+	updateChannelStateCmd.Flags().StringVar(&raftOpts.ServerTLSCertPath, "serverTLSCertPath", "", "Channel consensus etcdraft consenters server tls cert path.")
 
 	getChannelConfigBlockCmd.Flags().StringVar(&fabconfig, "configFile", "config.yaml", "Fabric SDK config file path.")
 	getChannelConfigBlockCmd.Flags().StringVar(&ordererOrgName, "ordererOrgName", "OrdererOrg", "Orderer organitztion name.")

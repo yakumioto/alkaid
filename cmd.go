@@ -23,11 +23,6 @@ var (
 		Short: `Organization subcommand.`,
 	}
 
-	consensusCmd = &cobra.Command{
-		Use:   `consensus`,
-		Short: `Consensus subcommand.`,
-	}
-
 	createChannelCmd = &cobra.Command{
 		Use:   `create`,
 		Short: `Create channel.`,

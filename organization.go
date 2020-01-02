@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"log"
 
+	"github.com/yakumioto/hlf-deploy/internal/utils"
+
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/spf13/cobra"
-	"github.com/yakumioto/hlf-deploy/internal/utils"
 )
 
 func addAndUpdateOrgChannel(_ *cobra.Command, args []string) {
-	utils.InitRPCClient(rpcAddress)
 	sdk := utils.SDKNew(fabconfig)
 
 	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))
@@ -47,7 +47,6 @@ func addAndUpdateOrgChannel(_ *cobra.Command, args []string) {
 }
 
 func delOrgChannel(_ *cobra.Command, args []string) {
-	utils.InitRPCClient(rpcAddress)
 	sdk := utils.SDKNew(fabconfig)
 
 	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))

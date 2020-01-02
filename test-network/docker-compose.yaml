@@ -2,12 +2,6 @@ version: '2.0'
 networks:
   byfn: {}
 services:
-  hlf-tools:
-    image: yakumioto/hlf-tools:latest
-    networks:
-      byfn: {}
-    ports:
-      - 1234:1234/tcp
   orderer.example.com:
     command: orderer
     container_name: orderer.example.com

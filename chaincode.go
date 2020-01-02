@@ -4,6 +4,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/yakumioto/hlf-deploy/internal/utils"
+
 	mspprotos "github.com/hyperledger/fabric-protos-go/msp"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
@@ -15,7 +17,6 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl"
 	"github.com/spf13/cobra"
-	"github.com/yakumioto/hlf-deploy/internal/utils"
 )
 
 func installChaincode(_ *cobra.Command, args []string) {
@@ -79,8 +80,7 @@ func instantiateAndUpgradeChaincode(cmd *cobra.Command, args []string) {
 	}
 
 	langType := pb.ChaincodeSpec_GOLANG
-	switch lang {
-	case "java":
+	if lang == "java" {
 		langType = pb.ChaincodeSpec_JAVA
 	}
 

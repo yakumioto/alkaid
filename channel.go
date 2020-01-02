@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/yakumioto/hlf-deploy/internal/utils"
+
 	"github.com/gogo/protobuf/proto"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
@@ -12,7 +14,6 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/spf13/cobra"
-	"github.com/yakumioto/hlf-deploy/internal/utils"
 )
 
 func createChannel(_ *cobra.Command, args []string) {
@@ -102,7 +103,6 @@ func joinChannel(_ *cobra.Command, args []string) {
 }
 
 func updateOrdererParam(_ *cobra.Command, args []string) {
-	utils.InitRPCClient(rpcAddress)
 	sdk := utils.SDKNew(fabconfig)
 
 	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))
@@ -115,7 +115,7 @@ func updateOrdererParam(_ *cobra.Command, args []string) {
 	configBytes := utils.GetNewestConfigWithConfigBlock(resMgmt, channelName, sysChannel)
 
 	// get modified config
-	modifiedConfigBytes := utils.GetChannelParamsModifiedConfig(configBytes, batchTimeout, batchSizeAbsolute, batchSizePreferred, batchSizeMessage, sysChannel)
+	modifiedConfigBytes := utils.GetChannelParamsModifiedConfig(configBytes, batchOpts, sysChannel)
 
 	// get config.pb
 	updateEnvelopePBBytes := utils.GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes, channelName)

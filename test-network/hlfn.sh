@@ -19,13 +19,8 @@ if [[ ! -f "../bin/hlf-deploy" ]]; then
     chmod +x ../bin/hlf-deploy
 fi
 
-if [[ -z "$(docker images -q yakumioto/hlf-tools:latest)" ]]; then
-    echo "docker pull yakumioto/hlf-tools:latest"
-    docker pull yakumioto/hlf-tools:latest
-fi
-
 function upNetwork() {
-    docker-compose up -d hlf-tools \
+    docker-compose up -d \
         orderer.example.com \
         peer0.org1.example.com \
         peer1.org1.example.com \
@@ -114,7 +109,6 @@ function addOrganization() {
         --ordererOrgName OrdererOrg \
         --orgConfig channel-artifacts/org3.json \
         --orgName Org3MSP \
-        --rpcAddress localhost:1234 \
         Org1 Org2
 }
 
@@ -124,7 +118,6 @@ function updateOrganization() {
         --ordererOrgName OrdererOrg \
         --orgConfig channel-artifacts/modify-org3.json \
         --orgName Org3MSP \
-        --rpcAddress localhost:1234 \
         Org3
 }
 
@@ -133,7 +126,6 @@ function deleteOrganization() {
         --channelName mychannel \
         --ordererOrgName OrdererOrg \
         --orgName Org3MSP \
-        --rpcAddress localhost:1234 \
         Org1 Org2
 }
 
@@ -143,7 +135,6 @@ function addOrdererOrganization() {
         --ordererOrgName OrdererOrg \
         --orgConfig channel-artifacts/newOrderer.json \
         --orgName OrdererOrg2 \
-        --rpcAddress localhost:1234 \
         --ordererOrg \
         OrdererOrg
 }
