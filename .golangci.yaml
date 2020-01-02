@@ -96,6 +96,7 @@ linters:
 run:
   skip-dirs:
     - test-network/chaincode
+    - internal/github.com
 
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
