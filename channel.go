@@ -103,7 +103,6 @@ func joinChannel(_ *cobra.Command, args []string) {
 }
 
 func updateOrdererParam(_ *cobra.Command, args []string) {
-	utils.InitRPCClient(rpcAddress)
 	sdk := utils.SDKNew(fabconfig)
 
 	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))
@@ -116,7 +115,7 @@ func updateOrdererParam(_ *cobra.Command, args []string) {
 	configBytes := utils.GetNewestConfigWithConfigBlock(resMgmt, channelName, sysChannel)
 
 	// get modified config
-	modifiedConfigBytes := utils.GetChannelParamsModifiedConfig(configBytes, batchTimeout, batchSizeAbsolute, batchSizePreferred, batchSizeMessage, sysChannel)
+	modifiedConfigBytes := utils.GetChannelParamsModifiedConfig(configBytes, batchOpts, sysChannel)
 
 	// get config.pb
 	updateEnvelopePBBytes := utils.GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes, channelName)

@@ -12,7 +12,6 @@ import (
 )
 
 func updateConsensusState(_ *cobra.Command, args []string) {
-	utils.InitRPCClient(rpcAddress)
 	sdk := utils.SDKNew(fabconfig)
 
 	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))
@@ -25,7 +24,7 @@ func updateConsensusState(_ *cobra.Command, args []string) {
 	configBytes := utils.GetNewestConfigWithConfigBlock(resMgmt, channelName, sysChannel)
 
 	// get modified config
-	modifiedConfigBytes := utils.GetChannelConsensusStateModifiedConfig(configBytes, consensusOption, etcdOption, sysChannel)
+	modifiedConfigBytes := utils.GetConsensusStateModifiedConfig(configBytes, consensusOpts, raftOpts, sysChannel)
 
 	// get config.pb
 	updateEnvelopePBBytes := utils.GetUpdateEnvelopeProtoBytes(configBytes, modifiedConfigBytes, channelName)

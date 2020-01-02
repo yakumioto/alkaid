@@ -120,6 +120,8 @@ github.com/hyperledger/fabric-sdk-go v1.0.0-beta1 h1:id5BJE6TZu/SaGQahns6sO2o+n5
 github.com/hyperledger/fabric-sdk-go v1.0.0-beta1/go.mod h1:i8yJ9t8i1fGe7opUcq6uESxhruMJNXlc+Rx9ooBZsYg=
 github.com/hyperledger/fabric-sdk-go v1.0.0-beta1.0.20191229152645-4f8dd0dc5107 h1:IfPR5wJCeY17Dd5MIORQgpABnboWIe/d6kl9xGahCHY=
 github.com/hyperledger/fabric-sdk-go v1.0.0-beta1.0.20191229152645-4f8dd0dc5107/go.mod h1:/s224b8NLvOJOCIqBvWd9O6u7GE33iuIOT6OfcTE1OE=
+github.com/hyperledger/fabric-sdk-go v1.0.0-beta1.0.20191231170015-e7b9b0dc1316 h1:2mQw9fkXytiYS3mHEBFvrcPENR+QajrcXpBI/oH5ofY=
+github.com/hyperledger/fabric-sdk-go v1.0.0-beta1.0.20191231170015-e7b9b0dc1316/go.mod h1:/s224b8NLvOJOCIqBvWd9O6u7GE33iuIOT6OfcTE1OE=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/jcmturner/gofork v0.0.0-20190328161633-dc7c13fece03 h1:FUwcHNlEqkqLjLBdCp5PRlCFijNjvcYANOZXzCfXwCM=

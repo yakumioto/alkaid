@@ -12,7 +12,6 @@ import (
 )
 
 func addAndUpdateOrgChannel(_ *cobra.Command, args []string) {
-	utils.InitRPCClient(rpcAddress)
 	sdk := utils.SDKNew(fabconfig)
 
 	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))
@@ -48,7 +47,6 @@ func addAndUpdateOrgChannel(_ *cobra.Command, args []string) {
 }
 
 func delOrgChannel(_ *cobra.Command, args []string) {
-	utils.InitRPCClient(rpcAddress)
 	sdk := utils.SDKNew(fabconfig)
 
 	ordererCtx := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg(ordererOrgName))

@@ -1,16 +1,19 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/rpc"
 	"strconv"
 	"strings"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/yakumioto/hlf-deploy/internal/github.com/hyperledger/fabric/sdkinternal/configtxlator/update"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/hyperledger/fabric-protos-go/common"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/context"
@@ -19,6 +22,8 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config/lookup"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
+	"github.com/hyperledger/fabric-sdk-go/pkg/util/protolator"
+	"github.com/pkg/errors"
 )
 
 type Mod string
@@ -30,11 +35,53 @@ const (
 
 	StateNormal      ConsensusState = "STATE_NORMAL"
 	StateMaintenance ConsensusState = "STATE_MAINTENANCE"
+
+	ConsensusEtcdRaft = "etcdraft"
 )
 
-var (
-	client *rpc.Client
-)
+type ConsensusOpts struct {
+	State              string
+	Type               string
+	OrdererAddress     string
+	KafkaBrokerAddress string
+}
+
+type RaftOpts struct {
+	ElectionTick         int
+	HeartbeatTick        int
+	MaxInflightBlocks    int
+	SnapshotIntervalSize string
+	TickInterval         string
+	Host                 string
+	Port                 int
+	ClientTLSCertPath    string
+	ServerTLSCertPath    string
+}
+
+type ChannelOpts struct {
+	BatchTimeout       string
+	BatchSizeAbsolute  string
+	BatchSizePreferred string
+	BatchSizeMessage   int
+}
+
+func (raft *RaftOpts) setDefaultOptions() {
+	if raft.ElectionTick == 0 {
+		raft.ElectionTick = 10
+	}
+	if raft.HeartbeatTick == 0 {
+		raft.HeartbeatTick = 1
+	}
+	if raft.MaxInflightBlocks == 0 {
+		raft.MaxInflightBlocks = 5
+	}
+	if raft.SnapshotIntervalSize == "" {
+		raft.SnapshotIntervalSize = "20MB"
+	}
+	if raft.TickInterval == "" {
+		raft.TickInterval = "500ms"
+	}
+}
 
 func GetConsensusState(status string) ConsensusState {
 	switch status {
@@ -95,57 +142,87 @@ func GetSigningIdentities(ctx context.ClientProvider, orgs []string) []msp.Signi
 	return signingIdentities
 }
 
-func InitRPCClient(address string) {
-	var err error
+func getProtoMessage(msgName string) proto.Message {
+	var msg proto.Message
 
-	if client == nil {
-		client, err = rpc.DialHTTP("tcp", address)
-		if err != nil {
-			log.Fatalln("dialing rpc error:", err)
-		}
+	switch msgName {
+	case "common.Block":
+		msg = &common.Block{}
+	case "common.Config":
+		msg = &common.Config{}
+	case "common.Envelope":
+		msg = &common.Envelope{}
+	case "common.ConfigUpdate":
+		msg = &common.ConfigUpdate{}
+	default:
+		msg = nil
 	}
+	return msg
 }
 
 func protoDecode(msgName string, input []byte) ([]byte, error) {
-	return protoEncodeAndDecode("Proto.Decode", msgName, input)
+	var msg proto.Message
+	if msg = getProtoMessage(msgName); msg == nil {
+		return nil, errors.New("no message type")
+	}
+
+	if err := proto.Unmarshal(input, msg); err != nil {
+		return nil, errors.Wrapf(err, "error unmarshaling")
+	}
+
+	output := bytes.NewBuffer(nil)
+
+	err := protolator.DeepMarshalJSON(output, msg)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error encoding output")
+	}
+
+	return output.Bytes(), nil
 }
 
 func protoEncode(msgName string, input []byte) ([]byte, error) {
-	return protoEncodeAndDecode("Proto.Encode", msgName, input)
-}
-
-func protoEncodeAndDecode(typ, msgName string, input []byte) ([]byte, error) {
-	var reply []byte
-
-	if err := client.Call(typ, struct {
-		MsgName string
-		Input   []byte
-	}{
-		msgName,
-		input,
-	}, &reply); err != nil {
-		return nil, err
+	var msg proto.Message
+	if msg = getProtoMessage(msgName); msg == nil {
+		return nil, errors.New("no message type")
 	}
 
-	return reply, nil
+	intputbuf := bytes.NewBuffer(input)
+	err := protolator.DeepUnmarshalJSON(intputbuf, msg)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error decoding input")
+	}
+
+	out, err := proto.Marshal(msg)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error marshaling")
+	}
+
+	return out, nil
 }
 
 func computeUpdate(channelName string, origin, updated []byte) ([]byte, error) {
-	var reply []byte
-
-	if err := client.Call("Compute.Update", struct {
-		ChannelName string
-		Origin      []byte
-		Updated     []byte
-	}{
-		channelName,
-		origin,
-		updated,
-	}, &reply); err != nil {
-		return nil, err
+	origConf := &common.Config{}
+	if err := proto.Unmarshal(origin, origConf); err != nil {
+		return nil, errors.Wrapf(err, "error unmarshaling original config")
 	}
 
-	return reply, nil
+	updtConf := &common.Config{}
+	if err := proto.Unmarshal(updated, updtConf); err != nil {
+		return nil, errors.Wrapf(err, "error unmarshaling updated config")
+	}
+
+	cu, err := update.Compute(origConf, updtConf)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error computing config update")
+	}
+	cu.ChannelId = channelName
+
+	outBytes, err := proto.Marshal(cu)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error marshaling computed config update")
+	}
+
+	return outBytes, nil
 }
 
 func GetStdConfigBytes(mspID string, configBytes []byte) []byte {
@@ -226,6 +303,22 @@ func GetModifiedConfig(configBytes, newOrgConfigBytes []byte, mod Mod, ordererOr
 
 	newOrgConfig := new(Config)
 	orgName := ""
+
+	var groups map[string]interface{}
+	if sysChannel {
+		groups = cfg.(*SystemConfig).ChannelGroup.Groups.Consortiums.Groups.SampleConsortium.Groups
+
+		if ordererOrg {
+			groups = cfg.(*SystemConfig).ChannelGroup.Groups.Orderer.Groups
+		}
+	} else {
+		groups = cfg.(*Config).ChannelGroup.Groups.Application.Groups
+
+		if ordererOrg {
+			groups = cfg.(*Config).ChannelGroup.Groups.Orderer.Groups
+		}
+	}
+
 	switch mod {
 	case ModifiedModAdd:
 		if newOrgConfigBytes != nil {
@@ -233,46 +326,14 @@ func GetModifiedConfig(configBytes, newOrgConfigBytes []byte, mod Mod, ordererOr
 				log.Fatalln(err)
 			}
 		}
+
+		for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
+			groups[orgName] = org
+		}
 	case ModifiedModDel:
 		orgName = string(newOrgConfigBytes)
-	}
 
-	switch mod {
-	case ModifiedModAdd:
-		if sysChannel {
-			if ordererOrg {
-				for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
-					cfg.(*SystemConfig).ChannelGroup.Groups.Orderer.Groups[orgName] = org
-				}
-				break
-			}
-			for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
-				cfg.(*SystemConfig).ChannelGroup.Groups.Consortiums.Groups.SampleConsortium.Groups[orgName] = org
-			}
-		} else {
-			if ordererOrg {
-				for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
-					cfg.(*Config).ChannelGroup.Groups.Orderer.Groups[orgName] = org
-				}
-				break
-			}
-			for orgName, org := range newOrgConfig.ChannelGroup.Groups.Application.Groups {
-				cfg.(*Config).ChannelGroup.Groups.Application.Groups[orgName] = org
-			}
-		}
-	case ModifiedModDel:
-		if sysChannel {
-			if ordererOrg {
-				delete(cfg.(*SystemConfig).ChannelGroup.Groups.Orderer.Groups, orgName)
-				break
-			}
-			delete(cfg.(*SystemConfig).ChannelGroup.Groups.Consortiums.Groups.SampleConsortium.Groups, orgName)
-		} else {
-			if ordererOrg {
-				delete(cfg.(*Config).ChannelGroup.Groups.Orderer.Groups, orgName)
-			}
-			delete(cfg.(*Config).ChannelGroup.Groups.Application.Groups, orgName)
-		}
+		delete(groups, orgName)
 	}
 
 	modifiedConfigBytes, err := json.Marshal(cfg)
@@ -283,9 +344,7 @@ func GetModifiedConfig(configBytes, newOrgConfigBytes []byte, mod Mod, ordererOr
 	return modifiedConfigBytes
 }
 
-func GetChannelParamsModifiedConfig(configBytes []byte,
-	batchTimeout, batchSizeAbsolute, batchSizePreferred string, batchSizeMessage int, sysChannel bool) []byte {
-
+func GetChannelParamsModifiedConfig(configBytes []byte, channelOpts *ChannelOpts, sysChannel bool) []byte {
 	var cfg interface{}
 
 	if configBytes != nil {
@@ -310,20 +369,20 @@ func GetChannelParamsModifiedConfig(configBytes []byte,
 	batchTimoutValueMap := getMap(getMap(values, "BatchTimeout"), "value")
 	batchSizeValueMap := getMap(getMap(values, "BatchTimeout"), "value")
 
-	if batchTimeout != "" {
-		batchTimoutValueMap["timeout"] = batchTimeout
+	if channelOpts.BatchTimeout != "" {
+		batchTimoutValueMap["timeout"] = channelOpts.BatchTimeout
 	}
 
-	if batchSizeAbsolute != "" {
-		batchSizeValueMap["absolute_max_bytes"] = convertStorageUnit(batchSizeAbsolute)
+	if channelOpts.BatchSizeAbsolute != "" {
+		batchSizeValueMap["absolute_max_bytes"] = convertStorageUnit(channelOpts.BatchSizeAbsolute)
 	}
 
-	if batchSizeMessage != 0 {
-		batchSizeValueMap["max_message_count"] = batchSizeMessage
+	if channelOpts.BatchSizeMessage != 0 {
+		batchSizeValueMap["max_message_count"] = channelOpts.BatchSizeMessage
 	}
 
-	if batchSizePreferred != "" {
-		batchSizeValueMap["preferred_max_bytes"] = convertStorageUnit(batchSizePreferred)
+	if channelOpts.BatchSizePreferred != "" {
+		batchSizeValueMap["preferred_max_bytes"] = convertStorageUnit(channelOpts.BatchSizePreferred)
 	}
 
 	modifiedConfigBytes, err := json.Marshal(cfg)
@@ -334,27 +393,106 @@ func GetChannelParamsModifiedConfig(configBytes []byte,
 	return modifiedConfigBytes
 }
 
-type ConsensusOptions struct {
-	State              string
-	Type               string
-	OrdererAddress     string
-	KafkaBrokerAddress string
+func setEtcdRaftConsenter(valueMap map[string]interface{}, raftOpts *RaftOpts) {
+	optionsMap := getMap(getMap(valueMap, "metadata"), "options")
+
+	// If the latest configuration block consensus type is not etcdraft, set the default optsions.
+	if valueMap["type"] != ConsensusEtcdRaft {
+		raftOpts.setDefaultOptions()
+	}
+
+	if raftOpts.ElectionTick != 0 {
+		optionsMap["election_tick"] = raftOpts.ElectionTick
+	}
+
+	if raftOpts.HeartbeatTick != 0 {
+		optionsMap["heartbeat_tick"] = raftOpts.HeartbeatTick
+	}
+
+	if raftOpts.MaxInflightBlocks != 0 {
+		optionsMap["max_inflight_blocks"] = raftOpts.MaxInflightBlocks
+	}
+
+	if raftOpts.SnapshotIntervalSize != "" {
+		optionsMap["snapshot_interval_size"] = convertStorageUnit(raftOpts.SnapshotIntervalSize)
+	}
+
+	if raftOpts.TickInterval != "" {
+		optionsMap["tick_interval"] = raftOpts.TickInterval
+	}
+
+	valueMap["type"] = ConsensusEtcdRaft
 }
 
-type EtcdRaftOptions struct {
-	ElectionTick         int
-	HeartbeatTick        int
-	MaxInflightBlocks    int
-	SnapshotIntervalSize string
-	TickInterval         string
-	Host                 string
-	Port                 int
-	ClientTLSCertPath    string
-	ServerTLSCertPath    string
+func setRaftAddress(value map[string]interface{}, raftOpts *RaftOpts) {
+	metadataMap := getMap(value, "metadata")
+	consenters := make([]Consenters, 0)
+	if metadataMap["consenters"] != nil {
+		data, _ := json.Marshal(metadataMap["consenters"])
+		_ = json.Unmarshal(data, &consenters)
+	}
+
+	var del bool
+	for i, consenter := range consenters {
+		if consenter.Host == raftOpts.Host {
+			consenters = append(consenters[:i], consenters[i+1:]...)
+			del = true
+			break
+		}
+	}
+
+	if !del {
+		consenters = append(consenters, Consenters{
+			Host:          raftOpts.Host,
+			Port:          raftOpts.Port,
+			ClientTLSCert: readCert2base64(raftOpts.ClientTLSCertPath),
+			ServerTLSCert: readCert2base64(raftOpts.ServerTLSCertPath),
+		})
+	}
+
+	metadataMap["consenters"] = consenters
 }
 
-func GetChannelConsensusStateModifiedConfig(configBytes []byte, consensus ConsensusOptions, raftOptions EtcdRaftOptions,
-	sysChannel bool) []byte {
+func setOrdererAddress(configValues map[string]interface{}, ordererAddress string) {
+	valueMap := getMap(getMap(configValues, "OrdererAddresses"), "value")
+	addresses := valueMap["addresses"].([]interface{})
+
+	var del bool
+	for i, address := range addresses {
+		if ordererAddress == address.(string) {
+			addresses = append(addresses[:i], addresses[i+1:]...)
+			del = true
+			break
+		}
+	}
+
+	if !del {
+		addresses = append(addresses, ordererAddress)
+	}
+
+	valueMap["addresses"] = addresses
+}
+
+func setKafkaBroker(ordererValues map[string]interface{}, kafkaAddress string) {
+	valueMap := getMap(getMap(ordererValues, "KafkaBrokers"), "value")
+	addresses := valueMap["brokers"].([]interface{})
+	var del bool
+	for i, address := range addresses {
+		if kafkaAddress == address.(string) {
+			addresses = append(addresses[:i], addresses[i+1:]...)
+			del = true
+			break
+		}
+	}
+
+	if !del {
+		addresses = append(addresses, kafkaAddress)
+	}
+
+	valueMap["brokers"] = addresses
+}
+
+func GetConsensusStateModifiedConfig(configBytes []byte, consensus *ConsensusOpts, raftOpts *RaftOpts, sysChannel bool) []byte {
 	var cfg interface{}
 
 	if configBytes != nil {
@@ -388,121 +526,20 @@ func GetChannelConsensusStateModifiedConfig(configBytes []byte, consensus Consen
 		valueMap["state"] = state
 	}
 
-	if consensus.Type != "" {
-		if consensus.Type == "etcdraft" {
-
-			optionsMap := getMap(getMap(valueMap, "metadata"), "options")
-
-			// If the latest configuration block consensus type is not etcdraft, set the default optsions.
-			if valueMap["type"] != "etcdraft" {
-				if raftOptions.ElectionTick == 0 {
-					raftOptions.ElectionTick = 10
-				}
-				if raftOptions.HeartbeatTick == 0 {
-					raftOptions.HeartbeatTick = 1
-				}
-				if raftOptions.MaxInflightBlocks == 0 {
-					raftOptions.MaxInflightBlocks = 5
-				}
-				if raftOptions.SnapshotIntervalSize == "" {
-					raftOptions.SnapshotIntervalSize = "20MB"
-				}
-				if raftOptions.TickInterval == "" {
-					raftOptions.TickInterval = "500ms"
-				}
-			}
-
-			if raftOptions.ElectionTick != 0 {
-				optionsMap["election_tick"] = raftOptions.ElectionTick
-			}
-
-			if raftOptions.HeartbeatTick != 0 {
-				optionsMap["heartbeat_tick"] = raftOptions.HeartbeatTick
-			}
-
-			if raftOptions.MaxInflightBlocks != 0 {
-				optionsMap["max_inflight_blocks"] = raftOptions.MaxInflightBlocks
-			}
-
-			if raftOptions.SnapshotIntervalSize != "" {
-				optionsMap["snapshot_interval_size"] = convertStorageUnit(raftOptions.SnapshotIntervalSize)
-			}
-
-			if raftOptions.TickInterval != "" {
-				optionsMap["tick_interval"] = raftOptions.TickInterval
-			}
-		}
-
-		valueMap["type"] = consensus.Type
+	if consensus.Type == ConsensusEtcdRaft {
+		setEtcdRaftConsenter(valueMap, raftOpts)
 	}
 
-	if raftOptions.Host != "" && raftOptions.Port != 0 && valueMap["type"] == "etcdraft" {
-
-		metadataMap := getMap(valueMap, "metadata")
-		consenters := make([]Consenters, 0)
-		if metadataMap["consenters"] != nil {
-			data, _ := json.Marshal(metadataMap["consenters"])
-			_ = json.Unmarshal(data, &consenters)
-		}
-
-		var del bool
-		for i, consenter := range consenters {
-			if consenter.Host == raftOptions.Host {
-				consenters = append(consenters[:i], consenters[i+1:]...)
-				del = true
-				break
-			}
-		}
-
-		if !del {
-			consenters = append(consenters, Consenters{
-				Host:          raftOptions.Host,
-				Port:          raftOptions.Port,
-				ClientTLSCert: readCert2base64(raftOptions.ClientTLSCertPath),
-				ServerTLSCert: readCert2base64(raftOptions.ServerTLSCertPath),
-			})
-		}
-
-		metadataMap["consenters"] = consenters
+	if raftOpts.Host != "" && raftOpts.Port != 0 && valueMap["type"] == ConsensusEtcdRaft {
+		setRaftAddress(valueMap, raftOpts)
 	}
 
 	if consensus.OrdererAddress != "" {
-		valueMap := getMap(getMap(configValues, "OrdererAddresses"), "value")
-		addresses := valueMap["addresses"].([]interface{})
-
-		var del bool
-		for i, address := range addresses {
-			if consensus.OrdererAddress == address.(string) {
-				addresses = append(addresses[:i], addresses[i+1:]...)
-				del = true
-				break
-			}
-		}
-
-		if !del {
-			addresses = append(addresses, consensus.OrdererAddress)
-		}
-
-		valueMap["addresses"] = addresses
+		setOrdererAddress(configValues, consensus.OrdererAddress)
 	}
 
 	if consensus.KafkaBrokerAddress != "" {
-		valueMap := getMap(getMap(ordererValues, "KafkaBrokers"), "value")
-		addresses := valueMap["brokers"].([]interface{})
-		var del bool
-		for i, address := range addresses {
-			if consensus.OrdererAddress == address.(string) {
-				addresses = append(addresses[:i], addresses[i+1:]...)
-				del = true
-				break
-			}
-		}
-
-		if !del {
-			addresses = append(addresses, consensus.KafkaBrokerAddress)
-		}
-
-		valueMap["brokers"] = addresses
+		setKafkaBroker(ordererValues, consensus.KafkaBrokerAddress)
 	}
 
 	modifiedConfigBytes, err := json.Marshal(cfg)

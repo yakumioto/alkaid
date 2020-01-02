@@ -19,8 +19,6 @@ linters-settings:
   goconst:
     min-len: 2
     min-occurrences: 2
-  misspell:
-    locale: US
   lll:
     line-length: 140
   goimports:
@@ -42,6 +40,14 @@ linters-settings:
     lines: 100
     statements: 50
 
+issues:
+  exclude-rules:
+    - path: flags\.go
+      linters:
+        - lll
+        - funlen
+        - gochecknoinits
+
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
   # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
@@ -56,6 +62,7 @@ linters:
     - funlen
     - goconst
     - gocritic
+    - gochecknoinits
     - gocyclo
     - gofmt
     - goimports
@@ -85,7 +92,6 @@ linters:
   # - godox
   # - maligned
   # - prealloc
-  # - gochecknoinits
 
 run:
   skip-dirs:
