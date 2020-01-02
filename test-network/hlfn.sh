@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 
 function printHelp() {
@@ -15,7 +15,11 @@ function printHelp() {
 
 if [[ ! -f "../bin/hlf-deploy" ]]; then
     mkdir -p ../bin
-    curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy
+    if [[ "$(uname)" == "Darwin" ]]; then
+        curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.2.0/hlf-deploy-darwin
+    elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+        curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.2.0/hlf-deploy-linux
+    fi
     chmod +x ../bin/hlf-deploy
 fi
 
