@@ -110,10 +110,10 @@ func instantiateAndUpgradeChaincode(cmd *cobra.Command, args []string) {
 			Policy:  ccPolicy,
 		}, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
 		if err != nil {
-			log.Fatalf("%s instantiate chaincode error: %s", orgName, err)
+			log.Fatalf("%s upgrade chaincode error: %s", orgName, err)
 		}
 
-		log.Printf("%s instantiate chaincode txID: %s args: %s", orgName, res.TransactionID, args)
+		log.Printf("%s upgrade chaincode txID: %s args: %s", orgName, res.TransactionID, args)
 	}
 }
 
@@ -143,7 +143,7 @@ func queryAdnInvokeChaincode(cmd *cobra.Command, args []string) {
 			Args:        ccArgs,
 		}, channel.WithRetry(retry.DefaultChannelOpts))
 		if err != nil {
-			log.Fatalf("%s invoke error: %s", orgName, err)
+			log.Fatalf("%s query error: %s", orgName, err)
 		}
 
 		log.Printf("%s query chaincode txID: %s args: %s result: %s", orgName, res.TransactionID, args, string(res.Payload))
