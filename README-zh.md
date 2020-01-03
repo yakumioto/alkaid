@@ -59,17 +59,24 @@ Here is an example of the output
 
 ## 手动部署网络(单节点栗子)
 
-看看有没有下载二进制程序和动态添加组织的 `hlf-tools` 镜像, 如果没有下载的话, 先下载
-
-`curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy`
-
-`docker pull yakumioto/hlf-tools:latest`
-
 ### 启动网络
 
-进入 `test-network` 目录
+1. 进入目录
 
-`docker-compose up -d`
+    `cd test-network`
+
+2. 下载二进制程序和Docker镜像（如已存在，可跳过此步骤）
+    1. 下载二进制程序 [`hlf-deploy`](https://github.com/yakumioto/hlf-deploy/releases)
+    
+        `curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy`
+        
+    2. 拉取动态添加组织的 Docker 镜像 `yakumioto/hlf-tools`
+    
+        `docker pull yakumioto/hlf-tools:latest`
+
+3. 启动
+
+    `docker-compose up -d`
 
 ### 创建 Channel
 

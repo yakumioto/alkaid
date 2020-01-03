@@ -58,17 +58,21 @@ Here is an example of the output
 
 ## Deploying the network manually
 
-First download the `hlf-deploy` binary and `yakumioto/hlf-tools:latest` mirror
-
-`curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy`
-
-`docker pull yakumioto/hlf-tools:latest`
-
 ### Start network
 
-Go to the test-network directory
+1. `cd test-network`
 
-`docker-compose up -d`
+2. Get binary and docker image(skip if these two already existed).
+
+    1. Download the [`hlf-deploy`](https://github.com/yakumioto/hlf-deploy/releases) binary
+    
+        `curl -L -o ../bin/hlf-deploy https://github.com/yakumioto/hlf-deploy/releases/download/v0.1.0/hlf-deploy`
+
+    2. Pull docker image `yakumioto/hlf-tools` for dynamically add orgs.
+    
+        `docker pull yakumioto/hlf-tools:latest`
+        
+3. `docker-compose up -d`
 
 ### Create Channel
 
