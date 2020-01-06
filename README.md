@@ -28,7 +28,7 @@ git clone https://github.com/yakumioto/hlf-deploy.git && \
 
 The demo includes the following steps.
 
-1. Create network
+1. Create test network
 2. Create channel
 3. Update anchor peer
 4. Join channel
@@ -112,7 +112,8 @@ Here is an example of the output
 
 ```bash
 ../bin/hlf-deploy chaincode install --configFile config.yaml \
-    --goPath chaincode \
+    --lang golang \
+    --goPath chaincode/go \
     --chaincodePath example_02 \
     --chaincodeName mycc \
     --chaincodeVersion v1.0 \
@@ -129,13 +130,14 @@ Here is an example of the output
     --orgName Org1 \
     --chaincodePolicy Org1MSP,Org2MSP \
     --chaincodePolicyNOutOf 2 \
+    --lang golang \
     --chaincodePath example_02 \
     --chaincodeName mycc \
     --chaincodeVersion v1.0 \
     a 100 b 200
 ```
 
-### Update Chaincode
+### Upgrade Chaincode
 
 ```bash
 hlf-deploy chaincode upgrade --configFile config.yaml \
@@ -143,6 +145,7 @@ hlf-deploy chaincode upgrade --configFile config.yaml \
     --orgName Org1 \
     --chaincodePolicy Org1MSP,Org2MSP \
     --chaincodePolicyNOutOf 2 \
+    --lang golang \
     --chaincodePath example_02 \
     --chaincodeName mycc \
     --chaincodeVersion v2.0 \
@@ -184,7 +187,6 @@ hlf-deploy chaincode upgrade --configFile config.yaml \
     --ordererOrgName OrdererOrg \
     --orgConfig channel-artifacts/org3.json \
     --orgName Org3MSP \
-    --rpcAddress localhost:1234 \
     Org1 Org2
 ```
 
@@ -196,7 +198,6 @@ hlf-deploy chaincode upgrade --configFile config.yaml \
     --ordererOrgName OrdererOrg \
     --orgConfig channel-artifacts/modify-org3.json \
     --orgName Org3MSP \
-    --rpcAddress localhost:1234 \
     Org3
 ```
 
@@ -207,6 +208,21 @@ hlf-deploy chaincode upgrade --configFile config.yaml \
     --channelName mychannel \
     --ordererOrgName OrdererOrg \
     --orgName Org3MSP \
-    --rpcAddress localhost:1234 \
     Org1 Org2
+```
+
+### Update solo consensus to edtcraft consensus
+
+check out function `soloToRaftConsensus` in [`hlfn.sh`](test-network/hlfn.sh:145)
+
+### Add new orderer
+
+```bash
+../bin/hlf-deploy organization join --configFile config.yaml \
+    --channelName mychannel \
+    --ordererOrgName OrdererOrg \
+    --orgConfig channel-artifacts/newOrderer.json \
+    --orgName OrdererOrg2 \
+    --ordererOrg \
+    OrdererOrg
 ```
