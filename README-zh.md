@@ -29,7 +29,7 @@ git clone https://github.com/yakumioto/hlf-deploy.git && \
 
 以下是这个示例网络的所有执行步骤.
 
-1. Start test network
+1. Create test network
 2. Create channel
 3. Update anchor peer
 4. Join channel

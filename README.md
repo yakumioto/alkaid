@@ -28,7 +28,7 @@ git clone https://github.com/yakumioto/hlf-deploy.git && \
 
 The demo includes the following steps.
 
-1. Start test network
+1. Create test network
 2. Create channel
 3. Update anchor peer
 4. Join channel
