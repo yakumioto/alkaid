@@ -9,8 +9,8 @@ client:
     path: ./crypto-config
   credentialStore:
     path: /tmp/state-store
-  cryptoStore:
-    path: /tmp/msp
+    cryptoStore:
+      path: /tmp/msp
 #  tlsCerts:
 #    client:
 #      key:
