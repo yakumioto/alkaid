@@ -22,7 +22,7 @@ linters-settings:
   lll:
     line-length: 140
   goimports:
-    local-prefixes: github.com/yakumioto/hlf-deploy
+    local-prefixes: github.com/yakumioto/alkaid
   gocritic:
     enabled-tags:
       - diagnostic
@@ -39,14 +39,6 @@ linters-settings:
   funlen:
     lines: 100
     statements: 50
-
-issues:
-  exclude-rules:
-    - path: flags\.go
-      linters:
-        - lll
-        - funlen
-        - gochecknoinits
 
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
@@ -92,11 +84,6 @@ linters:
   # - godox
   # - maligned
   # - prealloc
-
-run:
-  skip-dirs:
-    - test-network/chaincode
-    - internal/github.com
 
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
