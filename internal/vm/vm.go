@@ -7,9 +7,33 @@
 
 package vm
 
-type VM interface {
+import (
+	"github.com/yakumioto/glog"
+
+	"github.com/yakumioto/alkaid/internal/vm/docker"
+)
+
+var (
+	logger *glog.Logger
+	VM     VirtualMachine
+)
+
+type VirtualMachine interface {
 	Create() error
 	Restart() error
 	Stop() error
 	Delete() error
+}
+
+func Init() {
+	logger = glog.MustGetLogger("vm")
+
+	if VM == nil {
+		vm, err := docker.NewController()
+		if err != nil {
+			logger.Panicf("New docker controller error: %v", err)
+		}
+
+		VM = vm
+	}
 }

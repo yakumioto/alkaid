@@ -16,19 +16,34 @@ const (
 
 // Organization in the network
 type Organization struct {
-	ID                 int64  `xorm:"'id' PRIMARY KEY AUTOINCREMENT NOT NULL"`
-	OrganizationID     string `xorm:"'organziation_id' UNIQUE((org~networkid)) NOT NULL"`
-	NetworkID          int64  `xorm:"UNIQUE(org~networkid) NOT NULL"`
-	Domain             string `xorm:"UNIQUE NOT NULL"`
-	Type               string `xorm:"'type'"` // orderer or peer
-	Name               string `xorm:"'name'"`
-	Description        string `xorm:"'description'"`
-	Country            string `xorm:"'country'"`
-	Province           string `xorm:"'province'"`
-	Locality           string `xorm:"'locality'"`
-	OrganizationalUnit string `xorm:"'organizational_unit'"`
-	StreetAddress      string `xorm:"'street_address'"`
-	PostalCode         string `xorm:"'postal_code'"`
-	CreateAt           int64  `xorm:"'create_at'"`
-	UpdateAt           int64  `xorm:"'update_at'"`
+	ID             int64    `json:"-"`
+	OrganizationID string   `json:"organization_id,omitempty" binding:"required"`
+	Name           string   `json:"name,omitempty" binding:"required"`
+	NetworkID      []string `json:"network_id,omitempty"`
+	Domain         string   `json:"domain,omitempty" binding:"required,fqdn"`
+
+	// Type value is orderer or peer
+	Type string `json:"type,omitempty" binding:"required,oneof=orderer peer"`
+
+	Description string `json:"description,omitempty"`
+
+	// The following fields are the fields that generate the certificate
+	Country            string `json:"country,omitempty"`
+	Province           string `json:"province,omitempty"`
+	Locality           string `json:"locality,omitempty"`
+	OrganizationalUnit string `json:"organizational_unit,omitempty"`
+	StreetAddress      string `json:"street_address,omitempty"`
+	PostalCode         string `json:"postal_code,omitempty"`
+	CreateAt           int64  `json:"create_at,omitempty"`
+	UpdateAt           int64  `json:"update_at,omitempty"`
+}
+
+// NewOrganization Default parameter
+func NewOrganization() *Organization {
+	return &Organization{
+		Country:    "China",
+		Province:   "Beijing",
+		Locality:   "Beijing",
+		PostalCode: "100000",
+	}
 }

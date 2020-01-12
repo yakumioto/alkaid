@@ -1,5 +1,9 @@
 # Alkaid
 
+[![Github Action](https://github.com/yakumioto/alkaid/workflows/alkaid/badge.svg)](https://github.com/yakumioto/alkaid/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/yakumioto/alkaid)](https://goreportcard.com/report/github.com/yakumioto/alkaid)
+[![codecov](https://codecov.io/gh/yakumioto/alkaid/branch/master/graph/badge.svg)](https://codecov.io/gh/yakumioto/alkaid)
+
 [中文文档](README-zh.md)
 
 Alikid is a BaaS (Blockchan as a Service) service based on Hyperledger Fabric

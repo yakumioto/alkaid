@@ -9,30 +9,46 @@
 
 package routers
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
 
-const (
-	network   = "/network"
-	networkID = "/:networkID"
-	orderer   = network + networkID + "/orderer"
-	ordererID = "/:ordererID"
-	peer      = network + networkID + "/peer"
-	peerID    = "/:peerID"
+	"github.com/yakumioto/alkaid/internal/api/handler"
 )
 
-func AddRouters(r *gin.Engine) {
-	r.POST(network)
-	r.GET(network)
-	r.GET(network + networkID)
-	r.DELETE(network + networkID)
+func Init(r *gin.Engine) {
+	network := r.Group("/network")
+	networkRouter(network)
 
-	r.POST(orderer)
-	r.GET(orderer)
-	r.GET(orderer + ordererID)
-	r.DELETE(orderer + ordererID)
+	organization := r.Group("/organization")
+	organizationRouter(organization)
+}
 
-	r.POST(peer)
-	r.GET(peer)
-	r.GET(peer + peerID)
-	r.DELETE(peer + peerID)
+func organizationRouter(route *gin.RouterGroup) {
+	organizationDetail := "/:organizationID"
+	userDetail := "/:userID"
+	user := "/user"
+	signca := "/signca"
+	tlsca := "/tlsca"
+
+	route.POST("/", handler.CreateOrganization)
+	route.GET(organizationDetail, handler.GetOrganizationByID)
+
+	// sign ca
+	route.POST(organizationDetail+signca, handler.CreateCA)
+	route.GET(organizationDetail+signca, handler.GetCAByOrganizationID)
+
+	// tls ca
+	route.POST(organizationDetail+tlsca, handler.CreateCA)
+	route.GET(organizationDetail+tlsca, handler.GetCAByOrganizationID)
+
+	// msp user
+	route.POST(organizationDetail+user, handler.CreateMSP)
+	route.GET(organizationDetail+user+userDetail, handler.GetMSPByUserID)
+}
+
+func networkRouter(route *gin.RouterGroup) {
+	networkDetail := "/:networkID"
+
+	route.POST("", handler.CreateNetwork)
+	route.GET(networkDetail, handler.GetNetworkByID)
 }
