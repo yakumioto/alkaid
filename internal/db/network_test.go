@@ -13,10 +13,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/yakumioto/alkaid/internal/api/types"
 )
 
 func insertTestNetwork(t *testing.T) *Network {
-	network := &Network{NetworkID: "testnetwork", DockerNetworkName: "network"}
+	network := &Network{NetworkID: "testnetwork", Type: types.DockerNetworkType}
 	err := CreateNetwork(network)
 	assert.NoError(t, err)
 
@@ -26,7 +28,7 @@ func insertTestNetwork(t *testing.T) *Network {
 func TestCreateNetwork(t *testing.T) {
 	testInit()
 
-	err := CreateNetwork(&Network{})
+	err := CreateNetwork(&Network{Type: types.DockerNetworkType})
 	assert.NoError(t, err)
 
 	// no err test

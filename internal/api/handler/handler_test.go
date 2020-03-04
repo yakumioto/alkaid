@@ -11,21 +11,36 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/yakumioto/alkaid/internal/db"
+	"github.com/yakumioto/alkaid/internal/vm"
 )
 
+func dockerNetworkPrune() {
+	c, _ := client.NewEnvClient()
+	_, _ = c.NetworksPrune(context.Background(), filters.NewArgs())
+}
+
 func testInit() *gin.Engine {
+	dockerNetworkPrune()
+	rand.Seed(time.Now().Unix())
 	gin.SetMode(gin.ReleaseMode)
+	vm.Init()
 	_ = db.Init("file:test.sqlite3", "mode=memory")
+
 	Init()
 
 	return gin.New()

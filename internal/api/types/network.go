@@ -9,12 +9,6 @@
 
 package types
 
-import (
-	"github.com/yakumioto/alkaid/internal/vm"
-	"github.com/yakumioto/alkaid/internal/vm/docker"
-	"github.com/yakumioto/alkaid/third_party/github.com/moby/moby/pkg/namesgenerator"
-)
-
 const (
 	DockerNetworkType      = "docker"
 	DockerSwarmNetworkType = "docker_swarm"
@@ -22,31 +16,17 @@ const (
 )
 
 type Network struct {
-	ID                int64  `json:"id,omitempty"`
+	ID                int64  `json:"-"`
 	NetworkID         string `json:"network_id,omitempty" binding:"required"`
-	DockerNetworkName string `json:"-"`
 	Name              string `json:"name,omitempty"`
 	Type              string `json:"type,omitempty" binding:"required"`
 	Description       string `json:"description,omitempty"`
+	DockerNetworkID   string `json:"-"`
+	DockerNetworkName string `json:"-"`
 	CreatedAt         int64  `json:"created_at,omitempty"`
 	UpdatedAt         int64  `json:"updated_at,omitempty"`
 }
 
 func NewNetwork() *Network {
 	return &Network{}
-}
-
-func (n *Network) Init() error {
-	switch machine := vm.VM.(type) {
-	case *docker.Controller:
-		if n.Type == DockerNetworkType {
-			name := namesgenerator.GetRandomName(0)
-			if err := machine.CreateNetworkWithDockerMode(name); err != nil {
-				return err
-			}
-			n.DockerNetworkName = name
-		}
-	}
-
-	return nil
 }

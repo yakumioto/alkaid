@@ -9,17 +9,6 @@
 
 package db
 
-const (
-	NoneContainerStatus    = "none"
-	RunningContainerStatus = "running"
-	StopContainerStatus    = "stop"
-
-	PeerContainerType    = "peer"
-	OrdererContainerType = "orderer"
-	SignCAContainerType  = "sign_ca"
-	TLSCAContainerType   = "tls_ca"
-)
-
 type Container struct {
 	ID             int64
 	OrganizationID string

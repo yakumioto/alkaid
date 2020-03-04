@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/yakumioto/alkaid/internal/api/types"
+	"github.com/yakumioto/alkaid/internal/vm"
 )
 
 type errNetwork struct {
@@ -39,10 +40,11 @@ func (e *ErrNetworkNotExist) Error() string {
 type Network struct {
 	ID                int64  `xorm:"'id' PRIMARY KEY AUTOINCREMENT NOT NULL"`
 	NetworkID         string `xorm:"'network_id' UNIQUE INDEX NOT NULL"`
-	DockerNetworkName string `xorm:"'docker_network_name' UNIQUE INDEX NOT NULL"`
 	Name              string `xorm:"'name'"`
 	Type              string `xorm:"'type'"`
 	Description       string `xorm:"'description'"`
+	DockerNetworkID   string `xorm:"'docker_network_id' UNIQUE INDEX NOT NULL"`
+	DockerNetworkName string `xorm:"'docker_network_name' UNIQUE INDEX NOT NULL"`
 	CreatedAt         int64  `xorm:"'created_at'"`
 	UpdatedAt         int64  `xorm:"'updated_at'"`
 }
@@ -74,7 +76,7 @@ func CreateNetwork(network *Network) error {
 		return &ErrNetworkExist{errNetwork{NetworkID: network.NetworkID}}
 	}
 
-	err = (*types.Network)(network).Init()
+	err = vm.NetworkInitialize((*types.Network)(network))
 	if err != nil {
 		logger.Errof("Network Init error: %v", err)
 		return err
