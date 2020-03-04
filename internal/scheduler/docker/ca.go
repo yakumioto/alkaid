@@ -8,3 +8,18 @@
  */
 
 package docker
+
+type CANode struct{}
+
+func (c *CANode) CreateCA() error {
+	return nil
+}
+func (c *CANode) RestartCA() error {
+	return nil
+}
+func (c *CANode) StopCA() error {
+	return nil
+}
+func (c *CANode) DeleteCA() error {
+	return nil
+}

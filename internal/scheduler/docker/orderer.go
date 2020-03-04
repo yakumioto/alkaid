@@ -8,3 +8,21 @@
  */
 
 package docker
+
+type OrdererNode struct{}
+
+func (o *OrdererNode) CreateOrderer() error {
+	return nil
+}
+
+func (o *OrdererNode) RestartOrderer() error {
+	return nil
+}
+
+func (o *OrdererNode) StopOrderer() error {
+	return nil
+}
+
+func (o *OrdererNode) DeleteOrderer() error {
+	return nil
+}

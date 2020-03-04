@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/yakumioto/alkaid/internal/db"
-	"github.com/yakumioto/alkaid/internal/vm"
+	"github.com/yakumioto/alkaid/internal/scheduler"
 )
 
 func dockerNetworkPrune() {
@@ -38,7 +38,8 @@ func testInit() *gin.Engine {
 	dockerNetworkPrune()
 	rand.Seed(time.Now().Unix())
 	gin.SetMode(gin.ReleaseMode)
-	vm.Init()
+	scheduler.Init()
+
 	_ = db.Init("file:test.sqlite3", "mode=memory")
 
 	Init()

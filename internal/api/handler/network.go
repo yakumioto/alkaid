@@ -18,6 +18,7 @@ import (
 	apierrors "github.com/yakumioto/alkaid/internal/api/errors"
 	"github.com/yakumioto/alkaid/internal/api/types"
 	"github.com/yakumioto/alkaid/internal/db"
+	"github.com/yakumioto/alkaid/internal/scheduler"
 )
 
 func CreateNetwork(ctx *gin.Context) {
@@ -25,6 +26,12 @@ func CreateNetwork(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(network); err != nil {
 		logger.Debuf("Bind JSON error: %v", err)
 		ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.BadAuthenticationData))
+		return
+	}
+
+	sched, err := scheduler.NewScheduler(network.Type)
+	if err != nil {
+		returnInternalServerError(ctx, "New scheduler error: %v", err)
 		return
 	}
 
@@ -36,6 +43,11 @@ func CreateNetwork(ctx *gin.Context) {
 		}
 
 		returnInternalServerError(ctx, "Insert network error: %v", err)
+		return
+	}
+
+	if err := sched.CreateNetwork(network); err != nil {
+		returnInternalServerError(ctx, "Scheduler create network error: %s", err)
 		return
 	}
 

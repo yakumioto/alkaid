@@ -8,3 +8,19 @@
  */
 
 package docker
+
+type PeerNode struct {
+}
+
+func (p *PeerNode) CreatePeer() error {
+	return nil
+}
+func (p *PeerNode) RestartPeer() error {
+	return nil
+}
+func (p *PeerNode) StopPeer() error {
+	return nil
+}
+func (p *PeerNode) DeletePeer() error {
+	return nil
+}

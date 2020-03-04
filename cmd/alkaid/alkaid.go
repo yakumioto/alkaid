@@ -22,7 +22,7 @@ import (
 	"github.com/yakumioto/alkaid/internal/api/routers"
 	"github.com/yakumioto/alkaid/internal/config"
 	"github.com/yakumioto/alkaid/internal/db"
-	"github.com/yakumioto/alkaid/internal/vm"
+	"github.com/yakumioto/alkaid/internal/scheduler"
 )
 
 func main() {
@@ -61,7 +61,7 @@ func run(_ *cobra.Command, _ []string) {
 
 	routers.Init(r)
 	handler.Init()
-	vm.Init()
+	scheduler.Init()
 
 	if err := db.Init(config.DBPath, "cache=shared&mode=rwc"); err != nil {
 		glog.Fatalf("db initialization failed: %s", err)

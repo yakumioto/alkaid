@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/yakumioto/alkaid/internal/api/types"
-	"github.com/yakumioto/alkaid/internal/vm"
+	"github.com/yakumioto/alkaid/third_party/github.com/moby/moby/pkg/namesgenerator"
 )
 
 type errNetwork struct {
@@ -76,11 +76,7 @@ func CreateNetwork(network *Network) error {
 		return &ErrNetworkExist{errNetwork{NetworkID: network.NetworkID}}
 	}
 
-	err = vm.NetworkInitialize((*types.Network)(network))
-	if err != nil {
-		logger.Errof("Network Init error: %v", err)
-		return err
-	}
+	network.DockerNetworkName = namesgenerator.GetRandomName(0)
 
 	_, err = x.Insert(network)
 	if err != nil {

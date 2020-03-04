@@ -18,7 +18,11 @@ import (
 )
 
 func insertTestNetwork(t *testing.T) *Network {
-	network := &Network{NetworkID: "testnetwork", Type: types.DockerNetworkType}
+	network := &Network{
+		NetworkID:       "testnetwork",
+		Type:            types.DockerNetworkType,
+		DockerNetworkID: "testdockernetworkid",
+	}
 	err := CreateNetwork(network)
 	assert.NoError(t, err)
 

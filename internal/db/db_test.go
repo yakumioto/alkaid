@@ -16,13 +16,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/yakumioto/alkaid/internal/vm"
 )
 
 func TestInit(t *testing.T) {
 	rand.Seed(time.Now().Unix())
-	vm.Init()
 	// empty path test
 	err := Init("", "")
 	assert.EqualError(t, err, "no db path")
