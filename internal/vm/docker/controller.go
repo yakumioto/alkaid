@@ -47,14 +47,14 @@ type CreateRequest struct {
 	Files          map[string][]byte
 }
 
-func (c *Controller) Create(cr *CreateRequest) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func (c *Controller) Create(cr *CreateRequest) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	mounts := make([]mount.Mount, len(cr.Mounts))
 	for source, target := range cr.Mounts {
 		if err := c.createVolumeWithDockerMode(source); err != nil {
-			return err
+			return "", err
 		}
 
 		mounts = append(mounts, mount.Mount{
@@ -84,32 +84,47 @@ func (c *Controller) Create(cr *CreateRequest) error {
 
 	res, err := c.cli.ContainerCreate(ctx, config, host, network, cr.ContainerName)
 	if err != nil {
-		return errors.Wrap(err, "create container failed")
+		return "", errors.Wrap(err, "create container failed")
 	}
 
 	for path, content := range cr.Files {
 		if err := c.copyToContainer(res.ID, path, bytes.NewReader(content)); err != nil {
-			return errors.Wrap(err, "cp to container failed")
+			return "", errors.Wrap(err, "cp to container failed")
 		}
 	}
 
-	return nil
+	return res.ID, nil
 }
 
-func (c *Controller) Start() error {
-	return nil
+func (c *Controller) Start(containerID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+
+	return c.cli.ContainerStart(ctx, containerID, dockertypes.ContainerStartOptions{})
 }
 
-func (c *Controller) Restart() error {
-	return nil
+func (c *Controller) Restart(containerID string) error {
+	timeout := 3 * time.Minute
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	return c.cli.ContainerRestart(ctx, containerID, &timeout)
 }
 
-func (c *Controller) Stop() error {
-	return nil
+func (c *Controller) Stop(containerID string) error {
+	timeout := 1 * time.Minute
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	return c.cli.ContainerStop(ctx, containerID, &timeout)
 }
 
-func (c *Controller) Delete() error {
-	return nil
+func (c *Controller) Delete(containerID string) error {
+	timeout := 1 * time.Minute
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	return c.cli.ContainerRemove(ctx, containerID, dockertypes.ContainerRemoveOptions{RemoveVolumes: true})
 }
 
 func (c *Controller) CreateNetworkWithDockerMode(name string) (string, error) {
