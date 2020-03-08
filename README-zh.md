@@ -27,3 +27,7 @@ Alikid 的前身是 [hlf-deploy](https://github.com/yakumioto/alkaid/tree/v0.2.0
 - organization delete (动态删除组织, 支持 system channel)
 - organization update (动态更新组织, 支持 system channel)
 - channel consensus (切换 orderer 共识, 支持 solo, kafka, etcdraft)
+
+## 社群
+
+Telegram: <https://t.me/fab_alkaid>
