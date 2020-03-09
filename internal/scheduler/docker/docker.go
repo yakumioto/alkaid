@@ -19,8 +19,8 @@ var (
 	logger *glog.Logger
 )
 
-func Init() {
-	logger = glog.MustGetLogger("scheduler.docker")
+func Init(log *glog.Logger) {
+	logger = log.MustGetLogger("docker")
 }
 
 type Docker struct {

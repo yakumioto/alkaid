@@ -28,7 +28,7 @@ var (
 func Init() {
 	logger = glog.MustGetLogger("scheduler")
 
-	docker.Init()
+	docker.Init(logger)
 }
 
 // Scheduler Scheduling layer, can be based on docker, docker swarm, kubernetes
