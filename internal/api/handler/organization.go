@@ -28,6 +28,22 @@ func CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
+	signca, err := types.NewCA(org, types.SignCAType)
+	if err != nil {
+		returnInternalServerError(ctx, "New sign CA error: %v", err)
+		return
+	}
+	tlsca, err := types.NewCA(org, types.TLSCAType)
+	if err != nil {
+		returnInternalServerError(ctx, "New TLS CA error: %v", err)
+		return
+	}
+
+	if err := org.CreateMSPDir(signca, tlsca); err != nil {
+		returnInternalServerError(ctx, "Create MSP dir error: %v", err)
+		return
+	}
+
 	if err := db.CreateOrganization((*db.Organization)(org)); err != nil {
 		var exist *db.ErrOrganizationExist
 		if errors.As(err, &exist) {
@@ -36,6 +52,28 @@ func CreateOrganization(ctx *gin.Context) {
 		}
 
 		returnInternalServerError(ctx, "Insert organization error: %s", err)
+		return
+	}
+
+	if err := db.CreateCA((*db.CA)(signca)); err != nil {
+		var exist *db.ErrCAExist
+		if errors.As(err, &exist) {
+			ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.DataAlreadyExists))
+			return
+		}
+
+		returnInternalServerError(ctx, "Create sign CA error: %v", err)
+		return
+	}
+
+	if err := db.CreateCA((*db.CA)(tlsca)); err != nil {
+		var exist *db.ErrCAExist
+		if errors.As(err, &exist) {
+			ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.DataAlreadyExists))
+			return
+		}
+
+		returnInternalServerError(ctx, "Create TLS CA error: %v", err)
 		return
 	}
 

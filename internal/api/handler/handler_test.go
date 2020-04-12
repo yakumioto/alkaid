@@ -17,6 +17,8 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -25,6 +27,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/yakumioto/alkaid/internal/config"
 	"github.com/yakumioto/alkaid/internal/db"
 	"github.com/yakumioto/alkaid/internal/scheduler"
 )
@@ -35,6 +38,7 @@ func dockerNetworkPrune() {
 }
 
 func testInit() *gin.Engine {
+	config.FileSystemPath = path.Join(os.TempDir(), "alkaid")
 	dockerNetworkPrune()
 	rand.Seed(time.Now().Unix())
 	gin.SetMode(gin.ReleaseMode)

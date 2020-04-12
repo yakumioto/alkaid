@@ -21,39 +21,6 @@ import (
 	"github.com/yakumioto/alkaid/internal/db"
 )
 
-func CreateCA(ctx *gin.Context) {
-	org, err := db.QueryOrganizationByOrgID(ctx.Param("organizationID"))
-	if err != nil {
-		var notExist *db.ErrOrganizationNotExist
-		if errors.As(err, &notExist) {
-			ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.DataNotExists))
-			return
-		}
-
-		returnInternalServerError(ctx, "Get Organization error: %v", err)
-		return
-	}
-
-	ca, err := types.NewCA(org, getType(ctx.Request.RequestURI))
-	if err != nil {
-		returnInternalServerError(ctx, "New CA error: %v", err)
-		return
-	}
-
-	if err := db.CreateCA((*db.CA)(ca)); err != nil {
-		var exist *db.ErrCAExist
-		if errors.As(err, &exist) {
-			ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.DataAlreadyExists))
-			return
-		}
-
-		returnInternalServerError(ctx, "Create CA error: %v", err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, ca)
-}
-
 func GetCAByOrganizationID(ctx *gin.Context) {
 	id := ctx.Param("organizationID")
 	ca, err := db.QueryCAByOrganizationIDAndType(id, getType(ctx.Request.RequestURI))

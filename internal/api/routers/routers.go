@@ -34,11 +34,7 @@ func organizationRouter(route *gin.RouterGroup) {
 	route.GET(organizationDetail, handler.GetOrganizationByID)
 
 	// sign ca
-	route.POST(organizationDetail+signca, handler.CreateCA)
 	route.GET(organizationDetail+signca, handler.GetCAByOrganizationID)
-
-	// tls ca
-	route.POST(organizationDetail+tlsca, handler.CreateCA)
 	route.GET(organizationDetail+tlsca, handler.GetCAByOrganizationID)
 
 	// msp user

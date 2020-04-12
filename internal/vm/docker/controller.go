@@ -47,7 +47,7 @@ type CreateRequest struct {
 	NetworkAliases []string
 	Mounts         map[string]string
 	Files          map[string][]byte
-	WorkintDir     string
+	WorkingDir     string
 	Command        []string
 }
 
@@ -96,7 +96,7 @@ func (c *Controller) Create(createRequest *CreateRequest) error {
 	containerConfig := &container.Config{
 		Image:      fmt.Sprintf("%s:%s", createRequest.ImageName, createRequest.ImageTag),
 		Env:        createRequest.Environment,
-		WorkingDir: createRequest.WorkintDir,
+		WorkingDir: createRequest.WorkingDir,
 		Cmd:        createRequest.Command,
 	}
 

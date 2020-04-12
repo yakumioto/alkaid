@@ -47,6 +47,7 @@ type Organization struct {
 	OrganizationalUnit string   `xorm:"'organizational_unit'"`
 	StreetAddress      string   `xorm:"'street_address'"`
 	PostalCode         string   `xorm:"'postal_code'"`
+	MSPDir             string   `xorm:"'msp_dir'"`
 	CreateAt           int64    `xorm:"'create_at'"`
 	UpdateAt           int64    `xorm:"'update_at'"`
 }

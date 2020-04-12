@@ -19,6 +19,7 @@ var (
 	DBPath   string
 	Address  string
 	Port     int
+	FileSystemPath string
 )
 
 func InitConfig(run func(cmd *cobra.Command, args []string)) *cobra.Command {
@@ -34,6 +35,7 @@ func InitConfig(run func(cmd *cobra.Command, args []string)) *cobra.Command {
 	rootCmd.Flags().StringVar(&DBPath, "dbPath", "/data/db/alkaid.db", "sqlite3 db path.")
 	rootCmd.Flags().StringVarP(&Address, "address", "l", "0.0.0.0", "listening address.")
 	rootCmd.Flags().IntVarP(&Port, "port", "p", 8080, "listening port.")
+	rootCmd.Flags().StringVar(&FileSystemPath, "fileSystemPath", "/var/alkaid", "Project data files.")
 
 	return rootCmd
 }

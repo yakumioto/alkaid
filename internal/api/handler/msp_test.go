@@ -33,8 +33,6 @@ func TestCreateMSP(t *testing.T) {
 	r := testInit()
 
 	r.POST(organization, CreateOrganization)
-	r.POST(signCA, CreateCA)
-	r.POST(tlsCA, CreateCA)
 	r.POST(testCreateMSP, CreateMSP)
 
 	expectedBody := fmt.Sprintln(errors.NewErrors(errors.BadAuthenticationData).Error())
@@ -64,12 +62,6 @@ func TestCreateMSP(t *testing.T) {
 	org := types.NewOrganization()
 	setOrganizationAllFields(org)
 	testHTTPEqual(t, r, http.MethodPost, organization, org, http.StatusOK, nil)
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/msp", msp, http.StatusNotFound, nil)
-
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/signca", nil, http.StatusOK, nil)
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/msp", msp, http.StatusNotFound, nil)
-
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/tlsca", nil, http.StatusOK, nil)
 	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/msp", msp, http.StatusOK, nil)
 
 	// exist test
@@ -80,8 +72,6 @@ func TestGetMSPByUserID(t *testing.T) {
 	r := testInit()
 
 	r.POST(organization, CreateOrganization)
-	r.POST(signCA, CreateCA)
-	r.POST(tlsCA, CreateCA)
 	r.POST(testCreateMSP, CreateMSP)
 	r.GET(testGetMSP, GetMSPByUserID)
 
@@ -92,15 +82,11 @@ func TestGetMSPByUserID(t *testing.T) {
 	org := types.NewOrganization()
 	setOrganizationAllFields(org)
 	testHTTPEqual(t, r, http.MethodPost, organization, org, http.StatusOK, nil)
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/signca", nil, http.StatusOK, nil)
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/tlsca", nil, http.StatusOK, nil)
-
 	testHTTPEqual(t, r, http.MethodGet, organization+"/org1_id/msp/user1_id", nil, http.StatusNotFound, nil)
 
 	// ok test
 	msp := types.NewMSP()
 	setMSPAllFields(msp)
 	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/msp", msp, http.StatusOK, nil)
-
 	testHTTPEqual(t, r, http.MethodGet, organization+"/org1_id/msp/user1_id", nil, http.StatusOK, nil)
 }

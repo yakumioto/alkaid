@@ -13,8 +13,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/docker/docker/pkg/namesgenerator"
+
 	"github.com/yakumioto/alkaid/internal/api/types"
-	"github.com/yakumioto/alkaid/third_party/github.com/moby/moby/pkg/namesgenerator"
 )
 
 type errNetwork struct {

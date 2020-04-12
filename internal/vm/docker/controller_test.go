@@ -72,7 +72,7 @@ func TestController(t *testing.T) {
 	createRequest.ImageName = "alpine"
 	createRequest.ImageTag = "3.7"
 	createRequest.Environment = []string{"TEST_FILE=/home/mioto/test"}
-	createRequest.WorkintDir = "/home/mioto"
+	createRequest.WorkingDir = "/home/mioto"
 	createRequest.NetworkMode = "bridge"
 	createRequest.Mounts = map[string]string{"test.work": "/home/mioto"}
 	createRequest.Files = map[string][]byte{"/home/mioto": filesBytes}
@@ -87,7 +87,7 @@ func TestController(t *testing.T) {
 	assert.Equal(t, inspect.Name, "/"+createRequest.ContainerName)
 	assert.Equal(t, inspect.Config.Image, fmt.Sprintf("%s:%s", createRequest.ImageName, createRequest.ImageTag))
 	assert.Equal(t, inspect.Config.Env[0], createRequest.Environment[0])
-	assert.Equal(t, inspect.Config.WorkingDir, createRequest.WorkintDir)
+	assert.Equal(t, inspect.Config.WorkingDir, createRequest.WorkingDir)
 	assert.Equal(t, inspect.HostConfig.NetworkMode, container.NetworkMode(createRequest.NetworkMode))
 	assert.Equal(t, inspect.HostConfig.Mounts[0].Source, "test.work")
 	assert.Equal(t, inspect.HostConfig.Mounts[0].Target, "/home/mioto")

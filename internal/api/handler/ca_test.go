@@ -21,36 +21,10 @@ var (
 	tlsCA  = organization + organizationID + "/tlsca"
 )
 
-func TestCreateCA(t *testing.T) {
-	r := testInit()
-
-	r.POST(organization, CreateOrganization)
-	r.POST(signCA, CreateCA)
-	r.POST(tlsCA, CreateCA)
-
-	// orgnaization not exist test
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/signca", nil, http.StatusBadRequest, nil)
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/tlsca", nil, http.StatusBadRequest, nil)
-
-	org := types.NewOrganization()
-	setOrganizationAllFields(org)
-	testHTTPEqual(t, r, http.MethodPost, organization, org, http.StatusOK, nil)
-
-	// ok test
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/signca", nil, http.StatusOK, nil)
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/tlsca", nil, http.StatusOK, nil)
-
-	// exist test
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/signca", nil, http.StatusBadRequest, nil)
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/tlsca", nil, http.StatusBadRequest, nil)
-}
-
 func TestGetCAByOrganizationID(t *testing.T) {
 	r := testInit()
 
 	r.POST(organization, CreateOrganization)
-	r.POST(signCA, CreateCA)
-	r.POST(tlsCA, CreateCA)
 	r.GET(signCA, GetCAByOrganizationID)
 	r.GET(tlsCA, GetCAByOrganizationID)
 
@@ -61,14 +35,7 @@ func TestGetCAByOrganizationID(t *testing.T) {
 	setOrganizationAllFields(org)
 	testHTTPEqual(t, r, http.MethodPost, organization, org, http.StatusOK, nil)
 
-	// no ca test
-	testHTTPEqual(t, r, http.MethodGet, organization+"/org1_id/signca", nil, http.StatusBadRequest, nil)
-	testHTTPEqual(t, r, http.MethodGet, organization+"/org1_id/tlsca", nil, http.StatusBadRequest, nil)
-
 	// ok test
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/signca", nil, http.StatusOK, nil)
-	testHTTPEqual(t, r, http.MethodPost, organization+"/org1_id/tlsca", nil, http.StatusOK, nil)
-
 	testHTTPEqual(t, r, http.MethodGet, organization+"/org1_id/signca", nil, http.StatusOK, nil)
 	testHTTPEqual(t, r, http.MethodGet, organization+"/org1_id/tlsca", nil, http.StatusOK, nil)
 }

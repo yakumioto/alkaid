@@ -27,8 +27,8 @@ type MSP struct {
 	OrganizationID string `json:"organization_id,omitempty"`
 	UserID         string `json:"user_id,omitempty" binding:"required"`
 
-	// If the type is orderer or peer, the hostname is ({.Name}}.{{Organization.Domain}}
-	// If the type is admin or client, the name is {{.Name}}@{{Organization.Domain}}
+	// If the type is orderer or peer, the hostname is ({.UserID}}.{{Organization.Domain}}
+	// If the type is admin or client, the name is {{.UserID}}@{{Organization.Domain}}
 	Name string `json:"name,omitempty" binding:"required"`
 
 	// If type exists and is an orderer or peer, you can set SANS
