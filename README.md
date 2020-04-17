@@ -12,6 +12,51 @@ Currently in the design stage, plans to support docker, docker swarm, kubernetes
 
 Alikid's predecessor was [hlf-deploy](https://github.com/yakumioto/alkaid/tree/v0.2.0) for rapid deployment and adjustment of Hyperledger Fabric networks
 
+```text
++-------------------------------------------------------------+
+|                                                             |
+|                      BaaS Frontend                          |
+|                                                             |
++-----+-------------------------------------------------+-----+
+      |                                                 |
+      |                                                 |
+      v                                                 v
++-----+-------------------------------------------------+-----+
+|                                                             |
+|                      BaaS Backend                           |
+|                                                             |
++-----+-------------------------------------------------+-----+
+      |                                                 |
+      |                                                 |
+      v                                                 v
++-----+-------------------------------------------------+-----+
+|                                                             |
+|                    Docker / K8S / K3S                       |
+|                                                             |
++---------+-------------------+--------------------+----------+
+          |                   |                    |
+          |                   |                    |
+          v                   v                    v
+    +-----+-----+       +-----+-----+        +-----+-----+
+    |           |       |           |        |           |
+    |  Net 001  |       |  Net 002  |        |  Net 003  |
+    |           |       |           |        |           |
+    +-----+-----+       +-----+-----+        +-----+-----+
+          |                   |                    |
+          |                   |                    |
+          v                   v                    v
+ +--------+-------------------+--------------------+----------+
+ |                                                            |
+ |   Virtual or Physical Machine / Public or Private Cloud    |
+ |                                                            |
+ +------------------------------------------------------------+
+
+```
+
+## Community
+
+Telegram: <https://t.me/fab_alkaid>
+
 ## hlf-deploy
 
 Supported features:
