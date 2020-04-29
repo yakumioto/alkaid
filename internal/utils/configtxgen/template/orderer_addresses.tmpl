@@ -1,0 +1,7 @@
+{{define "orderer_addresses"}}"OrdererAddresses":{
+    "mod_policy":"/Channel/Orderer/Admins",
+    "value":{
+        "addresses":{{. | jsonMarshal}}
+    },
+    "version":"0"
+}{{end}}

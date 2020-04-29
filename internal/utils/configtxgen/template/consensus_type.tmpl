@@ -1,0 +1,25 @@
+{{define "consensus_type"}}"ConsensusType":{
+    "mod_policy":"Admins",
+    "value":{
+        "metadata":{{if eq .Type "etcdraft"}}{
+            "consenters":{{.Consenters | jsonMarshal}},
+            "options":{
+                "election_tick":10,
+                "heartbeat_tick":1,
+                "max_inflight_blocks":5,
+                "snapshot_interval_size":20971520,
+                "tick_interval":"500ms"
+            }
+        }{{else}}null{{end}},
+        "state":"STATE_NORMAL",
+        "type":"{{.Type}}"
+    },
+    "version":"0"
+}{{if eq .Type "kafka"}},
+"KafkaBrokers": {
+    "mod_policy": "Admins",
+    "value": {
+        "brokers": {{.KafkaBrokers | jsonMarshal}}
+    },
+    "version": "0"
+}{{end}}{{end}}
