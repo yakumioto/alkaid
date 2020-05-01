@@ -39,11 +39,6 @@ func CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	if err := org.CreateMSPDir(signca, tlsca); err != nil {
-		returnInternalServerError(ctx, "Create MSP dir error: %v", err)
-		return
-	}
-
 	if err := db.CreateOrganization((*db.Organization)(org)); err != nil {
 		var exist *db.ErrOrganizationExist
 		if errors.As(err, &exist) {

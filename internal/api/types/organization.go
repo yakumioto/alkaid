@@ -9,14 +9,6 @@
 
 package types
 
-import (
-	"io/ioutil"
-	"os"
-	"path"
-
-	"github.com/yakumioto/alkaid/internal/config"
-)
-
 const (
 	cacerts    = "cacerts"
 	tlscacerts = "tlscacerts"
@@ -59,35 +51,4 @@ func NewOrganization() *Organization {
 		Locality:   "Beijing",
 		PostalCode: "100000",
 	}
-}
-
-// CreateMSPDir The configtxgen tool needs to be used
-func (o *Organization) CreateMSPDir(signca, tlsca *CA) error {
-	dirs := make(map[string]string)
-
-	rootDir := path.Join(path.Clean(config.FileSystemPath), o.OrganizationID, "msp")
-	o.MSPDir = rootDir
-
-	dirs[admincerts] = path.Join(rootDir, admincerts)
-	dirs[cacerts] = path.Join(rootDir, cacerts)
-	dirs[tlscacerts] = path.Join(rootDir, tlscacerts)
-
-	for base, dir := range dirs {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return err
-		}
-
-		switch base {
-		case cacerts:
-			if err := ioutil.WriteFile(path.Join(dir, "cert.pem"), signca.Certificate, 0644); err != nil {
-				return err
-			}
-		case tlscacerts:
-			if err := ioutil.WriteFile(path.Join(dir, "cert.pem"), tlsca.Certificate, 0644); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
