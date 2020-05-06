@@ -9,18 +9,51 @@
 
 package docker
 
-type PeerNode struct {
+import (
+	"github.com/yakumioto/alkaid/internal/vm"
+	dockervm "github.com/yakumioto/alkaid/internal/vm/docker"
+)
+
+type peerNode struct {
+	cli *dockervm.Controller
 }
 
-func (p *PeerNode) CreatePeer() error {
+func (p *peerNode) CreatePeer(crs ...*vm.CreateRequest) error {
+	for _, cr := range crs {
+		if err := p.cli.Create(cr); err != nil {
+			logger.Errof("Create peer error: %s", err)
+			return err
+		}
+	}
 	return nil
 }
-func (p *PeerNode) RestartPeer() error {
+
+func (p *peerNode) RestartPeer(ids ...string) error {
+	for _, id := range ids {
+		if err := p.cli.Restart(id); err != nil {
+			logger.Errof("Restart peer error: %s", err)
+			return err
+		}
+	}
 	return nil
 }
-func (p *PeerNode) StopPeer() error {
+
+func (p *peerNode) StopPeer(ids ...string) error {
+	for _, id := range ids {
+		if err := p.cli.Stop(id); err != nil {
+			logger.Errof("Stop peer error: %s", err)
+			return err
+		}
+	}
 	return nil
 }
-func (p *PeerNode) DeletePeer() error {
+
+func (p *peerNode) DeletePeer(ids ...string) error {
+	for _, id := range ids {
+		if err := p.cli.Delete(id); err != nil {
+			logger.Errof("Delete peer error: %s", err)
+			return err
+		}
+	}
 	return nil
 }

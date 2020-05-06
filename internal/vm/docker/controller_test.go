@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/yakumioto/alkaid/internal/utils/targz"
+	"github.com/yakumioto/alkaid/internal/vm"
 )
 
 func testInit(t *testing.T) *Controller {
@@ -52,7 +53,7 @@ func equalVolumeName(t *testing.T, name string) {
 func TestController(t *testing.T) {
 	c := testInit(t)
 
-	createRequest := new(CreateRequest)
+	createRequest := new(vm.CreateRequest)
 
 	// tset empty image name and image tag
 	err := c.Create(createRequest)

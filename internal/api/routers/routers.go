@@ -23,28 +23,46 @@ func Init(r *gin.Engine) {
 	organizationRouter(organization)
 }
 
-func organizationRouter(route *gin.RouterGroup) {
+func organizationRouter(r *gin.RouterGroup) {
+	organization := "/"
 	organizationDetail := "/:organizationID"
-	userDetail := "/:userID"
-	user := "/user"
+
 	signca := "/signca"
 	tlsca := "/tlsca"
 
-	route.POST("/", handler.CreateOrganization)
-	route.GET(organizationDetail, handler.GetOrganizationByID)
+	user := "/user"
+	userDetail := "/:userID"
+
+	peer := "/peer"
+	peerDetail := "/:peerID"
+
+	orderer := "/orderer"
+	ordererDetail := "/:ordererID"
+
+	r.POST(organization, handler.CreateOrganization)
+	r.GET(organizationDetail, handler.GetOrganizationByID)
 
 	// sign ca
-	route.GET(organizationDetail+signca, handler.GetCAByOrganizationID)
-	route.GET(organizationDetail+tlsca, handler.GetCAByOrganizationID)
+	r.GET(organizationDetail+signca, handler.GetCAByOrganizationID)
+	r.GET(organizationDetail+tlsca, handler.GetCAByOrganizationID)
 
 	// msp user
-	route.POST(organizationDetail+user, handler.CreateMSP)
-	route.GET(organizationDetail+user+userDetail, handler.GetMSPByUserID)
+	r.POST(organizationDetail+user, handler.CreateMSP)
+	r.GET(organizationDetail+user+userDetail, handler.GetMSPByUserID)
+
+	// peer
+	r.POST(organizationDetail+peer, nil)
+	r.GET(organizationDetail+peer+peerDetail, nil)
+
+	// orderer
+	r.POST(organizationDetail+orderer, nil)
+	r.GET(organizationDetail+orderer+ordererDetail, nil)
 }
 
-func networkRouter(route *gin.RouterGroup) {
+func networkRouter(r *gin.RouterGroup) {
+	network := "/"
 	networkDetail := "/:networkID"
 
-	route.POST("", handler.CreateNetwork)
-	route.GET(networkDetail, handler.GetNetworkByID)
+	r.POST(network, handler.CreateNetwork)
+	r.GET(networkDetail, handler.GetNetworkByID)
 }

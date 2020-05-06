@@ -17,6 +17,7 @@ import (
 
 	"github.com/yakumioto/alkaid/internal/api/types"
 	"github.com/yakumioto/alkaid/internal/scheduler/docker"
+	"github.com/yakumioto/alkaid/internal/vm"
 	dockervm "github.com/yakumioto/alkaid/internal/vm/docker"
 )
 
@@ -36,7 +37,6 @@ type Scheduler interface {
 	Network
 	PeerNode
 	OrdererNode
-	CANode
 }
 
 func NewScheduler(typ string) (Scheduler, error) {
@@ -69,24 +69,16 @@ type Network interface {
 
 // PeerNode Operation hyperledger fabric peer node
 type PeerNode interface {
-	CreatePeer() error
-	RestartPeer() error
-	StopPeer() error
-	DeletePeer() error
+	CreatePeer(crs ...*vm.CreateRequest) error
+	RestartPeer(ids ...string) error
+	StopPeer(ids ...string) error
+	DeletePeer(ids ...string) error
 }
 
 // OrdererNode Operation hyperledger fabric orderer node
 type OrdererNode interface {
-	CreateOrderer() error
-	RestartOrderer() error
-	StopOrderer() error
-	DeleteOrderer() error
-}
-
-// CANode Operation hyperledger fabric certificate authority node
-type CANode interface {
-	CreateCA() error
-	RestartCA() error
-	StopCA() error
-	DeleteCA() error
+	CreateOrderer(crs ...*vm.CreateRequest) error
+	RestartOrderer(ids ...string) error
+	StopOrderer(ids ...string) error
+	DeleteOrderer(ids ...string) error
 }

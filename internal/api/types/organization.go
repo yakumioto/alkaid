@@ -10,10 +10,6 @@
 package types
 
 const (
-	cacerts    = "cacerts"
-	tlscacerts = "tlscacerts"
-	admincerts = "admincerts"
-
 	OrdererOrgType = "orderer"
 	PeerOrgType    = "peer"
 )
@@ -38,7 +34,6 @@ type Organization struct {
 	OrganizationalUnit string `json:"organizational_unit,omitempty"`
 	StreetAddress      string `json:"street_address,omitempty"`
 	PostalCode         string `json:"postal_code,omitempty"`
-	MSPDir             string `json:"msp_dir,omitempty"`
 	CreateAt           int64  `json:"create_at,omitempty"`
 	UpdateAt           int64  `json:"update_at,omitempty"`
 }

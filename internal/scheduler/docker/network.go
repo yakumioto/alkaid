@@ -31,8 +31,8 @@ func (n *network) CreateNetwork(network *types.Network) error {
 
 	network.DockerNetworkID = id
 
-	logger.Debuf("docker network id: %s", id)
-	logger.Debuf("docker network name: %s", network.DockerNetworkName)
+	logger.Debuf("Docker network id: %s", id)
+	logger.Debuf("Docker network name: %s", network.DockerNetworkName)
 
 	return nil
 }

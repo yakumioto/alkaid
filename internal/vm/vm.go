@@ -8,3 +8,16 @@
  */
 
 package vm
+
+type CreateRequest struct {
+	ContainerName  string
+	ImageName      string
+	ImageTag       string
+	Environment    []string
+	NetworkMode    string
+	NetworkAliases []string
+	Mounts         map[string]string
+	Files          map[string][]byte
+	WorkingDir     string
+	Command        []string
+}

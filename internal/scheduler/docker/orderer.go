@@ -9,20 +9,51 @@
 
 package docker
 
-type OrdererNode struct{}
+import (
+	"github.com/yakumioto/alkaid/internal/vm"
+	dockervm "github.com/yakumioto/alkaid/internal/vm/docker"
+)
 
-func (o *OrdererNode) CreateOrderer() error {
+type ordererNode struct {
+	cli *dockervm.Controller
+}
+
+func (o *ordererNode) CreateOrderer(crs ...*vm.CreateRequest) error {
+	for _, cr := range crs {
+		if err := o.cli.Create(cr); err != nil {
+			logger.Errof("Create orderer error: %s", err)
+			return err
+		}
+	}
 	return nil
 }
 
-func (o *OrdererNode) RestartOrderer() error {
+func (o *ordererNode) RestartOrderer(ids ...string) error {
+	for _, id := range ids {
+		if err := o.cli.Restart(id); err != nil {
+			logger.Errof("Restart orderer error: %s", err)
+			return err
+		}
+	}
 	return nil
 }
 
-func (o *OrdererNode) StopOrderer() error {
+func (o *ordererNode) StopOrderer(ids ...string) error {
+	for _, id := range ids {
+		if err := o.cli.Restart(id); err != nil {
+			logger.Errof("Stop orderer error: %s", err)
+			return err
+		}
+	}
 	return nil
 }
 
-func (o *OrdererNode) DeleteOrderer() error {
+func (o *ordererNode) DeleteOrderer(ids ...string) error {
+	for _, id := range ids {
+		if err := o.cli.Restart(id); err != nil {
+			logger.Errof("Delete orderer error: %s", err)
+			return err
+		}
+	}
 	return nil
 }

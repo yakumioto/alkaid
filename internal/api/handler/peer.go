@@ -5,4 +5,4 @@
  *  Alkaid is a BaaS service based on Hyperledger Fabric.
  */
 
-package types
+package handler

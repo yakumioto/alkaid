@@ -26,9 +26,8 @@ func Init(log *glog.Logger) {
 type Docker struct {
 	cli *dockervm.Controller
 	*network
-	*OrdererNode
-	*PeerNode
-	*CANode
+	*ordererNode
+	*peerNode
 }
 
 func NewDocker(cli *dockervm.Controller) *Docker {

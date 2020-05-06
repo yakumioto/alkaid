@@ -23,6 +23,8 @@ import (
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
+
+	"github.com/yakumioto/alkaid/internal/vm"
 )
 
 type Controller struct {
@@ -38,40 +40,27 @@ func NewController() (*Controller, error) {
 	return &Controller{cli: cli}, err
 }
 
-type CreateRequest struct {
-	ContainerName  string
-	ImageName      string
-	ImageTag       string
-	Environment    []string
-	NetworkMode    string
-	NetworkAliases []string
-	Mounts         map[string]string
-	Files          map[string][]byte
-	WorkingDir     string
-	Command        []string
-}
-
-func (c *Controller) Create(createRequest *CreateRequest) error {
+func (c *Controller) Create(cr *vm.CreateRequest) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
-	if createRequest.ImageName == "" || createRequest.ImageTag == "" {
+	if cr.ImageName == "" || cr.ImageTag == "" {
 		return errors.New("image name and tag cannot be empty")
 	}
 
-	has, err := c.hasImage(createRequest.ImageName, createRequest.ImageTag)
+	has, err := c.hasImage(cr.ImageName, cr.ImageTag)
 	if err != nil {
 		return errors.Wrap(err, "check image error")
 	}
 
 	if !has {
-		if err = c.pullImage(createRequest.ImageName, createRequest.ImageTag); err != nil {
+		if err = c.pullImage(cr.ImageName, cr.ImageTag); err != nil {
 			return errors.Wrap(err, "pull image error")
 		}
 	}
 
 	// FIXME: check networkmode exist
-	has, err = c.hasNetwork(createRequest.NetworkMode)
+	has, err = c.hasNetwork(cr.NetworkMode)
 	if err != nil {
 		return errors.Wrap(err, "check network error")
 	}
@@ -81,7 +70,7 @@ func (c *Controller) Create(createRequest *CreateRequest) error {
 	}
 
 	mounts := make([]mount.Mount, 0)
-	for source, target := range createRequest.Mounts {
+	for source, target := range cr.Mounts {
 		if err1 := c.createVolumeWithDockerMode(source); err1 != nil {
 			return err1
 		}
@@ -94,31 +83,31 @@ func (c *Controller) Create(createRequest *CreateRequest) error {
 	}
 
 	containerConfig := &container.Config{
-		Image:      fmt.Sprintf("%s:%s", createRequest.ImageName, createRequest.ImageTag),
-		Env:        createRequest.Environment,
-		WorkingDir: createRequest.WorkingDir,
-		Cmd:        createRequest.Command,
+		Image:      fmt.Sprintf("%s:%s", cr.ImageName, cr.ImageTag),
+		Env:        cr.Environment,
+		WorkingDir: cr.WorkingDir,
+		Cmd:        cr.Command,
 	}
 
 	hostConfig := &container.HostConfig{
-		NetworkMode: container.NetworkMode(createRequest.NetworkMode),
+		NetworkMode: container.NetworkMode(cr.NetworkMode),
 		Mounts:      mounts,
 	}
 
 	networkConfig := &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
-			createRequest.NetworkMode: {
-				Aliases: createRequest.NetworkAliases,
+			cr.NetworkMode: {
+				Aliases: cr.NetworkAliases,
 			},
 		},
 	}
 
-	res, err := c.cli.ContainerCreate(ctx, containerConfig, hostConfig, networkConfig, createRequest.ContainerName)
+	res, err := c.cli.ContainerCreate(ctx, containerConfig, hostConfig, networkConfig, cr.ContainerName)
 	if err != nil {
 		return errors.Wrap(err, "create container failed")
 	}
 
-	for path, content := range createRequest.Files {
+	for path, content := range cr.Files {
 		if err := c.copyToContainer(res.ID, path, bytes.NewReader(content)); err != nil {
 			return errors.Wrap(err, "cp to container failed")
 		}
