@@ -25,14 +25,12 @@ type Error struct {
 	Message string `json:"message,omitempty"`
 }
 
-func NewErrors(apicode ...APICode) *Errors {
+func NewErrors(code APICode) *Errors {
 	err := new(Errors)
 	errs := make([]*Error, 0)
 
-	for _, code := range apicode {
-		if errorsDefines[code] != nil {
-			errs = append(errs, errorsDefines[code])
-		}
+	if errorsDefines[code] != nil {
+		errs = append(errs, errorsDefines[code])
 	}
 
 	if len(errs) != 0 {

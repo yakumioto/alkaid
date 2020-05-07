@@ -12,16 +12,16 @@ package errors
 type APICode int64
 
 const (
-	BadAuthenticationData = 4001
-	DataAlreadyExists     = 4002
-	DataNotExists         = 4003
+	BadRequestData    = 4001
+	DataAlreadyExists = 4002
+	DataNotExists     = 4003
 )
 
 var (
 	errorsDefines = map[APICode]*Error{
-		BadAuthenticationData: {
-			Code:    BadAuthenticationData,
-			Message: "Bad authentication data",
+		BadRequestData: {
+			Code:    BadRequestData,
+			Message: "Bad request data",
 		},
 		DataAlreadyExists: {
 			Code:    DataAlreadyExists,

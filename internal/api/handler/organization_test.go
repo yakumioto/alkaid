@@ -37,7 +37,7 @@ func TestCreateOrganization(t *testing.T) {
 
 	r.POST(organization, CreateOrganization)
 
-	expectedBody := fmt.Sprintln(errors.NewErrors(errors.BadAuthenticationData).Error())
+	expectedBody := fmt.Sprintln(errors.NewErrors(errors.BadRequestData).Error())
 
 	// empty test
 	setOrganizationAllFields(org)

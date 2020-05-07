@@ -25,7 +25,7 @@ func CreateNetwork(ctx *gin.Context) {
 	network := types.NewNetwork()
 	if err := ctx.ShouldBindJSON(network); err != nil {
 		logger.Debuf("Bind JSON error: %v", err)
-		ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.BadAuthenticationData))
+		ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.BadRequestData))
 		return
 	}
 

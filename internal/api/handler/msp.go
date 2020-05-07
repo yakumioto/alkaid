@@ -27,7 +27,7 @@ func CreateMSP(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(msp); err != nil {
 		logger.Debuf("Bind JSON error: %v", err)
 
-		ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.BadAuthenticationData))
+		ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.BadRequestData))
 		return
 	}
 	msp.OrganizationID = orgid

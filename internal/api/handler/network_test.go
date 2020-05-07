@@ -30,7 +30,7 @@ func TestCreateNetwork(t *testing.T) {
 
 	network := types.NewNetwork()
 	// empty test
-	expectedBody := fmt.Sprintln(errors.NewErrors(errors.BadAuthenticationData).Error())
+	expectedBody := fmt.Sprintln(errors.NewErrors(errors.BadRequestData).Error())
 
 	setNetworkAllFields(network)
 	network.NetworkID = ""

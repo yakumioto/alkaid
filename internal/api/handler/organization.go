@@ -24,7 +24,7 @@ func CreateOrganization(ctx *gin.Context) {
 	org := types.NewOrganization()
 	if err := ctx.ShouldBindJSON(org); err != nil {
 		logger.Debuf("Bind JSON error: %v", err)
-		ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.BadAuthenticationData))
+		ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.BadRequestData))
 		return
 	}
 

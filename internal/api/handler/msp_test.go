@@ -35,7 +35,7 @@ func TestCreateMSP(t *testing.T) {
 	r.POST(organization, CreateOrganization)
 	r.POST(testCreateMSP, CreateMSP)
 
-	expectedBody := fmt.Sprintln(errors.NewErrors(errors.BadAuthenticationData).Error())
+	expectedBody := fmt.Sprintln(errors.NewErrors(errors.BadRequestData).Error())
 
 	msp := types.NewMSP()
 
