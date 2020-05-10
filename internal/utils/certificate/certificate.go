@@ -5,61 +5,35 @@
  * Alkaid is a BaaS service based on Hyperledger Fabric.
  */
 
-package types
+package certificate
 
 import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"net"
 
 	"github.com/pkg/errors"
 
-	"github.com/yakumioto/alkaid/internal/common/crypto"
+	"github.com/yakumioto/alkaid/internal/api/types"
+	"github.com/yakumioto/alkaid/third_party/github.com/hyperledger/fabric/common/crypto"
 )
 
-const (
-	SignCAType = "sign"
-	TLSCAType  = "tls"
-)
-
-var (
-	typeCAMaps = map[string]string{
-		SignCAType: SignCAType,
-		TLSCAType:  TLSCAType,
-	}
-)
-
-func chekcType(typ string) bool {
-	_, ok := typeCAMaps[typ]
-	return ok
+type PkixName struct {
+	OrgName       string
+	CommonName    string
+	Country       string
+	Province      string
+	Locality      string
+	OrgUnit       string
+	StreetAddress string
+	PostalCode    string
 }
 
-// CA Sign CA or TLS CA
-type CA struct {
-	ID             int64  `json:"-"`
-	OrganizationID string `json:"organization_id,omitempty"`
-	Type           string `json:"type,omitempty"`
-	PrivateKey     []byte `json:"-"`
-	Certificate    []byte `json:"certificate,omitempty"`
-	CreateAt       int64  `json:"create_at,omitempty"`
-	UpdateAt       int64  `json:"update_at,omitempty"`
-}
-
-// NewCA New CA
-func NewCA(org *Organization, typ string) (*CA, error) {
-	if !chekcType(typ) {
-		return nil, errors.New("error type")
-	}
-
-	if org == nil || org.OrganizationID == "" {
-		return nil, errors.New("error organization")
-	}
-
+func NewCA(org *types.Organization, commonName string) (*ecdsa.PrivateKey, *x509.Certificate, error) {
 	priv, err := crypto.GeneratePrivateKey()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	template := crypto.X509Template()
@@ -74,10 +48,10 @@ func NewCA(org *Organization, typ string) (*CA, error) {
 		x509.ExtKeyUsageServerAuth,
 	}
 
-	// // set the organization for the subject
+	// set the organization for the subject
 	template.Subject = crypto.SubjectTemplateAdditional(
 		org.OrganizationID,
-		fmt.Sprintf("%s.%s", "ca", org.Domain),
+		commonName,
 		org.Country,
 		org.Province,
 		org.Locality,
@@ -94,50 +68,35 @@ func NewCA(org *Organization, typ string) (*CA, error) {
 		priv,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	privPemBytes, err := crypto.PrivateKeyExport(priv)
-	if err != nil {
-		return nil, err
-	}
-
-	x509PemBytes := crypto.X509Export(x509Cert)
-
-	return &CA{
-		OrganizationID: org.OrganizationID,
-		Type:           typ,
-		PrivateKey:     privPemBytes,
-		Certificate:    x509PemBytes,
-	}, nil
+	return priv, x509Cert, nil
 }
 
-// SignCertificate creates a signed certificate based on a built-in template
-func (c *CA) SignCertificate(
-	org *Organization,
-	orgUnits,
+func SignCertificate(
+	org *types.Organization,
+	commonName,
+	orgUnits string,
 	alternateNames []string,
 	pub *ecdsa.PublicKey,
-) (*x509.Certificate, error) {
-	if org == nil || org.OrganizationID == "" {
-		return nil, errors.New("error organization")
-	}
-
+	caPrivByte,
+	caCertificateByte []byte) (*x509.Certificate, error) {
 	template := crypto.X509Template()
-	switch c.Type {
-	case TLSCAType:
+	switch orgUnits {
+	case types.OrdererMSPType, types.PeerMSPType:
+		template.KeyUsage = x509.KeyUsageDigitalSignature
+	case types.AdminMSPType, types.ClientMSPType:
 		template.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment
 		template.ExtKeyUsage = []x509.ExtKeyUsage{
 			x509.ExtKeyUsageServerAuth,
 			x509.ExtKeyUsageClientAuth,
 		}
-	case SignCAType:
-		template.KeyUsage = x509.KeyUsageDigitalSignature
 	}
 
 	subject := crypto.SubjectTemplateAdditional(
 		org.OrganizationID,
-		org.Name,
+		commonName,
 		org.Country,
 		org.Province,
 		org.Locality,
@@ -145,7 +104,7 @@ func (c *CA) SignCertificate(
 		org.StreetAddress,
 		org.PostalCode,
 	)
-	subject.OrganizationalUnit = append(subject.OrganizationalUnit, orgUnits...)
+	subject.OrganizationalUnit = append(subject.OrganizationalUnit, orgUnits)
 
 	template.Subject = subject
 
@@ -159,12 +118,17 @@ func (c *CA) SignCertificate(
 		}
 	}
 
-	cert, err := c.SignCert()
+	var (
+		priv *crypto.ECDSASigner
+		cert *x509.Certificate
+		err  error
+	)
+
+	priv, err = Signer(caPrivByte)
 	if err != nil {
 		return nil, err
 	}
-
-	priv, err := c.Signer()
+	cert, err = SignCert(caCertificateByte)
 	if err != nil {
 		return nil, err
 	}
@@ -177,11 +141,11 @@ func (c *CA) SignCertificate(
 }
 
 // SignCert load a ecdsa cert from Certificate
-func (c *CA) SignCert() (*x509.Certificate, error) {
+func SignCert(certByte []byte) (*x509.Certificate, error) {
 	var cert *x509.Certificate
 	var err error
 
-	block, _ := pem.Decode(c.Certificate)
+	block, _ := pem.Decode(certByte)
 	if block == nil || block.Type != "CERTIFICATE" {
 		return nil, errors.Errorf("bytes are not PEM encoded")
 	}
@@ -190,8 +154,8 @@ func (c *CA) SignCert() (*x509.Certificate, error) {
 	return cert, err
 }
 
-func (c *CA) Signer() (*crypto.ECDSASigner, error) {
-	block, _ := pem.Decode(c.PrivateKey)
+func Signer(privKey []byte) (*crypto.ECDSASigner, error) {
+	block, _ := pem.Decode(privKey)
 	if block == nil {
 		return nil, errors.New("bytes are not PEM encoded")
 	}

@@ -7,65 +7,90 @@
  *
  */
 
-package handler
+package network
 
 import (
 	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yakumioto/glog"
 
-	apierrors "github.com/yakumioto/alkaid/internal/api/errors"
+	apierrors "github.com/yakumioto/alkaid/internal/api/apierrors"
 	"github.com/yakumioto/alkaid/internal/api/types"
 	"github.com/yakumioto/alkaid/internal/db"
 	"github.com/yakumioto/alkaid/internal/scheduler"
 )
 
-func CreateNetwork(ctx *gin.Context) {
+const (
+	networkID     = "network_id"
+	networkDetail = "/:" + networkID
+)
+
+var (
+	logger *glog.Logger
+)
+
+type Service struct{}
+
+func (s *Service) Init(log *glog.Logger, rg *gin.RouterGroup) {
+	logger = log.MustGetLogger("network")
+
+	r := rg.Group("/network")
+	r.POST("", s.CreateNetwork)
+	r.GET("")
+	r.GET(networkDetail, s.GetNetworkByID)
+	r.PATCH(networkDetail)
+	r.DELETE(networkDetail)
+
+	logger.Infof("Service initialization success.")
+}
+
+func (s *Service) CreateNetwork(ctx *gin.Context) {
 	network := types.NewNetwork()
 	if err := ctx.ShouldBindJSON(network); err != nil {
 		logger.Debuf("Bind JSON error: %v", err)
-		ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.BadRequestData))
+		ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.BadRequest))
 		return
 	}
 
 	sched, err := scheduler.NewScheduler(network.Type)
 	if err != nil {
-		returnInternalServerError(ctx, "New scheduler error: %v", err)
+		ctx.Status(http.StatusInternalServerError)
 		return
 	}
 
 	if err := db.CreateNetwork((*db.Network)(network)); err != nil {
 		var exist *db.ErrNetworkExist
 		if errors.As(err, &exist) {
-			ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.DataAlreadyExists))
+			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataAlreadyExists))
 			return
 		}
 
-		returnInternalServerError(ctx, "Insert network error: %v", err)
+		ctx.Status(http.StatusInternalServerError)
 		return
 	}
 
 	if err := sched.CreateNetwork(network); err != nil {
-		returnInternalServerError(ctx, "Scheduler create network error: %s", err)
+		ctx.Status(http.StatusInternalServerError)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, network)
 }
 
-func GetNetworkByID(ctx *gin.Context) {
+func (s *Service) GetNetworkByID(ctx *gin.Context) {
 	id := ctx.Param("networkID")
 
 	network, err := db.QueryNetworkByNetworkID(id)
 	if err != nil {
 		var notExist *db.ErrNetworkNotExist
 		if errors.As(err, &notExist) {
-			ctx.JSON(http.StatusBadRequest, apierrors.NewErrors(apierrors.DataNotExists))
+			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataNotExists))
 			return
 		}
 
-		returnInternalServerError(ctx, "Query network by network_id error: %v", err)
+		ctx.Status(http.StatusInternalServerError)
 		return
 	}
 

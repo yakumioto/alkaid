@@ -18,8 +18,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/yakumioto/glog"
 
-	"github.com/yakumioto/alkaid/internal/api/handler"
-	"github.com/yakumioto/alkaid/internal/api/routers"
+	v1 "github.com/yakumioto/alkaid/internal/api/v1"
+	"github.com/yakumioto/alkaid/internal/api/v1/network"
+	"github.com/yakumioto/alkaid/internal/api/v1/node"
+	"github.com/yakumioto/alkaid/internal/api/v1/organization"
+	"github.com/yakumioto/alkaid/internal/api/v1/user"
 	"github.com/yakumioto/alkaid/internal/config"
 	"github.com/yakumioto/alkaid/internal/db"
 	"github.com/yakumioto/alkaid/internal/scheduler"
@@ -35,13 +38,35 @@ func main() {
 }
 
 func run(_ *cobra.Command, _ []string) {
-	var debug bool
-
 	gin.SetMode(gin.ReleaseMode)
 
+	if setLoggerLevel() {
+		gin.SetMode(gin.DebugMode)
+	}
+
+	r := gin.Default()
+	v1.Init(r,
+		new(network.Service),
+		new(organization.Service),
+		new(user.Service),
+		new(node.Service),
+	)
+
+	scheduler.Init()
+
+	if err := db.Init(config.DBPath, "cache=shared&mode=rwc"); err != nil {
+		glog.Fatalf("db initialization failed: %s", err)
+	}
+
+	if err := r.Run(config.Address + ":" + strconv.Itoa(config.Port)); err != nil {
+		glog.Fatalf("service startup failed: %s", err)
+	}
+}
+
+func setLoggerLevel() bool {
+	var debug bool
+
 	switch config.LogLevel {
-	case "INFO":
-		glog.SetLevel(glog.LevelInfo)
 	case "WARN":
 		glog.SetLevel(glog.LevelWarning)
 	case "ERRO":
@@ -53,21 +78,5 @@ func run(_ *cobra.Command, _ []string) {
 		glog.SetLevel(glog.LevelInfo)
 	}
 
-	if debug {
-		gin.SetMode(gin.DebugMode)
-	}
-
-	r := gin.Default()
-
-	routers.Init(r)
-	handler.Init()
-	scheduler.Init()
-
-	if err := db.Init(config.DBPath, "cache=shared&mode=rwc"); err != nil {
-		glog.Fatalf("db initialization failed: %s", err)
-	}
-
-	if err := r.Run(config.Address + ":" + strconv.Itoa(config.Port)); err != nil {
-		glog.Fatalf("service startup failed: %s", err)
-	}
+	return debug
 }

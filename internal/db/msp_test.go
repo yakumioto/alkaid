@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func insertTestMSP(t *testing.T) *MSP {
+func insertTestMSP(t *testing.T) *User {
 	org := insertTestOrganization(t)
 
-	msp := &MSP{OrganizationID: org.OrganizationID, UserID: "testmsp"}
+	msp := &User{OrganizationID: org.OrganizationID, UserID: "testmsp"}
 	err := CreateMSP(msp)
 	assert.NoError(t, err)
 
@@ -29,7 +29,7 @@ func TestCreateMSP(t *testing.T) {
 	testInit()
 
 	// empty organization test
-	err := CreateMSP(&MSP{OrganizationID: "testorg", UserID: "testmsp"})
+	err := CreateMSP(&User{OrganizationID: "testorg", UserID: "testmsp"})
 	assert.EqualError(t, err, "organization not exists [organization_id: testorg]")
 
 	// no err test
@@ -37,14 +37,14 @@ func TestCreateMSP(t *testing.T) {
 
 	// exist test
 	err = CreateMSP(msp)
-	assert.EqualError(t, err, "msp already exists [organization_id: testorg, user_id: testmsp]")
+	assert.EqualError(t, err, "user already exists [organization_id: testorg, user_id: testmsp]")
 }
 
 func TestQueryMSPByOrganizationIDAndMSPID(t *testing.T) {
 	testInit()
 
 	_, err := QueryMSPByOrganizationIDAndUserID("testnotexist", "testmsp")
-	assert.EqualError(t, err, "msp not exists [organization_id: testnotexist, user_id: testmsp]")
+	assert.EqualError(t, err, "user not exists [organization_id: testnotexist, user_id: testmsp]")
 
 	msp := insertTestMSP(t)
 

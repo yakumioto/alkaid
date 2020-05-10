@@ -7,21 +7,22 @@
  *
  */
 
-package errors
+package apierrors
 
-type APICode int64
+type ErrorCode int64
 
 const (
-	BadRequestData    = 4001
-	DataAlreadyExists = 4002
-	DataNotExists     = 4003
+	BadRequest          = 400
+	DataAlreadyExists   = 4001
+	DataNotExists       = 4002
+	InternalServerError = 500
 )
 
 var (
-	errorsDefines = map[APICode]*Error{
-		BadRequestData: {
-			Code:    BadRequestData,
-			Message: "Bad request data",
+	errorsDefines = map[ErrorCode]*error{
+		BadRequest: {
+			Code:    BadRequest,
+			Message: "Bad request",
 		},
 		DataAlreadyExists: {
 			Code:    DataAlreadyExists,
@@ -30,6 +31,10 @@ var (
 		DataNotExists: {
 			Code:    DataNotExists,
 			Message: "Data not exists",
+		},
+		InternalServerError: {
+			Code:    InternalServerError,
+			Message: "Internal server error",
 		},
 	}
 )

@@ -16,34 +16,34 @@ import (
 	"github.com/yakumioto/alkaid/internal/api/types"
 )
 
-type ErrMSP struct {
+type ErrUser struct {
 	OrganizationID string
 	UserID         string
 }
 
-type ErrMSPExist struct {
-	ErrMSP
+type ErrUserExist struct {
+	ErrUser
 }
 
-func (e *ErrMSPExist) Error() string {
-	return fmt.Sprintf("msp already exists [organization_id: %s, user_id: %s]", e.OrganizationID, e.UserID)
+func (e *ErrUserExist) Error() string {
+	return fmt.Sprintf("user already exists [organization_id: %s, user_id: %s]", e.OrganizationID, e.UserID)
 }
 
-type ErrMSPNotExist struct {
-	ErrMSP
+type ErrUserNotExist struct {
+	ErrUser
 }
 
-func (e *ErrMSPNotExist) Error() string {
-	return fmt.Sprintf("msp not exists [organization_id: %s, user_id: %s]", e.OrganizationID, e.UserID)
+func (e *ErrUserNotExist) Error() string {
+	return fmt.Sprintf("user not exists [organization_id: %s, user_id: %s]", e.OrganizationID, e.UserID)
 }
 
-type MSP struct {
+type User struct {
 	ID              int64    `xorm:"'id' PRIMARY KEY AUTOINCREMENT NOT NULL"`
 	OrganizationID  string   `xorm:"'organziation_id' UNIQUE(userid~orgid) NOT NULL"`
 	UserID          string   `xorm:"'user_id' UNIQUE(userid~orgid) NOT NULL"`
 	Name            string   `xorm:"'name'"`
 	SANS            []string `xorm:"'sans'"`
-	Type            string   `xorm:"'type'"`
+	MSPType         string   `xorm:"'msp_type'"`
 	Description     string   `xorm:"'description'"`
 	NodeOUs         bool     `xorm:"'node_ous'"`
 	PrivateKey      []byte   `xorm:"'private_key'"`
@@ -53,11 +53,11 @@ type MSP struct {
 	UpdateAt        int64    `xorm:"'update_at'"`
 }
 
-func (*MSP) TableName() string {
-	return "msp"
+func (*User) TableName() string {
+	return "user"
 }
 
-func (m *MSP) BeforeInsert() {
+func (m *User) BeforeInsert() {
 	m.CreateAt = time.Now().Unix()
 	m.UpdateAt = m.CreateAt
 }
@@ -66,10 +66,10 @@ func isMSPExist(id, orgID string) (bool, error) {
 		return false, nil
 	}
 
-	return x.Get(&MSP{UserID: id, OrganizationID: orgID})
+	return x.Get(&User{UserID: id, OrganizationID: orgID})
 }
 
-func CreateMSP(msp *MSP) error {
+func CreateMSP(msp *User) error {
 	exist, err := isOrganizationExist(msp.OrganizationID)
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func CreateMSP(msp *MSP) error {
 	}
 
 	if exist {
-		return &ErrMSPExist{ErrMSP{OrganizationID: msp.OrganizationID, UserID: msp.UserID}}
+		return &ErrUserExist{ErrUser{OrganizationID: msp.OrganizationID, UserID: msp.UserID}}
 	}
 
 	_, err = x.Insert(msp)
@@ -96,23 +96,23 @@ func CreateMSP(msp *MSP) error {
 	return nil
 }
 
-func QueryMSPByOrganizationIDAndUserID(orgID, userID string) (*types.MSP, error) {
-	msp := &MSP{
+func QueryMSPByOrganizationIDAndUserID(orgID, userID string) (*types.User, error) {
+	user := &User{
 		OrganizationID: orgID,
 		UserID:         userID,
 	}
 
-	has, err := x.Get(msp)
+	has, err := x.Get(user)
 	if err != nil {
 		return nil, err
 	}
 
 	if !has {
-		return nil, &ErrMSPNotExist{ErrMSP{
+		return nil, &ErrUserNotExist{ErrUser{
 			OrganizationID: orgID,
 			UserID:         userID,
 		}}
 	}
 
-	return (*types.MSP)(msp), nil
+	return (*types.User)(user), nil
 }

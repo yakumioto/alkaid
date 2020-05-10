@@ -14,11 +14,11 @@ import (
 )
 
 var (
-	Path     string
-	LogLevel string
-	DBPath   string
-	Address  string
-	Port     int
+	Path           string
+	LogLevel       string
+	DBPath         string
+	Address        string
+	Port           int
 	FileSystemPath string
 )
 
@@ -32,7 +32,7 @@ func InitConfig(run func(cmd *cobra.Command, args []string)) *cobra.Command {
 
 	rootCmd.Flags().StringVarP(&Path, "config", "c", "/var/alkaid/config", "config path.")
 	rootCmd.Flags().StringVar(&LogLevel, "logLevel", "INFO", "log level.")
-	rootCmd.Flags().StringVar(&DBPath, "dbPath", "/data/db/alkaid.db", "sqlite3 db path.")
+	rootCmd.Flags().StringVar(&DBPath, "dbPath", "/var/alkaid/alkaid.db", "sqlite3 db path.")
 	rootCmd.Flags().StringVarP(&Address, "address", "l", "0.0.0.0", "listening address.")
 	rootCmd.Flags().IntVarP(&Port, "port", "p", 8080, "listening port.")
 	rootCmd.Flags().StringVar(&FileSystemPath, "fileSystemPath", "/var/alkaid", "Project data files.")

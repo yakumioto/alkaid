@@ -39,14 +39,18 @@ type Organization struct {
 	Name               string   `xorm:"'name'"`
 	NetworkID          []string `xorm:"'network_id'"`
 	Domain             string   `xorm:"'domain' UNIQUE NOT NULL"`
-	Type               string   `xorm:"'type'"` // orderer or peer
 	Description        string   `xorm:"'description'"`
+	Type               string   `xorm:"'type'"` // orderer or peer
 	Country            string   `xorm:"'country'"`
 	Province           string   `xorm:"'province'"`
 	Locality           string   `xorm:"'locality'"`
 	OrganizationalUnit string   `xorm:"'organizational_unit'"`
 	StreetAddress      string   `xorm:"'street_address'"`
 	PostalCode         string   `xorm:"'postal_code'"`
+	SignCAPrivateKey   []byte   `xorm:"'sign_ca_private_key'"`
+	TLSCAPrivateKey    []byte   `xorm:"'tlsca_private_key'"`
+	SignCACertificate  []byte   `xorm:"'sign_ca_certificate'"`
+	TLSCACertificate   []byte   `xorm:"'tlsca_certificate'"`
 	CreateAt           int64    `xorm:"'create_at'"`
 	UpdateAt           int64    `xorm:"'update_at'"`
 }

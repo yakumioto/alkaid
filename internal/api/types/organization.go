@@ -10,6 +10,9 @@
 package types
 
 const (
+	SignCAType = "sign"
+	TLSCAType  = "tls"
+
 	OrdererOrgType = "orderer"
 	PeerOrgType    = "peer"
 )
@@ -21,11 +24,10 @@ type Organization struct {
 	Name           string   `json:"name,omitempty" binding:"required"`
 	NetworkID      []string `json:"network_id,omitempty"`
 	Domain         string   `json:"domain,omitempty" binding:"required,fqdn"`
+	Description    string   `json:"description,omitempty"`
 
 	// Type value is orderer or peer
 	Type string `json:"type,omitempty" binding:"required,oneof=orderer peer"`
-
-	Description string `json:"description,omitempty"`
 
 	// The following fields are the fields that generate the certificate
 	Country            string `json:"country,omitempty"`
@@ -34,8 +36,15 @@ type Organization struct {
 	OrganizationalUnit string `json:"organizational_unit,omitempty"`
 	StreetAddress      string `json:"street_address,omitempty"`
 	PostalCode         string `json:"postal_code,omitempty"`
-	CreateAt           int64  `json:"create_at,omitempty"`
-	UpdateAt           int64  `json:"update_at,omitempty"`
+
+	// sign and tsl root ca
+	SignCAPrivateKey  []byte `json:"-"`
+	TLSCAPrivateKey   []byte `json:"-"`
+	SignCACertificate []byte `json:"sign_ca_certificate,omitempty"`
+	TLSCACertificate  []byte `json:"tlsca_certificate,omitempty"`
+
+	CreateAt int64 `json:"create_at,omitempty"`
+	UpdateAt int64 `json:"update_at,omitempty"`
 }
 
 // NewOrganization Default parameter
