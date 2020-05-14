@@ -16,19 +16,24 @@ import (
 	"github.com/yakumioto/alkaid/internal/api/types"
 )
 
-type ErrOrganizationExist struct {
+var (
+	ErrOrganizationexist    = new(OrganizationExistError)
+	ErrOrganizationNotExist = new(OrganizationNotExistError)
+)
+
+type OrganizationExistError struct {
 	OrganizationID string
 }
 
-func (e *ErrOrganizationExist) Error() string {
+func (e *OrganizationExistError) Error() string {
 	return fmt.Sprintf("organization already exists [organization_id: %s]", e.OrganizationID)
 }
 
-type ErrOrganizationNotExist struct {
+type OrganizationNotExistError struct {
 	OrganizationID string
 }
 
-func (e *ErrOrganizationNotExist) Error() string {
+func (e *OrganizationNotExistError) Error() string {
 	return fmt.Sprintf("organization not exists [organization_id: %s]", e.OrganizationID)
 }
 
@@ -75,7 +80,7 @@ func CreateOrganization(org *Organization) error {
 	}
 
 	if exist {
-		return &ErrOrganizationExist{OrganizationID: org.OrganizationID}
+		return &OrganizationExistError{OrganizationID: org.OrganizationID}
 	}
 
 	_, err = x.Insert(org)
@@ -97,7 +102,7 @@ func QueryOrganizationByOrgID(orgID string) (*types.Organization, error) {
 	}
 
 	if !has {
-		return nil, &ErrOrganizationNotExist{OrganizationID: orgID}
+		return nil, &OrganizationNotExistError{OrganizationID: orgID}
 	}
 
 	return (*types.Organization)(org), nil

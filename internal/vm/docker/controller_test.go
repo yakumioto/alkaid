@@ -59,14 +59,9 @@ func TestController(t *testing.T) {
 	err := c.Create(createRequest)
 	assert.EqualError(t, err, "image name and tag cannot be empty")
 
-	files := make([]*targz.File, 1)
-	files[0] = &targz.File{
-		Name: "test",
-		Mode: 0664,
-		Body: []byte("hello world\n"),
-	}
+	archive := targz.New().AddFile("test", 0664, []byte("hello world\n"))
 
-	filesBytes, err := targz.Generate(files)
+	filesBytes, err := archive.Generate()
 	assert.NoError(t, err)
 
 	createRequest.ContainerName = "test"

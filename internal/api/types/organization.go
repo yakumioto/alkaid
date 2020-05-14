@@ -56,3 +56,12 @@ func NewOrganization() *Organization {
 		PostalCode: "100000",
 	}
 }
+
+func (o *Organization) HasNetwork(id string) bool {
+	for _, nid := range o.NetworkID {
+		if nid == id {
+			return true
+		}
+	}
+	return false
+}

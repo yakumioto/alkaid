@@ -18,23 +18,28 @@ import (
 	"github.com/yakumioto/alkaid/internal/api/types"
 )
 
-type errNetwork struct {
+var (
+	ErrNetworkExist    = new(NetworkExistError)
+	ErrNetworkNotExist = new(NetworkNotExistError)
+)
+
+type networkError struct {
 	NetworkID string
 }
 
-type ErrNetworkExist struct {
-	errNetwork
+type NetworkExistError struct {
+	networkError
 }
 
-func (e *ErrNetworkExist) Error() string {
+func (e *NetworkExistError) Error() string {
 	return fmt.Sprintf("network already exists [network_id: %s]", e.NetworkID)
 }
 
-type ErrNetworkNotExist struct {
-	errNetwork
+type NetworkNotExistError struct {
+	networkError
 }
 
-func (e *ErrNetworkNotExist) Error() string {
+func (e *NetworkNotExistError) Error() string {
 	return fmt.Sprintf("network not exists [network_id: %s]", e.NetworkID)
 }
 
@@ -74,7 +79,7 @@ func CreateNetwork(network *Network) error {
 	}
 
 	if exist {
-		return &ErrNetworkExist{errNetwork{NetworkID: network.NetworkID}}
+		return &NetworkExistError{networkError{NetworkID: network.NetworkID}}
 	}
 
 	network.DockerNetworkName = namesgenerator.GetRandomName(0)
@@ -96,7 +101,7 @@ func QueryNetworkByNetworkID(id string) (*types.Network, error) {
 	}
 
 	if !has {
-		return nil, &ErrNetworkNotExist{errNetwork{NetworkID: id}}
+		return nil, &NetworkNotExistError{networkError{NetworkID: id}}
 	}
 
 	return (*types.Network)(network), nil

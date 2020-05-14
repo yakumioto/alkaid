@@ -14,12 +14,18 @@ import (
 )
 
 var (
-	Path           string
-	LogLevel       string
-	DBPath         string
-	Address        string
-	Port           int
-	FileSystemPath string
+	Path                string
+	LogLevel            string
+	DBPath              string
+	Address             string
+	Port                int
+	FileSystemPath      string
+	OrdererImageName    = "hyperledger/fabric-orderer"
+	OrdererImageVersion = "1.4.6"
+	PeerImageName       = "hyperledger/fabric-peer"
+	PeerImageVersion    = "1.4.6"
+	CouchDBImageName    = "hyperledger/fabric-couchdb"
+	CouchDBImageVersion = "0.4.18"
 )
 
 func InitConfig(run func(cmd *cobra.Command, args []string)) *cobra.Command {

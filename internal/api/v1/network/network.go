@@ -61,7 +61,7 @@ func (s *Service) CreateNetwork(ctx *gin.Context) {
 	}
 
 	if err := db.CreateNetwork((*db.Network)(network)); err != nil {
-		var exist *db.ErrNetworkExist
+		var exist *db.NetworkExistError
 		if errors.As(err, &exist) {
 			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataAlreadyExists))
 			return
@@ -84,7 +84,7 @@ func (s *Service) GetNetworkByID(ctx *gin.Context) {
 
 	network, err := db.QueryNetworkByNetworkID(id)
 	if err != nil {
-		var notExist *db.ErrNetworkNotExist
+		var notExist *db.NetworkNotExistError
 		if errors.As(err, &notExist) {
 			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataNotExists))
 			return

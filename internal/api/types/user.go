@@ -31,9 +31,11 @@ type User struct {
 	// Type is the following four orderer, peer, admin and client
 	MSPType string `json:"msp_type,omitempty" binding:"required,oneof=orderer peer admin client"`
 
-	Description     string `json:"description,omitempty"`
-	NodeOUs         bool   `json:"node_o_us,omitempty"`
-	PrivateKey      []byte `json:"-"`
+	Description string `json:"description,omitempty"`
+	NodeOUs     bool   `json:"node_o_us,omitempty"`
+
+	SignPrivateKey  []byte `json:"-"`
+	TLSPrivateKey   []byte `json:"-"`
 	SignCertificate []byte `json:"sign_certificate,omitempty"`
 	TLSCertificate  []byte `json:"tls_certificate,omitempty"`
 	CreateAt        int64  `json:"create_at,omitempty"`

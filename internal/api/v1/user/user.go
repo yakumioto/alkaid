@@ -57,7 +57,7 @@ func (s *Service) CreateUser(ctx *gin.Context) {
 
 	org, err := db.QueryOrganizationByOrgID(user.OrganizationID)
 	if err != nil {
-		var notExist *db.ErrOrganizationNotExist
+		var notExist *db.OrganizationNotExistError
 		if errors.As(err, &notExist) {
 			ctx.JSON(http.StatusNotFound, apierrors.New(apierrors.DataNotExists))
 			return
@@ -73,7 +73,7 @@ func (s *Service) CreateUser(ctx *gin.Context) {
 	}
 
 	if err := db.CreateMSP((*db.User)(user)); err != nil {
-		var exist *db.ErrUserExist
+		var exist *db.UserExistError
 		if errors.As(err, &exist) {
 			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataAlreadyExists))
 			return
@@ -92,7 +92,7 @@ func (s *Service) GetUserByID(ctx *gin.Context) {
 
 	msp, err := db.QueryMSPByOrganizationIDAndUserID(orgid, userid)
 	if err != nil {
-		var notExist *db.ErrUserNotExist
+		var notExist *db.UserNotExistError
 		if errors.As(err, &notExist) {
 			ctx.JSON(http.StatusNotFound, apierrors.New(apierrors.DataNotExists))
 			return
@@ -106,9 +106,14 @@ func (s *Service) GetUserByID(ctx *gin.Context) {
 }
 
 func (s *Service) EnrollCertificate(user *types.User, org *types.Organization) error {
-	priv, err := crypto.GeneratePrivateKey()
+	signPriv, err := crypto.GeneratePrivateKey()
 	if err != nil {
-		return fmt.Errorf("generate private key error: %v", err)
+		return fmt.Errorf("generate sign private key error: %v", err)
+	}
+
+	tlsPriv, err := crypto.GeneratePrivateKey()
+	if err != nil {
+		return fmt.Errorf("generate tls private key error: %v", err)
 	}
 
 	commonName := ""
@@ -120,22 +125,28 @@ func (s *Service) EnrollCertificate(user *types.User, org *types.Organization) e
 	}
 
 	signCert, err := certificate.SignCertificate(org, commonName, user.MSPType, nil,
-		&priv.PublicKey, org.SignCAPrivateKey, org.SignCACertificate)
+		&signPriv.PublicKey, org.SignCAPrivateKey, org.SignCACertificate)
 	if err != nil {
 		return fmt.Errorf("sign signature certificate error: %v", err)
 	}
 	tlsCert, err := certificate.SignCertificate(org, commonName, user.MSPType, user.SANS,
-		&priv.PublicKey, org.SignCAPrivateKey, org.SignCACertificate)
+		&tlsPriv.PublicKey, org.SignCAPrivateKey, org.SignCACertificate)
 	if err != nil {
 		return fmt.Errorf("sign tls certificate error: %v", err)
 	}
 
-	privBytes, err := crypto.PrivateKeyExport(priv)
+	signPrivBytes, err := crypto.PrivateKeyExport(signPriv)
 	if err != nil {
-		return fmt.Errorf("private key export error: %v", err)
+		return fmt.Errorf("sign private key export error: %v", err)
 	}
 
-	user.PrivateKey = privBytes
+	tlsPrivBytes, err := crypto.PrivateKeyExport(signPriv)
+	if err != nil {
+		return fmt.Errorf("tls private key export error: %v", err)
+	}
+
+	user.SignPrivateKey = signPrivBytes
+	user.TLSPrivateKey = tlsPrivBytes
 	user.SignCertificate = crypto.X509Export(signCert)
 	user.TLSCertificate = crypto.X509Export(tlsCert)
 

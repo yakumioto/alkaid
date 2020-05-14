@@ -10,6 +10,8 @@
 package docker
 
 import (
+	"fmt"
+
 	"github.com/yakumioto/alkaid/internal/vm"
 	dockervm "github.com/yakumioto/alkaid/internal/vm/docker"
 )
@@ -18,13 +20,31 @@ type peerNode struct {
 	cli *dockervm.Controller
 }
 
-func (p *peerNode) CreatePeer(crs ...*vm.CreateRequest) error {
+func (p *peerNode) CreatePeer(peer *vm.CreateRequest, crs ...*vm.CreateRequest) error {
 	for _, cr := range crs {
 		if err := p.cli.Create(cr); err != nil {
-			logger.Errof("Create peer error: %s", err)
+			logger.Errof("Create crs error: %s", err)
 			return err
 		}
 	}
+
+	if peer.Environment == nil {
+		peer.Environment = make([]string, 0)
+	}
+
+	peer.Environment = append(peer.Environment,
+		fmt.Sprintf("CORE_PEER_ID=%s", peer.ContainerName),
+		fmt.Sprintf("CORE_PEER_ADDRESS=%s:7051", peer.ContainerName),
+		"CORE_PEER_LISTENADDRESS=0.0.0.0:7051",
+		fmt.Sprintf("CORE_PEER_CHAINCODEADDRESS=%s:7052", peer.ContainerName),
+		"CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052",
+	)
+
+	if err := p.cli.Create(peer); err != nil {
+		logger.Errof("Create peer error: %s", err)
+		return err
+	}
+
 	return nil
 }
 

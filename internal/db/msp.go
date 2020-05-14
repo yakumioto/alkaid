@@ -16,24 +16,29 @@ import (
 	"github.com/yakumioto/alkaid/internal/api/types"
 )
 
-type ErrUser struct {
+var (
+	ErrUserExist    = new(UserExistError)
+	ErrUserNotExist = new(UserNotExistError)
+)
+
+type UserError struct {
 	OrganizationID string
 	UserID         string
 }
 
-type ErrUserExist struct {
-	ErrUser
+type UserExistError struct {
+	UserError
 }
 
-func (e *ErrUserExist) Error() string {
+func (e *UserExistError) Error() string {
 	return fmt.Sprintf("user already exists [organization_id: %s, user_id: %s]", e.OrganizationID, e.UserID)
 }
 
-type ErrUserNotExist struct {
-	ErrUser
+type UserNotExistError struct {
+	UserError
 }
 
-func (e *ErrUserNotExist) Error() string {
+func (e *UserNotExistError) Error() string {
 	return fmt.Sprintf("user not exists [organization_id: %s, user_id: %s]", e.OrganizationID, e.UserID)
 }
 
@@ -46,7 +51,8 @@ type User struct {
 	MSPType         string   `xorm:"'msp_type'"`
 	Description     string   `xorm:"'description'"`
 	NodeOUs         bool     `xorm:"'node_ous'"`
-	PrivateKey      []byte   `xorm:"'private_key'"`
+	SignPrivateKey  []byte   `xorm:"'sign_private_key'"`
+	TLSPrivateKey   []byte   `xorm:"'tls_private_key'"`
 	SignCertificate []byte   `xorm:"'sign_ca_certificate'"`
 	TLSCertificate  []byte   `xorm:"'tls_certificate'"`
 	CreateAt        int64    `xorm:"'create_at'"`
@@ -76,7 +82,7 @@ func CreateMSP(msp *User) error {
 	}
 
 	if !exist {
-		return &ErrOrganizationNotExist{OrganizationID: msp.OrganizationID}
+		return &OrganizationNotExistError{OrganizationID: msp.OrganizationID}
 	}
 
 	exist, err = isMSPExist(msp.UserID, msp.OrganizationID)
@@ -85,7 +91,7 @@ func CreateMSP(msp *User) error {
 	}
 
 	if exist {
-		return &ErrUserExist{ErrUser{OrganizationID: msp.OrganizationID, UserID: msp.UserID}}
+		return &UserExistError{UserError{OrganizationID: msp.OrganizationID, UserID: msp.UserID}}
 	}
 
 	_, err = x.Insert(msp)
@@ -108,7 +114,7 @@ func QueryMSPByOrganizationIDAndUserID(orgID, userID string) (*types.User, error
 	}
 
 	if !has {
-		return nil, &ErrUserNotExist{ErrUser{
+		return nil, &UserNotExistError{UserError{
 			OrganizationID: orgID,
 			UserID:         userID,
 		}}

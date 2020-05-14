@@ -77,7 +77,7 @@ func (s *Service) CreateOrganization(ctx *gin.Context) {
 	org.TLSCACertificate = crypto.X509Export(cert)
 
 	if err := db.CreateOrganization((*db.Organization)(org)); err != nil {
-		var exist *db.ErrOrganizationExist
+		var exist *db.OrganizationExistError
 		if errors.As(err, &exist) {
 			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataAlreadyExists))
 			return
@@ -95,7 +95,7 @@ func (s *Service) GetOrganizationByID(ctx *gin.Context) {
 
 	org, err := db.QueryOrganizationByOrgID(id)
 	if err != nil {
-		var notExist *db.ErrOrganizationNotExist
+		var notExist *db.OrganizationNotExistError
 		if errors.As(err, &notExist) {
 			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataNotExists))
 			return
