@@ -49,7 +49,7 @@ func Init(dbPath, options string) error {
 		return err
 	}
 
-	err = x.StoreEngine("InnoDB").Sync2(new(User), new(Network), new(Organization))
+	err = x.StoreEngine("InnoDB").Sync2(new(User), new(Network), new(Organization), new(Node))
 	if err != nil {
 		return err
 	}

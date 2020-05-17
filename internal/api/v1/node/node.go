@@ -91,10 +91,10 @@ func (s *Service) Create(ctx *gin.Context) {
 		return
 	}
 
+	dockerid := fmt.Sprintf("%s.%s", user.UserID, org.Domain)
 	switch user.MSPType {
 	case types.PeerMSPType:
-		name := fmt.Sprintf("%s.%s", user.UserID, org.Domain)
-		if err := s.createPeerNode(name, org.OrganizationID, network.GetNetworkID(), node.CouchDB, msp, tls); err != nil {
+		if err := s.createPeerNode(dockerid, org.OrganizationID, network.GetNetworkID(), node.CouchDB, msp, tls); err != nil {
 			logger.Errof("Create peer node error: %v", err)
 			ctx.JSON(http.StatusServiceUnavailable, apierrors.New(apierrors.InternalServerError))
 			return
@@ -104,6 +104,31 @@ func (s *Service) Create(ctx *gin.Context) {
 		ctx.JSON(http.StatusServiceUnavailable, apierrors.New(apierrors.InternalServerError))
 		return
 	}
+
+	if node.DockerContainerIDs == nil {
+		node.DockerContainerIDs = make([]string, 0)
+	}
+
+	node.NodeID = dockerid
+	node.Type = user.MSPType
+	node.Status = types.RunningNodeStatus
+	node.DockerContainerIDs = append(node.DockerContainerIDs, dockerid)
+	if node.CouchDB {
+		node.DockerContainerIDs = append(node.DockerContainerIDs, fmt.Sprintf("couchdb.%s", dockerid))
+	}
+
+	if err := db.CreateNode((*db.Node)(node)); err != nil {
+		if errors.Is(err, db.ErrNodeExist) {
+			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataAlreadyExists))
+			return
+		}
+
+		logger.Errof("Save Node to database error: %v", err)
+		ctx.Status(http.StatusInternalServerError)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, node)
 }
 
 func (s *Service) createPeerNode(name, mspid, networkMode string, couchdb bool, msp, tls []byte) error {
@@ -136,17 +161,11 @@ func (s *Service) createPeerNode(name, mspid, networkMode string, couchdb bool, 
 			ImageName:     config.CouchDBImageName,
 			ImageTag:      config.CouchDBImageVersion,
 			// todo: Custom user name and password
-			Environment: []string{
-				"COUCHDB_USER=",
-				"COUCHDB_PASSWORD=",
-			},
 		})
 
 		peer.Environment = append(peer.Environment,
 			"CORE_LEDGER_STATE_STATEDATABASE=CouchDB",
 			fmt.Sprintf("CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=%s:5984", address),
-			"CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=",
-			"CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=",
 		)
 	}
 
