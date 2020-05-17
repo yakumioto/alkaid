@@ -53,7 +53,7 @@ type User struct {
 	NodeOUs         bool     `xorm:"'node_ous'"`
 	SignPrivateKey  []byte   `xorm:"'sign_private_key'"`
 	TLSPrivateKey   []byte   `xorm:"'tls_private_key'"`
-	SignCertificate []byte   `xorm:"'sign_ca_certificate'"`
+	SignCertificate []byte   `xorm:"'sign_certificate'"`
 	TLSCertificate  []byte   `xorm:"'tls_certificate'"`
 	CreateAt        int64    `xorm:"'create_at'"`
 	UpdateAt        int64    `xorm:"'update_at'"`

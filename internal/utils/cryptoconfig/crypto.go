@@ -22,18 +22,36 @@ func GetMSPArchive(org *types.Organization, user *types.User) ([]byte, error) {
 		return nil, err
 	}
 
+	cacertFileName := fmt.Sprintf("cacerts/ca.%s-cert.pem", org.Domain)
+
 	archive := targz.New()
 	archive.
-		AddFile(
-			fmt.Sprintf("cacerts/ca.%s-cert.pem", org.Domain),
+		AddFile("config.yaml",
 			0664,
-			org.SignCACertificate).
+			[]byte(fmt.Sprintf(`NodeOUs:
+  Enable: true
+  ClientOUIdentifier:
+    Certificate: %s
+    OrganizationalUnitIdentifier: client
+  PeerOUIdentifier:
+    Certificate: %s
+    OrganizationalUnitIdentifier: peer
+  AdminOUIdentifier:
+    Certificate: %s
+    OrganizationalUnitIdentifier: admin
+  OrdererOUIdentifier:
+    Certificate: %s
+    OrganizationalUnitIdentifier: orderer`, cacertFileName, cacertFileName, cacertFileName, cacertFileName))).
+		AddFile(
+			cacertFileName,
+			0664,
+			org.CACertificate).
 		AddFile(
 			fmt.Sprintf("tlscacerts/tlsca.%s-cert.pem", org.Domain),
 			0664,
 			org.TLSCACertificate).
 		AddFile(
-			fmt.Sprintf("keystore/%s_sk", crypto.ComputeSKI(priv.PrivateKey)),
+			fmt.Sprintf("keystore/%x_sk", crypto.ComputeSKI(priv.PrivateKey)),
 			0600,
 			user.SignPrivateKey).
 		AddFile(
@@ -54,7 +72,7 @@ func GetTLSArchive(org *types.Organization, user *types.User) ([]byte, error) {
 		AddFile(
 			"ca.crt",
 			0664,
-			org.SignCACertificate).
+			org.TLSCACertificate).
 		AddFile(
 			"server.crt",
 			0664,

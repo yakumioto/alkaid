@@ -37,11 +37,11 @@ type Organization struct {
 	StreetAddress      string `json:"street_address,omitempty"`
 	PostalCode         string `json:"postal_code,omitempty"`
 
-	// sign and tsl root ca
-	SignCAPrivateKey  []byte `json:"-"`
-	TLSCAPrivateKey   []byte `json:"-"`
-	SignCACertificate []byte `json:"sign_ca_certificate,omitempty"`
-	TLSCACertificate  []byte `json:"tlsca_certificate,omitempty"`
+	// sign and tls root ca
+	SignCAPrivateKey []byte `json:"-"`
+	TLSCAPrivateKey  []byte `json:"-"`
+	CACertificate    []byte `json:"ca_certificate,omitempty"`
+	TLSCACertificate []byte `json:"tlsca_certificate,omitempty"`
 
 	CreateAt int64 `json:"create_at,omitempty"`
 	UpdateAt int64 `json:"update_at,omitempty"`

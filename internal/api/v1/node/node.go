@@ -19,6 +19,7 @@ import (
 	"github.com/yakumioto/alkaid/internal/api/types"
 	"github.com/yakumioto/alkaid/internal/config"
 	"github.com/yakumioto/alkaid/internal/db"
+	"github.com/yakumioto/alkaid/internal/scheduler"
 	"github.com/yakumioto/alkaid/internal/utils/cryptoconfig"
 	"github.com/yakumioto/alkaid/internal/vm"
 )
@@ -55,46 +56,18 @@ func (s *Service) Create(ctx *gin.Context) {
 		return
 	}
 
-	// todo:
-	// 1. 校验 organization 是否存在, 且在 network 中
-	// 2. 校验 user 是否存在, 且属于 organization, type 类型为 peer, orderer
-	// 3. 校验 network 是否存在
-	// 4. 创建 node 节点
-	checkQueryErrorFunc := func(ctx *gin.Context, err error) bool {
-		if err != nil {
-			switch {
-			case errors.Is(err, db.ErrOrganizationNotExist):
-				logger.Infof("Organization not exist.")
-				ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataNotExists, "Organization not exist"))
-			case errors.Is(err, db.ErrUserNotExist):
-				logger.Infof("User not exist.")
-				ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataNotExists, "User not exist"))
-			case errors.Is(err, db.ErrNetworkNotExist):
-				ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataNotExists, "Network not exist"))
-				logger.Infof("Network not exist.")
-			default:
-				ctx.JSON(http.StatusInternalServerError, apierrors.New(apierrors.InternalServerError))
-				logger.Errof("Query error: %v", err)
-			}
-
-			return true
-		}
-
-		return false
-	}
-
 	org, err := db.QueryOrganizationByOrgID(node.OrganizationID)
-	if checkQueryErrorFunc(ctx, err) {
+	if s.checkQueryError(ctx, err) {
 		return
 	}
 
 	user, err := db.QueryMSPByOrganizationIDAndUserID(node.OrganizationID, node.UserID)
-	if checkQueryErrorFunc(ctx, err) {
+	if s.checkQueryError(ctx, err) {
 		return
 	}
 
 	network, err := db.QueryNetworkByNetworkID(node.NetworkID)
-	if checkQueryErrorFunc(ctx, err) {
+	if s.checkQueryError(ctx, err) {
 		return
 	}
 
@@ -108,22 +81,32 @@ func (s *Service) Create(ctx *gin.Context) {
 	if err != nil {
 		logger.Errof("Get msp archive error: %v", err)
 		ctx.JSON(http.StatusInternalServerError, apierrors.New(apierrors.InternalServerError))
+		return
 	}
 
 	tls, err := cryptoconfig.GetTLSArchive(org, user)
 	if err != nil {
 		logger.Errof("Get msp archive error: %v", err)
 		ctx.JSON(http.StatusInternalServerError, apierrors.New(apierrors.InternalServerError))
+		return
 	}
 
 	switch user.MSPType {
 	case types.PeerMSPType:
 		name := fmt.Sprintf("%s.%s", user.UserID, org.Domain)
-		s.createPeerNode(name, org.OrganizationID, network.NetworkID, node.CouchDB, msp, tls)
+		if err := s.createPeerNode(name, org.OrganizationID, network.GetNetworkID(), node.CouchDB, msp, tls); err != nil {
+			logger.Errof("Create peer node error: %v", err)
+			ctx.JSON(http.StatusServiceUnavailable, apierrors.New(apierrors.InternalServerError))
+			return
+		}
+	default:
+		logger.Errof("Unknown msp type: %s", user.MSPType)
+		ctx.JSON(http.StatusServiceUnavailable, apierrors.New(apierrors.InternalServerError))
+		return
 	}
 }
 
-func (s *Service) createPeerNode(name, mspid, networkMode string, couchdb bool, msp, tls []byte) {
+func (s *Service) createPeerNode(name, mspid, networkMode string, couchdb bool, msp, tls []byte) error {
 	requests := make([]*vm.CreateRequest, 0)
 
 	peer := &vm.CreateRequest{
@@ -134,8 +117,10 @@ func (s *Service) createPeerNode(name, mspid, networkMode string, couchdb bool, 
 		Environment: []string{
 			fmt.Sprintf("CORE_PEER_LOCALMSPID=%s", mspid),
 		},
-		Mounts: map[string]string{
-			name: "/var/hyperledger/production",
+		VolumeMounts: map[string]string{
+			name:                        "/var/hyperledger/production",
+			fmt.Sprintf("%s.msp", name): "/etc/hyperledger/fabric/msp",
+			fmt.Sprintf("%s.tls", name): "/etc/hyperledger/fabric/tls",
 		},
 		Files: map[string][]byte{
 			"/etc/hyperledger/fabric/msp": msp,
@@ -164,4 +149,34 @@ func (s *Service) createPeerNode(name, mspid, networkMode string, couchdb bool, 
 			"CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=",
 		)
 	}
+
+	sche, err := scheduler.NewScheduler(types.DockerNetworkType)
+	if err != nil {
+		logger.Errof("New scheduler error: %v", err)
+		return err
+	}
+	return sche.CreatePeer(peer, requests...)
+}
+
+func (s *Service) checkQueryError(ctx *gin.Context, err error) bool {
+	if err != nil {
+		switch {
+		case errors.Is(err, db.ErrOrganizationNotExist):
+			logger.Infof("Organization not exist.")
+			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataNotExists, "Organization not exist"))
+		case errors.Is(err, db.ErrUserNotExist):
+			logger.Infof("User not exist.")
+			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataNotExists, "User not exist"))
+		case errors.Is(err, db.ErrNetworkNotExist):
+			ctx.JSON(http.StatusBadRequest, apierrors.New(apierrors.DataNotExists, "Network not exist"))
+			logger.Infof("Network not exist.")
+		default:
+			ctx.JSON(http.StatusInternalServerError, apierrors.New(apierrors.InternalServerError))
+			logger.Errof("Query error: %v", err)
+		}
+
+		return true
+	}
+
+	return false
 }

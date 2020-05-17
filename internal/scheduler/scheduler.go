@@ -69,7 +69,7 @@ type Network interface {
 
 // PeerNode Operation hyperledger fabric peer node
 type PeerNode interface {
-	CreatePeer(crs ...*vm.CreateRequest) error
+	CreatePeer(peer *vm.CreateRequest, crs ...*vm.CreateRequest) error
 	RestartPeer(ids ...string) error
 	StopPeer(ids ...string) error
 	DeletePeer(ids ...string) error

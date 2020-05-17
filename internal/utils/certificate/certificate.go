@@ -50,7 +50,7 @@ func NewCA(org *types.Organization, commonName string) (*ecdsa.PrivateKey, *x509
 
 	// set the organization for the subject
 	template.Subject = crypto.SubjectTemplateAdditional(
-		org.OrganizationID,
+		org.Domain,
 		commonName,
 		org.Country,
 		org.Province,
@@ -95,7 +95,7 @@ func SignCertificate(
 	}
 
 	subject := crypto.SubjectTemplateAdditional(
-		org.OrganizationID,
+		"",
 		commonName,
 		org.Country,
 		org.Province,

@@ -36,6 +36,7 @@ func NewDocker(cli *dockervm.Controller) *Docker {
 	}
 
 	d.network = newNetwork(cli)
+	d.peerNode = newPeer(cli)
 
 	return d
 }

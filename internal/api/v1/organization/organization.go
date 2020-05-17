@@ -64,7 +64,7 @@ func (s *Service) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 	org.SignCAPrivateKey, _ = crypto.PrivateKeyExport(priv)
-	org.SignCACertificate = crypto.X509Export(cert)
+	org.CACertificate = crypto.X509Export(cert)
 
 	priv, cert, err = certificate.NewCA(org, fmt.Sprintf("tlsca.%s", org.Domain))
 	if err != nil {
@@ -83,6 +83,7 @@ func (s *Service) CreateOrganization(ctx *gin.Context) {
 			return
 		}
 
+		logger.Errof("Save database error: %v", err)
 		ctx.Status(http.StatusInternalServerError)
 		return
 	}

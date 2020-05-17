@@ -125,12 +125,12 @@ func (s *Service) EnrollCertificate(user *types.User, org *types.Organization) e
 	}
 
 	signCert, err := certificate.SignCertificate(org, commonName, user.MSPType, nil,
-		&signPriv.PublicKey, org.SignCAPrivateKey, org.SignCACertificate)
+		&signPriv.PublicKey, org.SignCAPrivateKey, org.CACertificate)
 	if err != nil {
 		return fmt.Errorf("sign signature certificate error: %v", err)
 	}
 	tlsCert, err := certificate.SignCertificate(org, commonName, user.MSPType, user.SANS,
-		&tlsPriv.PublicKey, org.SignCAPrivateKey, org.SignCACertificate)
+		&tlsPriv.PublicKey, org.SignCAPrivateKey, org.CACertificate)
 	if err != nil {
 		return fmt.Errorf("sign tls certificate error: %v", err)
 	}
@@ -140,7 +140,7 @@ func (s *Service) EnrollCertificate(user *types.User, org *types.Organization) e
 		return fmt.Errorf("sign private key export error: %v", err)
 	}
 
-	tlsPrivBytes, err := crypto.PrivateKeyExport(signPriv)
+	tlsPrivBytes, err := crypto.PrivateKeyExport(tlsPriv)
 	if err != nil {
 		return fmt.Errorf("tls private key export error: %v", err)
 	}

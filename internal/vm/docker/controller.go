@@ -70,13 +70,21 @@ func (c *Controller) Create(cr *vm.CreateRequest) error {
 	}
 
 	mounts := make([]mount.Mount, 0)
-	for source, target := range cr.Mounts {
+	for source, target := range cr.VolumeMounts {
 		if err1 := c.createVolumeWithDockerMode(source); err1 != nil {
 			return err1
 		}
 
 		mounts = append(mounts, mount.Mount{
-			Type:   mount.TypeVolume,
+			Type:          mount.TypeVolume,
+			Source:        source,
+			Target:        target,
+			VolumeOptions: &mount.VolumeOptions{NoCopy: true},
+		})
+	}
+	for source, target := range cr.BindMounts {
+		mounts = append(mounts, mount.Mount{
+			Type:   mount.TypeBind,
 			Source: source,
 			Target: target,
 		})
@@ -179,7 +187,7 @@ func (c *Controller) copyToContainer(id, path string, content io.Reader) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
-	return c.cli.CopyToContainer(ctx, id, path, content, types.CopyToContainerOptions{})
+	return c.cli.CopyToContainer(ctx, id, path, content, types.CopyToContainerOptions{AllowOverwriteDirWithFile: true})
 }
 
 func (c *Controller) hasImage(name, tag string) (bool, error) {

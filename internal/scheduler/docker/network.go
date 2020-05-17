@@ -23,7 +23,7 @@ func newNetwork(cli *dockervm.Controller) *network {
 }
 
 func (n *network) CreateNetwork(network *types.Network) error {
-	id, err := n.cli.CreateNetworkWithDockerMode(network.DockerNetworkName)
+	id, err := n.cli.CreateNetworkWithDockerMode(network.DockerNetworkID)
 	if err != nil {
 		logger.Errof("Create docker network error: %s", err)
 		return err
@@ -32,7 +32,7 @@ func (n *network) CreateNetwork(network *types.Network) error {
 	network.DockerNetworkID = id
 
 	logger.Debuf("Docker network id: %s", id)
-	logger.Debuf("Docker network name: %s", network.DockerNetworkName)
+	logger.Debuf("Docker network name: %s", network.DockerNetworkID)
 
 	return nil
 }

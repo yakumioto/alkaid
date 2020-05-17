@@ -16,7 +16,8 @@ type CreateRequest struct {
 	Environment    []string
 	NetworkMode    string
 	NetworkAliases []string
-	Mounts         map[string]string
+	BindMounts     map[string]string
+	VolumeMounts   map[string]string
 	Files          map[string][]byte
 	WorkingDir     string
 	Command        []string

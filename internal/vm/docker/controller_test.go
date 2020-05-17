@@ -70,7 +70,7 @@ func TestController(t *testing.T) {
 	createRequest.Environment = []string{"TEST_FILE=/home/mioto/test"}
 	createRequest.WorkingDir = "/home/mioto"
 	createRequest.NetworkMode = "bridge"
-	createRequest.Mounts = map[string]string{"test.work": "/home/mioto"}
+	createRequest.VolumeMounts = map[string]string{"test.work": "/home/mioto"}
 	createRequest.Files = map[string][]byte{"/home/mioto": filesBytes}
 	createRequest.Command = []string{"sleep", "1000"}
 

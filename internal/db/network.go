@@ -44,15 +44,14 @@ func (e *NetworkNotExistError) Error() string {
 }
 
 type Network struct {
-	ID                int64  `xorm:"'id' PRIMARY KEY AUTOINCREMENT NOT NULL"`
-	NetworkID         string `xorm:"'network_id' UNIQUE INDEX NOT NULL"`
-	Name              string `xorm:"'name'"`
-	Type              string `xorm:"'type'"`
-	Description       string `xorm:"'description'"`
-	DockerNetworkID   string `xorm:"'docker_network_id' UNIQUE INDEX NOT NULL"`
-	DockerNetworkName string `xorm:"'docker_network_name' UNIQUE INDEX NOT NULL"`
-	CreatedAt         int64  `xorm:"'created_at'"`
-	UpdatedAt         int64  `xorm:"'updated_at'"`
+	ID              int64  `xorm:"'id' PRIMARY KEY AUTOINCREMENT NOT NULL"`
+	NetworkID       string `xorm:"'network_id' UNIQUE INDEX NOT NULL"`
+	Name            string `xorm:"'name'"`
+	Type            string `xorm:"'type'"`
+	Description     string `xorm:"'description'"`
+	DockerNetworkID string `xorm:"'docker_network_id' UNIQUE INDEX NOT NULL"`
+	CreatedAt       int64  `xorm:"'created_at'"`
+	UpdatedAt       int64  `xorm:"'updated_at'"`
 }
 
 func (*Network) TableName() string {
@@ -82,7 +81,7 @@ func CreateNetwork(network *Network) error {
 		return &NetworkExistError{networkError{NetworkID: network.NetworkID}}
 	}
 
-	network.DockerNetworkName = namesgenerator.GetRandomName(0)
+	network.DockerNetworkID = namesgenerator.GetRandomName(0)
 
 	_, err = x.Insert(network)
 	if err != nil {

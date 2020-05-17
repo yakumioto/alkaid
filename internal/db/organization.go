@@ -54,7 +54,7 @@ type Organization struct {
 	PostalCode         string   `xorm:"'postal_code'"`
 	SignCAPrivateKey   []byte   `xorm:"'sign_ca_private_key'"`
 	TLSCAPrivateKey    []byte   `xorm:"'tlsca_private_key'"`
-	SignCACertificate  []byte   `xorm:"'sign_ca_certificate'"`
+	CACertificate      []byte   `xorm:"'ca_certificate'"`
 	TLSCACertificate   []byte   `xorm:"'tlsca_certificate'"`
 	CreateAt           int64    `xorm:"'create_at'"`
 	UpdateAt           int64    `xorm:"'update_at'"`
