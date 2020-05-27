@@ -88,3 +88,9 @@ Alikid 的前身是 [hlf-deploy](https://github.com/yakumioto/alkaid/tree/v0.2.0
 - organization delete (动态删除组织, 支持 system channel)
 - organization update (动态更新组织, 支持 system channel)
 - channel consensus (切换 orderer 共识, 支持 solo, kafka, etcdraft)
+
+## JetBrains 开源证书支持
+
+`Alikid` 是用 `JetBrains` 公司旗下 `GoLand` 进行开发的, 基于 **free JetBrains Open Source license(s)** 正版免费授权，在此表达我的谢意。
+
+[<img src="https://github.com/yakumioto/illustrations/blob/master/jetbrains/jetbrains-consulting-partner.png?raw=true" width="250">](https://www.jetbrains.com/?from=alkaid)
