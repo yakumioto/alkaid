@@ -1,0 +1,22 @@
+---
+core:
+  loglevel: INFO
+  database:
+    driver: sqlite3
+    address: /var/alkaid/alkaid.sqlite3
+#    port: 3306
+#    username: username
+#    password: password
+  address: 127.0.0.1
+  port: 80
+
+image:
+  orderer:
+    name: hyperledger/fabric-orderer
+    tag: 1.4.6
+  peer:
+    name: hyperledger/fabric-peer
+    tag: 1.4.6
+  couchdb:
+    name: hyperledger/fabric-couchdb
+    tag: 0.4.18

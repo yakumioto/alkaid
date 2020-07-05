@@ -1,0 +1,50 @@
+name: alkaid
+
+on:
+  push:
+    branches:
+      - master
+      - 'feature/*'
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  golangci-lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [ '1.13.x' ]
+    steps:
+      - name: Setup go
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Checkout alkaid repo
+        uses: actions/checkout@v2
+      - name: Install golangci-lint
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh |
+          sh -s -- -b $(go env GOPATH)/bin v1.23.8
+      - name: Running golangci-lint
+        run: $(go env GOPATH)/bin/golangci-lint run
+
+#  unit-test:
+#    name: unit-test
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix:
+#        go: [ '1.13.x' ]
+#    steps:
+#      - name: Setup go
+#        uses: actions/setup-go@v1
+#        with:
+#          go-version: ${{ matrix.go }}
+#      - name: Checkout alkaid repo
+#        uses: actions/checkout@v2
+#      - name: Run Test
+#        run: go test -race -coverprofile=coverage.txt -covermode=atomic $(go list ./... | grep -v /third_party/)
+#      - name: Run codecov
+#        uses: codecov/codecov-action@v1
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
