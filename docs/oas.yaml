@@ -1,0 +1,67 @@
+---
+openapi: 3.0.1
+info:
+  title: Alkaid RESTful API
+  description: ''
+  contact:
+    email: yakumioto@gmail.com
+  license:
+    name: MIT
+  version: 0.1.0
+tags:
+  - name: 组织
+    description: 组织是一个受管理的成员集合
+paths:
+  /organizations:
+    post:
+      responses:
+
+components:
+  schemas:
+    Organization:
+      type: object
+      properties:
+        # 组织的基础信息
+        id:
+          type: string
+        name:
+          type: string
+        domain:
+          type: string
+          example: example.com
+        description:
+          type: string
+        type:
+          type: string
+          description: 用于区分是排序组织还是对等组织
+          enum:
+            - orderer
+            - peer
+        # 用于生成组织证书信息
+        country:
+          type: string
+        province:
+          type: string
+        locality:
+          type: string
+        organizationalUnit:
+          type: string
+        streetAddress:
+          type: string
+        postalCode:
+          type: string
+        # 签名以及 TLS 通信根证书
+        signCAPrivateKey:
+          type: string
+        tlsCAPrivateKey:
+          type: string
+        signCACertificate:
+          type: string
+        tlsCACertificate:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
