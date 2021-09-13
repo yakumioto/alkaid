@@ -1,0 +1,447 @@
+---
+openapi: 3.0.1
+
+info:
+  title: Alkaid RESTful API
+  description: |
+  contact:
+    email: yakumioto@gmail.com
+  license:
+    name: MIT
+  version: 0.1.0
+
+tags:
+  - name: User
+  - name: Organization
+    description: 一个受管理的成员集合
+  - name: Identity
+  - name: Network
+  - name: Node
+
+paths:
+  /users:
+    post:
+      tags:
+        - User
+      summary: 创建用户
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        200:
+          description: succcess
+          content: {}
+    get:
+      tags:
+        - User
+      summary: 查看用户列表
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{userId}:
+    patch:
+      tags:
+        - User
+      summary: 更新用户
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        200:
+          description: succcess
+          content: {}
+    get:
+      tags:
+        - User
+      summary: 查看用户
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /organizations:
+    post:
+      tags:
+        - Organization
+      summary: 创建一个组织
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      responses:
+        200:
+          description: success
+          content: {}
+    get:
+      tags:
+        - Organization
+      summary: 查看组织列表
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+  /organizations/{organizationId}:
+    patch:
+      tags:
+        - Organization
+      summary: 更新组织
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      responses:
+        200:
+          description: succcess
+          content: {}
+    get:
+      tags:
+        - Organization
+      summary: 查看组织
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+
+  /identities:
+    post:
+      tags:
+        - Identity
+      summary: 创建一个身份
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Identity'
+        required: true
+      responses:
+        200:
+          description: success
+          content: {}
+    get:
+      tags:
+        - Identity
+      summary: 查看身份列表
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+  /identities/{identityId}:
+    patch:
+      tags:
+        - Identity
+      summary: 更新身份
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Identity'
+        required: true
+      responses:
+        200:
+          description: success
+          content: {}
+    get:
+      tags:
+        - Identity
+      summary: 查看身份
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+
+  /networks:
+    post:
+      tags:
+        - Network
+      summary: 创建一个网络
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Network'
+        required: true
+      responses:
+        200:
+          description: success
+          content: {}
+    get:
+      tags:
+        - Network
+      summary: 查看网络列表
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Network'
+  /networks/{networkId}:
+    patch:
+      tags:
+        - Network
+      summary: 更新网络
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Network'
+        required: true
+      responses:
+        200:
+          description: success
+          content: {}
+    get:
+      tags:
+        - Network
+      summary: 查看网络
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Network'
+
+  /nodes:
+    post:
+      tags:
+        - Node
+      summary: 创建一个节点
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Node'
+        required: true
+      responses:
+        200:
+          description: success
+          content: {}
+    get:
+      tags:
+        - Node
+      summary: 查看节点列表
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+  /nodes/{nodeId}:
+    patch:
+      tags:
+        - Node
+      summary: 更新节点
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Node'
+        required: true
+      responses:
+        200:
+          description: success
+          content: {}
+    get:
+      tags:
+        - Node
+      summary: 查看网络
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        # 签名 以及 通信 公私密钥
+        signPrivateKey:
+          type: string
+        tlsPrivateKey:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
+    Organization:
+      type: object
+      properties:
+        # 组织的基础信息
+        id:
+          type: string
+        name:
+          type: string
+        domain:
+          type: string
+          example: example.com
+        description:
+          type: string
+        type:
+          type: string
+          description: 用于区分是排序组织还是对等组织
+          enum:
+            - orderer
+            - peer
+        # 用于生成组织证书信息
+        country:
+          type: string
+        province:
+          type: string
+        locality:
+          type: string
+        organizationalUnit:
+          type: string
+        streetAddress:
+          type: string
+        postalCode:
+          type: string
+        # 签名以及 TLS 通信根证书
+        signCAPrivateKey:
+          type: string
+        tlsCAPrivateKey:
+          type: string
+        signCACertificate:
+          type: string
+        tlsCACertificate:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
+    Identity:
+      type: object
+      properties:
+        id:
+          type: string
+        organizationId:
+          type: string
+        type:
+          type: string
+          enum:
+            - user
+            - application
+        use:
+          type: string
+          description: 用于指定证书类型
+          enum:
+            - orderer
+            - peer
+            - admin
+            - client
+        name:
+          type: string
+          description: |
+            如果用户类型为 orderer 或者 peer，则会自动解析为域名，格式如下：{{ .Name }}.{{ .Organization.Domain }}
+            如果用户类型为 admin 或者 client，则会自动解析为邮箱，格式如下：{{ .Name }}@{{ .Organization.Domain }}
+        description:
+          type: string
+        nodeOUs:
+          type: boolean
+          description: 针对类型为 orderer 或 peer 的用户设置证书的校验
+        sans:
+          type: array
+          description: 可以指定多个域名进行访问
+        # 签名证书 TLS 通信证书
+        signCertificate:
+          type: string
+        tlsCertificate:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
+    Network:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum:
+            - docker
+            - swarm
+            - kubernetes
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
+    Node:
+      type: object
+      properties:
+        id:
+          type: string
+        organizationId:
+          type: string
+        userId:
+          type: string
+        networkId:
+          type: string
+        name:
+          type: string
+        enableCouchDB:
+          type: boolean
+        status:
+          type: string
+        # 签名 以及 通信 公私密钥
+        signPrivateKey:
+          type: string
+        tlsPrivateKey:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
