@@ -12,11 +12,15 @@ info:
 
 tags:
   - name: User
+    description: 用户
   - name: Organization
     description: 一个受管理的成员集合
   - name: Identity
+    description: 用户或节点身份
   - name: Network
+    description: 区块链网络
   - name: Node
+    description: 网络中的节点
 
 paths:
   /users:
@@ -286,6 +290,8 @@ components:
     User:
       type: object
       properties:
+        resourceId:
+          type: string
         id:
           type: string
         name:
@@ -295,9 +301,11 @@ components:
         password:
           type: string
         # 签名 以及 通信 公私密钥
-        signPrivateKey:
+        protectedSigPrivateKey:
           type: string
-        tlsPrivateKey:
+        protectedTlsPrivateKey:
+          type: string
+        status:
           type: string
         createdAt:
           type: integer

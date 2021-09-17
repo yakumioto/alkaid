@@ -1,11 +1,15 @@
+```mermaid
 erDiagram
     USER {
+        string resourceId
         string id
         string name
         string email
         string password
-        string signPrivateKey
-        string tlsPrivateKey
+        string role
+        string protectedSigPrivateKey
+        string protectedTlsPrivateKey
+        string status
         int64  createAt
         int64  updateAt
     }
@@ -69,3 +73,4 @@ erDiagram
     NODE ||--|| NETWORK : "加入"
     ORGANIZATION }|--|{ NETWORK : "加入"
     ORGANIZATION ||--|{ NODE : "拥有"
+```
