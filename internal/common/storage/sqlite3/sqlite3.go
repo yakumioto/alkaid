@@ -1,7 +1,7 @@
 package sqlite3
 
 import (
-	"github.com/yakumioto/alkaid/internal/storage"
+	"github.com/yakumioto/alkaid/internal/common/storage"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

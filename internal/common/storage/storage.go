@@ -6,11 +6,11 @@ import (
 )
 
 var (
-	ErrNotinitializedGlobalStorage = errors.New("the global storage instance is not initialized")
-	ErrNeedUpdateOptions           = errors.New("must need update options")
-
 	once   sync.Once
 	global Storage
+
+	ErrNotinitializedGlobalStorage = errors.New("the global storage instance is not initialized")
+	ErrNeedUpdateOptions           = errors.New("must need update options")
 )
 
 func Initialization(storage Storage) {
