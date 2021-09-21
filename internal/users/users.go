@@ -1,8 +1,15 @@
 package users
 
+import (
+	"time"
+
+	"github.com/yakumioto/alkaid/internal/common/storage"
+	"github.com/yakumioto/alkaid/internal/common/util"
+)
+
 type User struct {
-	ResourceID             string `json:"resourceId,omitempty"`
 	ID                     string `json:"id,omitempty"`
+	ResourceID             string `json:"resourceId,omitempty"`
 	Name                   string `json:"name,omitempty"`
 	Email                  string `json:"email,omitempty"`
 	Password               string `json:"password,omitempty"`
@@ -12,4 +19,12 @@ type User struct {
 	Status                 string `json:"status,omitempty"`
 	CreatedAt              int64  `json:"createdAt,omitempty"`
 	UpdatedAt              int64  `json:"updatedAt,omitempty"`
+}
+
+func (u *User) Create() error {
+	u.ResourceID = util.GenResourceID()
+	u.CreatedAt = time.Now().Unix()
+	u.UpdatedAt = time.Now().Unix()
+
+	return storage.Create(u)
 }

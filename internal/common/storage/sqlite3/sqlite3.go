@@ -29,7 +29,7 @@ func (s *sqlite3) Create(value interface{}) error {
 	return nil
 }
 
-func (s *sqlite3) Update(values, options *storage.UpdateOptions) error {
+func (s *sqlite3) Update(values interface{}, options *storage.UpdateOptions) error {
 	if options == nil {
 		return storage.ErrNeedUpdateOptions
 	}
@@ -77,6 +77,18 @@ func (s *sqlite3) FindByQuery(dest interface{}, options *storage.QueryOptions) e
 
 func (s *sqlite3) Delete(value interface{}, conditions ...interface{}) error {
 	if tx := s.db.Delete(value, conditions); tx.Error != nil {
+		return tx.Error
+	}
+
+	return nil
+}
+
+func (s *sqlite3) Begin() storage.Storage {
+	return &sqlite3{db: s.db.Begin()}
+}
+
+func (s *sqlite3) Commit() error {
+	if tx := s.db.Commit(); tx.Error != nil {
 		return tx.Error
 	}
 

@@ -27,6 +27,8 @@ type Storage interface {
 	FindByID(dest interface{}, conditions ...interface{}) error
 	FindByQuery(dest interface{}, options *QueryOptions) error
 	Delete(value interface{}, conditions ...interface{}) error
+	Begin() Storage
+	Commit() error
 }
 
 func Create(value interface{}) error {
@@ -67,6 +69,22 @@ func Delete(value interface{}, conditions ...interface{}) error {
 	}
 
 	return global.Delete(value, conditions)
+}
+
+func Begin() Storage {
+	if err := checkGlobal(); err != nil {
+		return nil
+	}
+
+	return global.Begin()
+}
+
+func Commit() error {
+	if err := checkGlobal(); err != nil {
+		return err
+	}
+
+	return global.Commit()
 }
 
 func checkGlobal() error {

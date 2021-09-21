@@ -67,7 +67,7 @@ erDiagram
     }
 
     IDENTITY ||--|{ NETWORK : "操作"
-    USER ||--|{ ORGANIZATION : "属于"
+    USER }|--|{ ORGANIZATION : "属于"
     USER ||--|{ IDENTITY : "拥有"
     NODE ||--|| IDENTITY : "拥有"
     NODE ||--|| NETWORK : "加入"
