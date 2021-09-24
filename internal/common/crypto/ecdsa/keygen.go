@@ -9,14 +9,14 @@ import (
 	"github.com/yakumioto/alkaid/internal/common/crypto"
 )
 
-type ecdsaKeyGenerator struct{}
+type KeyGenerator struct{}
 
-func (kg *ecdsaKeyGenerator) KeyGen(opts crypto.KeyGenOpts) (crypto.Key, error) {
+func (kg *KeyGenerator) KeyGen(opts crypto.KeyGenOpts) (crypto.Key, error) {
 	var curve elliptic.Curve
 	switch opts.Algorithm() {
-	case P256:
+	case crypto.ECDSAP256:
 		curve = elliptic.P256()
-	case P384:
+	case crypto.ECDSAP384:
 		curve = elliptic.P384()
 	default:
 		return nil, fmt.Errorf("unsupported ecdsa algorithm: %v", opts.Algorithm())

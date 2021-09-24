@@ -21,6 +21,14 @@ type User struct {
 	UpdatedAt              int64  `json:"updatedAt,omitempty"`
 }
 
+func NewUser(req *CreateRequest) *User {
+	return &User{
+		ID:       req.ID,
+		Email:    req.Email,
+		Password: util.HashPassword(req.Password, req.Email, 10000),
+	}
+}
+
 func (u *User) Create() error {
 	u.ResourceID = util.GenResourceID()
 	u.CreatedAt = time.Now().Unix()

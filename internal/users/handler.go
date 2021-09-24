@@ -1,10 +1,5 @@
 package users
 
-import (
-	"github.com/yakumioto/alkaid/internal/common/util"
-	"github.com/yakumioto/alkaid/third_party/github.com/hyperledger/fabric/common/crypto"
-)
-
 type CreateRequest struct {
 	ID                  string `json:"id,omitempty" validate:"required"`
 	Email               string `json:"email,omitempty" validate:"required,email"`
@@ -13,24 +8,40 @@ type CreateRequest struct {
 	Role                string `json:"role,omitempty" validate:"required"`
 }
 
-func CreateUser(request *CreateRequest) (*User, error) {
-	user := &User{}
-	user.ID = request.ID
-	user.Email = request.Email
-	user.Password = util.PBKDF2L32Sha256WithBase64(request.Password, request.Email, 10000)
-
-	sigPrivateKey, err := crypto.GeneratePrivateKey()
-	if err != nil {
-		return nil, err
-	}
-	sigPrivateKeyPem, err := crypto.PrivateKeyExport(sigPrivateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	tlsPrivateKey, err := crypto.GeneratePrivateKey()
-	if err != nil {
-		return nil, err
-	}
-
+func CreateUser(req *CreateRequest) (*User, error) {
+	//user := NewUser(req)
+	//
+	//sigPrivateKey, err := crypto.KeyGen(&crypto.ECDSAP256KeyGenOpts{})
+	//if err != nil {
+	//	return nil, err
+	//}
+	//sigPrivateKeyPem, err := sigPrivateKey.Bytes()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//tlsPrivateKey, err := crypto.KeyGen(&crypto.ECDSAP256KeyGenOpts{})
+	//if err != nil {
+	//	return nil, err
+	//}
+	//tlsPrivateKeyPem, err := tlsPrivateKey.Bytes()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//ak, err := crypto.KeyImport([]byte(req.TransactionPassword), &crypto.AES256KeyImportOpts{})
+	//if err != nil {
+	//	return nil, err
+	//}
+	//protectedSigPrivateKey, err := ak.Encrypt(sigPrivateKeyPem)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//protectedTLSPrivateKey, err := ak.Encrypt(tlsPrivateKeyPem)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//user.ProtectedSigPrivateKey = base64.StdEncoding.EncodeToString(protectedSigPrivateKey)
+	//user.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
+	return nil, nil
 }
