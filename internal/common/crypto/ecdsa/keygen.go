@@ -9,9 +9,13 @@ import (
 	"github.com/yakumioto/alkaid/internal/common/crypto"
 )
 
-type KeyGenerator struct{}
+func NewKeyGenerator() *keyGenerator {
+	return &keyGenerator{}
+}
 
-func (kg *KeyGenerator) KeyGen(opts crypto.KeyGenOpts) (crypto.Key, error) {
+type keyGenerator struct{}
+
+func (kg *keyGenerator) KeyGen(opts crypto.KeyGenOpts) (crypto.Key, error) {
 	var curve elliptic.Curve
 	switch opts.Algorithm() {
 	case crypto.ECDSAP256:

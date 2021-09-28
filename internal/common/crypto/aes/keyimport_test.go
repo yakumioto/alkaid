@@ -8,7 +8,7 @@ import (
 )
 
 func TestAesKeyImport_KeyImport(t *testing.T) {
-	ki := &KeyImport{}
+	ki := &keyImporter{}
 	_, err := ki.KeyImport([]byte("test"), &crypto.AES128KeyImportOpts{})
 	assert.NoError(t, err)
 }

@@ -3,8 +3,7 @@ package crypto
 type KeyType int
 
 const (
-	ECDSAType KeyType = iota
-	AESCBCType
+	AESCBCType KeyType = iota
 )
 
 type Key interface {
@@ -24,7 +23,7 @@ type KeyGenerator interface {
 }
 
 type KeyGenOpts interface {
-	Algorithm() string
+	Algorithm() Algorithm
 }
 
 type KeyImporter interface {
@@ -32,25 +31,5 @@ type KeyImporter interface {
 }
 
 type KeyImportOpts interface {
-	Algorithm() string
+	Algorithm() Algorithm
 }
-
-//func KeyGen(opts KeyGenOpts) (Key, error) {
-//	switch opts.Algorithm() {
-//	case ECDSAP256, ECDSAP384:
-//		kg := &ecdsa.KeyGenerator{}
-//		return kg.KeyGen(opts)
-//	}
-//
-//	return nil, errors.New("not found key generator")
-//}
-//
-//func KeyImport(raw interface{}, opts KeyImportOpts) (Key, error) {
-//	switch opts.Algorithm() {
-//	case AES128, AES192, AES256:
-//		kg := &aes.KeyImport{}
-//		return kg.KeyImport(raw, opts)
-//	}
-//
-//	return nil, errors.New("not found key importer")
-//}

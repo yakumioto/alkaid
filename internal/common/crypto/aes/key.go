@@ -15,7 +15,7 @@ import (
 
 type aesCBCPrivateKey struct {
 	privateKey []byte
-	algorithm  string
+	algorithm  crypto.Algorithm
 }
 
 func (a *aesCBCPrivateKey) Bytes() ([]byte, error) {

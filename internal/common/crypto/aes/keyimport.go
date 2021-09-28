@@ -6,24 +6,25 @@ import (
 	"github.com/yakumioto/alkaid/internal/common/crypto"
 )
 
-type KeyImport struct{}
+func NewKeyImporter() *keyImporter {
+	return &keyImporter{}
+}
 
-func (kg *KeyImport) KeyImport(raw interface{}, opts crypto.KeyImportOpts) (crypto.Key, error) {
+type keyImporter struct{}
+
+func (kg *keyImporter) KeyImport(raw interface{}, opts crypto.KeyImportOpts) (crypto.Key, error) {
 	privateKey, ok := raw.([]byte)
 	if !ok && privateKey != nil {
 		return nil, fmt.Errorf("only supports []byte type of key")
 	}
 
 	switch opts.Algorithm() {
-	case crypto.AES128:
-	case crypto.AES192:
-	case crypto.AES256:
-	default:
-		return nil, fmt.Errorf("unsupported aes algorithm: %v", opts.Algorithm())
+	case crypto.AES128, crypto.AES192, crypto.AES256:
+		return &aesCBCPrivateKey{
+			privateKey: privateKey,
+			algorithm:  opts.Algorithm(),
+		}, nil
 	}
 
-	return &aesCBCPrivateKey{
-		privateKey: privateKey,
-		algorithm:  opts.Algorithm(),
-	}, nil
+	return nil, fmt.Errorf("unsupported aes algorithm: %v", opts.Algorithm())
 }
