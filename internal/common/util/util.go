@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/uuid"
+	"github.com/lithammer/shortuuid"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -18,7 +18,7 @@ func HashPassword(password, salt string, iter int) string {
 	return fmt.Sprintf("%d.%s", iter, passwordHashBase64)
 }
 
-// PBKDF2WithSha256 用于扩展密钥
+// PBKDF2WithSha256 用于生成扩展密钥
 func PBKDF2WithSha256(password, salt []byte, keyLen int) []byte {
 	return pbkdf2.Key(password, salt, 1, keyLen, sha256.New)
 }
@@ -36,8 +36,8 @@ func ValidatePassword(password, salt, passwordHash string) bool {
 	return true
 }
 
-func GenResourceID() string {
-	return uuid.NewString()
+func GenResourceID(namespace string) string {
+	return fmt.Sprintf("%s-%s", namespace, shortuuid.New())
 }
 
 func GetVarintBytesWithMaxVarintLen64(x int64) []byte {

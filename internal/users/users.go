@@ -7,6 +7,10 @@ import (
 	"github.com/yakumioto/alkaid/internal/common/util"
 )
 
+const (
+	namespace = "user"
+)
+
 type user struct {
 	ID                     string `json:"id,omitempty"`
 	ResourceID             string `json:"resourceId,omitempty"`
@@ -30,7 +34,7 @@ func newUser(req *CreateRequest) *user {
 }
 
 func (u *user) create() error {
-	u.ResourceID = util.GenResourceID()
+	u.ResourceID = util.GenResourceID(namespace)
 	u.CreatedAt = time.Now().Unix()
 	u.UpdatedAt = time.Now().Unix()
 

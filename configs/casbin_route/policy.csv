@@ -1,0 +1,42 @@
+# 角色路由权限
+p, root::role, *, *, *, allow
+
+p, organizationAdministrator::role, *, /organizations/:id, GET, allow
+p, organizationAdministrator::role, *, /organizations/:id, POST, allow
+p, organizationAdministrator::role, *, /organizations/:id, PATCH, allow
+p, organizationAdministrator::role, *, /organizations/:organizationId/users, *, allow
+
+p, networkAdministrator::role, *, /networks/:id, *, allow
+p, networkAdministrator::role, *, /services/:id, *, allow
+p, networkAdministrator::role, *, /channels/:id, *, allow
+p, networkAdministrator::role, *, /contracts/:id, *, allow
+p, networkAdministrator::role, *, /organizations/:organizationId/networks, *, allow
+p, networkAdministrator::role, *, /organizations/:organizationId/networks/:networkId/services, *, allow
+p, networkAdministrator::role, *, /organizations/:organizationId/networks/:networkId/channels, *, allow
+p, networkAdministrator::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, *, allow
+
+p, user::role, *, /users/:id, GET, allow
+p, user::role, *, /users/:id, POST, allow
+p, user::role, *, /users/:id, PATCH, allow
+p, user::role, *, /organizations/:id, GET, allow
+p, user::role, *, /networks/:id, GET, allow
+p, user::role, *, /services/:id, GET, allow
+p, user::role, *, /channels/:id, GET, allow
+p, user::role, *, /contracts/:id, GET, allow
+p, user::role, *, /contracts/:id/execute, POST, allow
+p, user::role, *, /organizations/:organizationId/networks, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/services, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/channels, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, GET, allow
+
+g, organizationAdministrator::role, networkAdministrator::role, *
+g, organizationAdministrator::role, user::role, *
+g, networkAdministrator::role, user::role, *
+
+# TODO: 动态生成
+# 根据用户允许访问的资源动态添加
+# example：
+# g, exampleUser, user::role, exampleOrganization
+# p, exampleUser, exampleOrganization, b3a1f95f-9e05-420f-872c-d09944974539, *, allow
+
+p, exampleUser, exampleOrganization, b3a1f95f-9e05-420f-872c-d09944974539, *, allow
