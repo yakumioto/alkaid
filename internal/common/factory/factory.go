@@ -30,5 +30,4 @@ func CryptoKeyImport(raw interface{}, algorithm crypto.Algorithm) (crypto.Key, e
 	}
 
 	return nil, fmt.Errorf("not found key importer: %v", algorithm)
-
 }

@@ -23,7 +23,7 @@ func (kg *keyGenerator) KeyGen(opts crypto.KeyGenOpts) (crypto.Key, error) {
 	case crypto.ECDSAP384:
 		curve = elliptic.P384()
 	default:
-		return nil, fmt.Errorf("unsupported ecdsa algorithm: %v", opts.Algorithm())
+		return nil, fmt.Errorf("unsupported ECDSA algorithm: %v", opts.Algorithm())
 	}
 
 	privateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
