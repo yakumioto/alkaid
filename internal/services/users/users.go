@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2021. The Alkaid Authors. All rights reserved.
+ * Use of this source code is governed by a MIT-style
+ * license that can be found in the LICENSE file.
+ *
+ * Alkaid is a BaaS service based on Hyperledger Fabric.
+ */
+
 package users
 
 import (
@@ -8,10 +16,10 @@ import (
 )
 
 const (
-	namespace = "user"
+	Namespace = "User"
 )
 
-type user struct {
+type User struct {
 	ID                     string `json:"id,omitempty"`
 	ResourceID             string `json:"resourceId,omitempty"`
 	Name                   string `json:"name,omitempty"`
@@ -25,16 +33,16 @@ type user struct {
 	UpdatedAt              int64  `json:"updatedAt,omitempty"`
 }
 
-func newUser(req *CreateRequest) *user {
-	return &user{
+func newUser(req *CreateRequest) *User {
+	return &User{
 		ID:       req.ID,
 		Email:    req.Email,
 		Password: util.HashPassword(req.Password, req.Email, 10000),
 	}
 }
 
-func (u *user) create() error {
-	u.ResourceID = util.GenResourceID(namespace)
+func (u *User) create() error {
+	u.ResourceID = util.GenResourceID(Namespace)
 	u.CreatedAt = time.Now().Unix()
 	u.UpdatedAt = time.Now().Unix()
 

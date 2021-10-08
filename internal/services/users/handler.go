@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2021. The Alkaid Authors. All rights reserved.
+ * Use of this source code is governed by a MIT-style
+ * license that can be found in the LICENSE file.
+ *
+ * Alkaid is a BaaS service based on Hyperledger Fabric.
+ */
+
 package users
 
 import (
@@ -15,8 +23,8 @@ type CreateRequest struct {
 	Role                string `json:"role,omitempty" validate:"required"`
 }
 
-func CreateUser(req *CreateRequest) (*user, error) {
-	nu := newUser(req)
+func CreateUser(req *CreateRequest) (*User, error) {
+	user := newUser(req)
 
 	sigPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {
@@ -48,12 +56,12 @@ func CreateUser(req *CreateRequest) (*user, error) {
 		return nil, err
 	}
 
-	nu.ProtectedSigPrivateKey = base64.StdEncoding.EncodeToString(protectedSigPrivateKey)
-	nu.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
+	user.ProtectedSigPrivateKey = base64.StdEncoding.EncodeToString(protectedSigPrivateKey)
+	user.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
 
-	if err := nu.create(); err != nil {
+	if err := user.create(); err != nil {
 		return nil, err
 	}
 
-	return nu, nil
+	return user, nil
 }
