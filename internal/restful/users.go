@@ -15,21 +15,21 @@ import (
 	"github.com/yakumioto/alkaid/internal/services/users"
 )
 
-type userController struct{}
+type createUserController struct{}
 
-func (u *userController) Name() string {
+func (c *createUserController) Name() string {
 	return "create_user_url"
 }
 
-func (u *userController) Path() string {
+func (c *createUserController) Path() string {
 	return "/users"
 }
 
-func (u *userController) Method() string {
+func (c *createUserController) Method() string {
 	return http.MethodPost
 }
 
-func (u *userController) HandlerFunc() gin.HandlerFunc {
+func (c *createUserController) HandlerFunc() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		version, property := getVersionAndProperty(ctx)
 
@@ -40,6 +40,8 @@ func (u *userController) HandlerFunc() gin.HandlerFunc {
 		}
 
 		switch version {
+		case "v1":
+			fallthrough
 		default:
 			user, err := users.CreateUser(req)
 			if err != nil {

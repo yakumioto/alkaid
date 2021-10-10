@@ -23,7 +23,7 @@ func render(ctx *gin.Context, property string, obj interface{}) *gin.Context {
 		statusCode = obj.StatusCode
 	}
 
-	switch ctx.GetHeader("Accept") {
+	switch property {
 	case "xml":
 		ctx.XML(statusCode, obj)
 	case "yaml":
