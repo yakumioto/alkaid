@@ -14,6 +14,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const Driver = "sqlite3"
+
 type sqlite3 struct {
 	db *gorm.DB
 }

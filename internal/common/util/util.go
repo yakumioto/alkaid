@@ -13,10 +13,13 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/lithammer/shortuuid"
+	"github.com/yakumioto/alkaid/internal/errors"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -57,4 +60,27 @@ func GetVarintBytesWithMaxVarintLen64(x int64) []byte {
 func MustVarint(buf []byte) int64 {
 	num, _ := binary.Varint(buf)
 	return num
+}
+
+func Render(ctx *gin.Context, property string, obj interface{}) *gin.Context {
+	statusCode := http.StatusOK
+
+	if obj, ok := obj.(errors.Error); ok {
+		statusCode = obj.StatusCode
+	}
+
+	switch property {
+	case "xml":
+		ctx.XML(statusCode, obj)
+	case "yaml":
+		ctx.YAML(statusCode, obj)
+	case "json":
+		ctx.JSON(statusCode, obj)
+	case "javascript":
+		ctx.JSONP(statusCode, obj)
+	default:
+		ctx.JSON(statusCode, obj)
+	}
+
+	return ctx
 }

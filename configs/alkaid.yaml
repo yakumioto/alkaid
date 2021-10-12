@@ -1,0 +1,25 @@
+---
+restful:
+  mode: develop
+  address: 0.0.0.0:8080
+  request:
+    timeout: 5s
+
+logging:
+  level : DEBUG
+
+database:
+  use: sqlite3
+  sqlite3:
+    path: ./testData/alkaid.db
+  mysql:
+    dsn: user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local
+
+fabirc:
+  images:
+    orderer:
+    peer:
+    ca:
+    ccenv:
+    couchdb:
+    baseos:
