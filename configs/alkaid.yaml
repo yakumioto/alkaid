@@ -1,12 +1,12 @@
 ---
 restful:
-  mode: develop
+  mode: debug
   address: 0.0.0.0:8080
   request:
     timeout: 5s
 
 logging:
-  level : DEBUG
+  level : info # panic, fatal, error, warn, info, debug, trace
 
 database:
   use: sqlite3

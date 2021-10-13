@@ -12,6 +12,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yakumioto/alkaid/internal/versions"
 )
 
 type Health struct{}
@@ -30,6 +31,19 @@ func (h *Health) Method() string {
 
 func (h *Health) HandlerFuncChain() []gin.HandlerFunc {
 	return []gin.HandlerFunc{
+		func(ctx *gin.Context) {
+			if ctx.GetString("Version") != versions.V1 {
+				ctx.Next()
+				return
+			}
+
+			ctx.JSON(http.StatusOK, gin.H{
+				"status":  "ok",
+				"version": versions.V1,
+			})
+
+			ctx.Abort()
+		},
 		func(ctx *gin.Context) {
 			ctx.JSON(http.StatusOK, gin.H{
 				"status": "ok",

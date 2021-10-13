@@ -11,7 +11,6 @@ package main
 import (
 	"os"
 	"strings"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -19,6 +18,7 @@ import (
 	"github.com/yakumioto/alkaid/internal/common/storage/sqlite3"
 	"github.com/yakumioto/alkaid/internal/restful"
 	"github.com/yakumioto/alkaid/internal/restful/controllers"
+	"github.com/yakumioto/alkaid/internal/restful/middlewares"
 )
 
 func main() {
@@ -28,6 +28,8 @@ func main() {
 	)
 
 	initConfig()
+
+	setLoggerLevel()
 
 	switch viper.GetString("database.use") {
 	case sqlite3.Driver:
@@ -40,14 +42,20 @@ func main() {
 	storage.Initialization(db)
 
 	service := restful.NewService(
-		restful.WithMode(restful.DevelopMode),
-		restful.WithRequestTimeout(10*time.Second))
+		restful.WithMode(viper.GetString("restful.mode")),
+		restful.WithRequestTimeout(viper.GetDuration("restful.request.timeout")),
+	)
+	service.RegisterMiddlewares(
+		new(middlewares.Logger),
+		new(middlewares.Recovery),
+		new(middlewares.ResolveVersion),
+	)
 	service.RegisterControllers(
 		new(controllers.Health),
 	)
 
 	if err := service.Run(viper.GetString("restful.address")); err != nil {
-
+		logrus.Panicf("running restful service error: %v", err)
 	}
 }
 
@@ -67,4 +75,12 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		logrus.Panicf("Fatal error config file: %v", err)
 	}
+}
+
+func setLoggerLevel() {
+	level, err := logrus.ParseLevel(viper.GetString("logging.level"))
+	if err != nil {
+		level = logrus.DebugLevel
+	}
+	logrus.SetLevel(level)
 }

@@ -15,11 +15,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Mode string
-
 const (
-	ProductMode Mode = "product"
-	DevelopMode Mode = "develop"
+	ReleaseMode = "release"
+	DebugMode   = "debug"
 )
 
 type Service interface {
@@ -31,7 +29,7 @@ type Service interface {
 
 type Middleware interface {
 	Name() string
-	Priority() int
+	Sequence() int
 	HandlerFunc() gin.HandlerFunc
 }
 
@@ -44,12 +42,14 @@ type Controller interface {
 
 type middlewares []Middleware
 
+type controllers []Controller
+
 func (m middlewares) Len() int {
 	return len(m)
 }
 
 func (m middlewares) Less(i, j int) bool {
-	return m[i].Priority() < m[j].Priority()
+	return m[i].Sequence() < m[j].Sequence()
 }
 
 func (m middlewares) Swap(i, j int) {
@@ -57,15 +57,22 @@ func (m middlewares) Swap(i, j int) {
 }
 
 type options struct {
-	mode           Mode
+	mode           string
 	requestTimeout time.Duration
 }
 
 type OptionFunc func(opt *options)
 
-func WithMode(mode Mode) OptionFunc {
+func WithMode(mode string) OptionFunc {
 	return func(opt *options) {
-		opt.mode = mode
+		switch mode {
+		case ReleaseMode:
+			opt.mode = ReleaseMode
+		case DebugMode:
+			opt.mode = DebugMode
+		default:
+			opt.mode = DebugMode
+		}
 	}
 }
 
@@ -77,7 +84,7 @@ func WithRequestTimeout(duration time.Duration) OptionFunc {
 
 var (
 	defaultOptions = options{
-		mode:           ProductMode,
+		mode:           ReleaseMode,
 		requestTimeout: 10 * time.Second,
 	}
 )
@@ -87,6 +94,7 @@ type service struct {
 	engine             *gin.Engine
 	middlewares        middlewares
 	handlerMiddlewares middlewares
+	controllers        controllers
 }
 
 func NewService(optsFunc ...OptionFunc) Service {
@@ -94,6 +102,8 @@ func NewService(optsFunc ...OptionFunc) Service {
 	for _, f := range optsFunc {
 		f(&opts)
 	}
+
+	gin.SetMode(opts.mode)
 
 	return &service{
 		opts:   &opts,
@@ -120,26 +130,28 @@ func (s *service) RegisterHandlerMiddlewares(middlewares ...Middleware) {
 }
 
 func (s *service) RegisterControllers(controllers ...Controller) {
+	for _, controller := range controllers {
+		controller := controller
+		s.controllers = append(s.controllers, controller)
+	}
+}
+
+func (s *service) Run(addr string) error {
+	for _, middleware := range s.middlewares {
+		s.engine.Use(middleware.HandlerFunc())
+	}
+
 	hMiddlewaresChain := make([]gin.HandlerFunc, 0, len(s.handlerMiddlewares))
 
 	for _, hMiddleware := range s.handlerMiddlewares {
 		hMiddlewaresChain = append(hMiddlewaresChain, hMiddleware.HandlerFunc())
 	}
 
-	for _, controller := range controllers {
+	for _, controller := range s.controllers {
 		handlerChain := make([]gin.HandlerFunc, 0)
 		handlerChain = append(handlerChain, hMiddlewaresChain...)
 		handlerChain = append(handlerChain, controller.HandlerFuncChain()...)
 		s.engine.Handle(controller.Method(), controller.Path(), handlerChain...)
-	}
-}
-
-func (s *service) Run(addr string) error {
-	switch s.opts.mode {
-	case ProductMode:
-		gin.SetMode(gin.ReleaseMode)
-	case DevelopMode:
-		gin.SetMode(gin.DebugMode)
 	}
 
 	return s.engine.Run(addr)

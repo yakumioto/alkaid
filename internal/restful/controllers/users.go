@@ -41,7 +41,7 @@ func (c *CreateUser) HandlerFuncChain() []gin.HandlerFunc {
 			return
 		}
 
-		user, err := users.CreateUser(req)
+		user, err := users.Create(req)
 		if err != nil {
 			util.Render(ctx, property, err).Abort()
 			return

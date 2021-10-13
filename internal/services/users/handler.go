@@ -23,7 +23,7 @@ type CreateRequest struct {
 	Role                string `json:"role,omitempty" validate:"required"`
 }
 
-func CreateUser(req *CreateRequest) (*User, error) {
+func Create(req *CreateRequest) (*User, error) {
 	user := newUser(req)
 
 	sigPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)

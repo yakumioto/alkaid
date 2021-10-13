@@ -9,5 +9,5 @@
 package versions
 
 const (
-	V1 = "V1"
+	V1 = "v1"
 )
