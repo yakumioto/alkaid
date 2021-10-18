@@ -39,7 +39,7 @@ func main() {
 		}
 	}
 
-	storage.Initialization(db)
+	storage.Initialize(db)
 
 	service := restful.NewService(
 		restful.WithMode(viper.GetString("restful.mode")),

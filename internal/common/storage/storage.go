@@ -21,7 +21,7 @@ var (
 	ErrNeedUpdateOptions           = errors.New("must need update options")
 )
 
-func Initialization(storage Storage) {
+func Initialize(storage Storage) {
 	once.Do(func() {
 		if global == nil {
 			global = storage
