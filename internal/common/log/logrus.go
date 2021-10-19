@@ -19,94 +19,91 @@ var (
 	logger *Logger
 )
 
+type StdLogger interface {
+	Debugf(format string, args ...interface{})
+	Infof(format string, args ...interface{})
+	Warnf(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
+	Fatalf(format string, args ...interface{})
+	Panicf(format string, args ...interface{})
+
+	Debug(args ...interface{})
+	Info(args ...interface{})
+	Warn(args ...interface{})
+	Error(args ...interface{})
+	Fatal(args ...interface{})
+	Panic(args ...interface{})
+}
+
+type Logger struct {
+	*logrus.Logger
+}
+
 func Initialize(level string) {
 	once.Do(func() {
-		l, err := logrus.ParseLevel(level)
+		lvl, err := logrus.ParseLevel(level)
 		if err != nil {
-			l = logrus.DebugLevel
+			lvl = logrus.DebugLevel
 		}
+
 		if logger == nil {
-			log := logrus.New()
-			log.SetLevel(l)
-			logger = &Logger{StdLogger: log}
+			l := logrus.New()
+			logger = &Logger{
+				Logger: l,
+			}
+			l.SetLevel(lvl)
 		}
 	})
 }
 
-func NewLogger() *Logger {
-	return &Logger{
-		StdLogger: logrus.New(),
-	}
+func Get(name string) StdLogger {
+	return logger.Logger.WithField("package", name)
 }
 
-type Logger struct {
-	StdLogger
+func Debugf(format string, args ...interface{}) {
+	logger.Debugf(format, args...)
 }
 
-func (l *Logger) WithField(key string, value interface{}) StdLogger {
-	return &Logger{
-		StdLogger: l.WithField(key, value),
-	}
+func Infof(format string, args ...interface{}) {
+	logger.Infof(format, args...)
 }
 
-func (l *Logger) WithFields(fields Fields) StdLogger {
-	return &Logger{
-		StdLogger: l.WithFields(fields),
-	}
+func Warnf(format string, args ...interface{}) {
+	logger.Warnf(format, args...)
 }
 
-func (l *Logger) Debugf(format string, args ...interface{}) {
-	l.Debugf(format, args...)
+func Errorf(format string, args ...interface{}) {
+	logger.Errorf(format, args...)
 }
 
-func (l *Logger) Infof(format string, args ...interface{}) {
-	l.Infof(format, args...)
+func Fatalf(format string, args ...interface{}) {
+	logger.Fatalf(format, args...)
 }
 
-func (l *Logger) Warnf(format string, args ...interface{}) {
-	l.Warnf(format, args...)
+func Panicf(format string, args ...interface{}) {
+	logger.Panicf(format, args...)
 }
 
-func (l *Logger) Warningf(format string, args ...interface{}) {
-	l.Warningf(format, args...)
+func Debug(args ...interface{}) {
+	logger.Debugln(args...)
 }
 
-func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.Errorf(format, args...)
+func Info(args ...interface{}) {
+	logger.Infoln(args...)
 }
 
-func (l *Logger) Fatalf(format string, args ...interface{}) {
-	l.Fatalf(format, args...)
+func Warn(args ...interface{}) {
+	logger.Warnln(args...)
 }
 
-func (l *Logger) Panicf(format string, args ...interface{}) {
-	l.Panicf(format, args...)
+func Error(args ...interface{}) {
+	logger.Errorln(args...)
 }
 
-func (l *Logger) Debug(args ...interface{}) {
-	l.Debug(args...)
+func Fatal(args ...interface{}) {
+	logger.Fatalln(args...)
 }
 
-func (l *Logger) Info(args ...interface{}) {
-	l.Info(args...)
-}
-
-func (l *Logger) Warn(args ...interface{}) {
-	l.Warn(args...)
-}
-
-func (l *Logger) Warning(args ...interface{}) {
-	l.Warning(args...)
-}
-
-func (l *Logger) Error(args ...interface{}) {
-	l.Error(args...)
-}
-
-func (l *Logger) Fatal(args ...interface{}) {
-	l.Fatal(args...)
-}
-
-func (l *Logger) Panic(args ...interface{}) {
-	l.Panic(args...)
+func Panic(args ...interface{}) {
+	logger.Panicln(args...)
 }

@@ -14,6 +14,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/yakumioto/alkaid/internal/common/log"
 	"github.com/yakumioto/alkaid/internal/common/storage"
 	"github.com/yakumioto/alkaid/internal/common/storage/sqlite3"
 	"github.com/yakumioto/alkaid/internal/restful"
@@ -29,7 +30,7 @@ func main() {
 
 	initConfig()
 
-	setLoggerLevel()
+	log.Initialize(viper.GetString("logging.level"))
 
 	switch viper.GetString("database.use") {
 	case sqlite3.Driver:
@@ -75,12 +76,4 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		logrus.Panicf("Fatal error config file: %v", err)
 	}
-}
-
-func setLoggerLevel() {
-	level, err := logrus.ParseLevel(viper.GetString("logging.level"))
-	if err != nil {
-		level = logrus.DebugLevel
-	}
-	logrus.SetLevel(level)
 }
