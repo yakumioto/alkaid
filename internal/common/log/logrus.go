@@ -56,10 +56,6 @@ func Initialize(level string) {
 	})
 }
 
-func Get(name string) StdLogger {
-	return logger.Logger.WithField("package", name)
-}
-
 func Debugf(format string, args ...interface{}) {
 	logger.Debugf(format, args...)
 }
