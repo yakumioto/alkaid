@@ -9,10 +9,10 @@
 package main
 
 import (
+	stdLog "log"
 	"os"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/yakumioto/alkaid/internal/common/log"
 	"github.com/yakumioto/alkaid/internal/common/storage"
@@ -36,7 +36,7 @@ func main() {
 	case sqlite3.Driver:
 		db, err = sqlite3.NewDB(viper.GetString("database.sqlite3.path"))
 		if err != nil {
-			logrus.Panicf("new sqlite3 database error: %v", err)
+			log.Panicf("new sqlite3 database error: %v", err)
 		}
 	}
 
@@ -56,7 +56,7 @@ func main() {
 	)
 
 	if err := service.Run(viper.GetString("restful.address")); err != nil {
-		logrus.Panicf("running restful service error: %v", err)
+		log.Panicf("running restful service error: %v", err)
 	}
 }
 
@@ -74,6 +74,6 @@ func initConfig() {
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		logrus.Panicf("Fatal error config file: %v", err)
+		stdLog.Panicf("Fatal error config file: %v", err)
 	}
 }

@@ -33,11 +33,17 @@ type User struct {
 	UpdatedAt              int64  `json:"updatedAt,omitempty"`
 }
 
-func newUser(req *CreateRequest) *User {
+func newUserByCreateRequest(req *CreateRequest) *User {
 	return &User{
 		ID:       req.ID,
 		Email:    req.Email,
 		Password: util.HashPassword(req.Password, req.Email, 10000),
+	}
+}
+
+func newUserByID(id string) *User {
+	return &User{
+		ID: id,
 	}
 }
 
@@ -47,4 +53,8 @@ func (u *User) create() error {
 	u.UpdatedAt = time.Now().Unix()
 
 	return storage.Create(u)
+}
+
+func (u *User) findByID() error {
+	return storage.FindByID(u)
 }

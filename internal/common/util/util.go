@@ -12,6 +12,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
+	stdErrors "errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -65,8 +66,11 @@ func MustVarint(buf []byte) int64 {
 func Render(ctx *gin.Context, property string, obj interface{}) *gin.Context {
 	statusCode := http.StatusOK
 
-	if obj, ok := obj.(errors.Error); ok {
-		statusCode = obj.StatusCode
+	if obj, ok := obj.(error); ok {
+		err := new(errors.Error)
+		if stdErrors.As(obj, &err) {
+			statusCode = err.StatusCode
+		}
 	}
 
 	switch property {

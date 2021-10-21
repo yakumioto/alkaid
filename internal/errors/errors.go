@@ -8,7 +8,9 @@
 
 package errors
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Error struct {
 	StatusCode int    `json:"-"`

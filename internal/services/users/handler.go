@@ -24,7 +24,7 @@ type CreateRequest struct {
 }
 
 func Create(req *CreateRequest) (*User, error) {
-	user := newUser(req)
+	user := newUserByCreateRequest(req)
 
 	sigPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {
@@ -59,7 +59,17 @@ func Create(req *CreateRequest) (*User, error) {
 	user.ProtectedSigPrivateKey = base64.StdEncoding.EncodeToString(protectedSigPrivateKey)
 	user.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
 
-	if err := user.create(); err != nil {
+	if err = user.create(); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func GetDitailByID(id string) (*User, error) {
+	user := newUserByID(id)
+
+	if err := user.findByID(); err != nil {
 		return nil, err
 	}
 
