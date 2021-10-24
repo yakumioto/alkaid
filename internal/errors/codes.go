@@ -11,5 +11,7 @@ package errors
 type Code int
 
 const (
-	UnknownError Code = 500
+	ServerUnknownError Code = 100001
+
+	UserNotFount Code = 200001
 )

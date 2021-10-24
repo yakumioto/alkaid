@@ -53,6 +53,9 @@ func (s *sqlite3) Update(values interface{}, options *storage.UpdateOptions) err
 
 func (s *sqlite3) FindByID(dest interface{}, conditions ...interface{}) error {
 	if tx := s.db.First(dest, conditions); tx.Error != nil {
+		if tx.Error == gorm.ErrRecordNotFound {
+			return storage.ErrNotFound
+		}
 		return tx.Error
 	}
 

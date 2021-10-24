@@ -41,8 +41,9 @@ func (c *CreateUser) HandlerFuncChain() []gin.HandlerFunc {
 			return
 		}
 
-		user, err := users.Create(req)
-		if err != nil {
+		user := new(users.User)
+
+		if err := user.Create(req); err != nil {
 			util.Render(ctx, property, err).Abort()
 			return
 		}
@@ -54,9 +55,56 @@ func (c *CreateUser) HandlerFuncChain() []gin.HandlerFunc {
 		func(ctx *gin.Context) {
 			if ctx.GetString("Version") != versions.V1 {
 				ctx.Next()
+				return
 			}
 
 			handler(ctx)
+			ctx.Abort()
+		},
+		func(ctx *gin.Context) {
+			handler(ctx)
+		},
+	}
+}
+
+type GetUserDetailByID struct{}
+
+func (f *GetUserDetailByID) Name() string {
+	return "find_user_by_id"
+}
+
+func (f *GetUserDetailByID) Path() string {
+	return "/users/:id"
+}
+
+func (f *GetUserDetailByID) Method() string {
+	return http.MethodGet
+}
+
+func (f *GetUserDetailByID) HandlerFuncChain() []gin.HandlerFunc {
+	handler := func(ctx *gin.Context) {
+		property := ctx.GetString("Property")
+
+		id := ctx.Param("id")
+
+		user := new(users.User)
+		if err := user.GetDetailByID(id); err != nil {
+			util.Render(ctx, property, err).Abort()
+			return
+		}
+
+		util.Render(ctx, property, user)
+	}
+
+	return []gin.HandlerFunc{
+		func(ctx *gin.Context) {
+			if ctx.GetString("Version") != versions.V1 {
+				ctx.Next()
+				return
+			}
+
+			handler(ctx)
+			ctx.Abort()
 		},
 		func(ctx *gin.Context) {
 			handler(ctx)

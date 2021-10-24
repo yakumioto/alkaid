@@ -19,6 +19,8 @@ var (
 
 	ErrNotinitializedGlobalStorage = errors.New("the global storage instance is not initialized")
 	ErrNeedUpdateOptions           = errors.New("must need update options")
+
+	ErrNotFound = errors.New("not found")
 )
 
 func Initialize(storage Storage) {

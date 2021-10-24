@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
+	"github.com/yakumioto/alkaid/internal/common/log"
 )
 
 type ResolveVersion struct {
@@ -28,6 +28,10 @@ func (r *ResolveVersion) Sequence() int {
 
 func (r *ResolveVersion) HandlerFunc() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// XXX: 是否需要基于特定的供应商实现 Accept 的解析
+		// eg：application/vnd.[alkaid][.version][+json]
+		// 感觉不是太有必要
+
 		mimeType := strings.SplitN(ctx.GetHeader("Accept"), "/", 2)[1]
 		data := strings.SplitN(mimeType, "+", 2)
 
@@ -37,7 +41,7 @@ func (r *ResolveVersion) HandlerFunc() gin.HandlerFunc {
 		ctx.Set("Version", version)
 		ctx.Set("Property", property)
 
-		logrus.Debugf("resolve version middleware: version is [%v], property is [%v]", version, property)
+		log.Debugf("resolve version middleware: version is [%v], property is [%v]", version, property)
 		ctx.Next()
 	}
 }

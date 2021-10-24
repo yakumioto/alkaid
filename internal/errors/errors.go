@@ -14,7 +14,7 @@ import (
 
 type Error struct {
 	StatusCode int    `json:"-"`
-	Code       int    `json:"code,omitempty"`
+	Code       Code   `json:"code,omitempty"`
 	Message    string `json:"message,omitempty"`
 }
 
@@ -22,7 +22,7 @@ func (r *Error) Error() string {
 	return r.Message
 }
 
-func NewError(status, code int, message string) *Error {
+func NewError(status int, code Code, message string) *Error {
 	return &Error{
 		StatusCode: status,
 		Code:       code,
@@ -30,7 +30,7 @@ func NewError(status, code int, message string) *Error {
 	}
 }
 
-func NewErrorf(status, code int, format string, a ...interface{}) *Error {
+func NewErrorf(status int, code Code, format string, a ...interface{}) *Error {
 	return &Error{
 		StatusCode: status,
 		Code:       code,

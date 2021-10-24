@@ -10,9 +10,14 @@ package users
 
 import (
 	"encoding/base64"
+	"fmt"
+	"net/http"
 
 	"github.com/yakumioto/alkaid/internal/common/crypto"
 	"github.com/yakumioto/alkaid/internal/common/factory"
+	"github.com/yakumioto/alkaid/internal/common/log"
+	"github.com/yakumioto/alkaid/internal/common/storage"
+	"github.com/yakumioto/alkaid/internal/errors"
 )
 
 type CreateRequest struct {
@@ -23,55 +28,74 @@ type CreateRequest struct {
 	Role                string `json:"role,omitempty" validate:"required"`
 }
 
-func Create(req *CreateRequest) (*User, error) {
+func (u *User) Create(req *CreateRequest) error {
 	user := newUserByCreateRequest(req)
 
 	sigPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {
-		return nil, err
+		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+			"failed to generate signature key", err)
 	}
 	sigPrivateKeyPem, err := sigPrivateKey.Bytes()
 	if err != nil {
-		return nil, err
+		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+			"failed to convert the signature key to pem format", err)
 	}
+
 	tlsPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {
-		return nil, err
+		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+			"failed to generate tls key", err)
 	}
 	tlsPrivateKeyPem, err := tlsPrivateKey.Bytes()
 	if err != nil {
-		return nil, err
+		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+			"failed to convert the tls key to pem format", err)
 	}
 
 	aesKey, err := factory.CryptoKeyImport(req.TransactionPassword, crypto.AES256)
 	if err != nil {
-		return nil, err
+		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+			"failed to import encryption key", err)
 	}
 	protectedSigPrivateKey, err := aesKey.Encrypt(sigPrivateKeyPem)
 	if err != nil {
-		return nil, err
+		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+			"encryption signing key failed", err)
 	}
 	protectedTLSPrivateKey, err := aesKey.Encrypt(tlsPrivateKeyPem)
 	if err != nil {
-		return nil, err
+		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+			"encryption tls key failed", err)
 	}
 
 	user.ProtectedSigPrivateKey = base64.StdEncoding.EncodeToString(protectedSigPrivateKey)
 	user.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
 
 	if err = user.create(); err != nil {
-		return nil, err
+		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+			"failed to create user", err)
 	}
 
-	return user, nil
+	return nil
 }
 
-func GetDitailByID(id string) (*User, error) {
+func (u *User) GetDetailByID(id string) error {
 	user := newUserByID(id)
 
 	if err := user.findByID(); err != nil {
-		return nil, err
+		if err == storage.ErrNotFound {
+			return u.error(http.StatusNotFound, errors.UserNotFount,
+				fmt.Sprintf("user [%v] not found", id), err)
+		}
+		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+			fmt.Sprintf("failed to query user [%v]", id), err)
 	}
 
-	return user, nil
+	return nil
+}
+
+func (u *User) error(statusCode int, code errors.Code, msg string, err error) error {
+	log.Errorf("%s: %v", msg, err)
+	return errors.NewError(statusCode, code, msg)
 }

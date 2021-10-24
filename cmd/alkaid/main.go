@@ -53,6 +53,8 @@ func main() {
 	)
 	service.RegisterControllers(
 		new(controllers.Health),
+		new(controllers.CreateUser),
+		new(controllers.GetUserDetailByID),
 	)
 
 	if err := service.Run(viper.GetString("restful.address")); err != nil {
