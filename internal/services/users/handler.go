@@ -22,14 +22,15 @@ import (
 
 type CreateRequest struct {
 	ID                  string `json:"id,omitempty" validate:"required"`
+	Name                string `json:"name" validate:"required"`
 	Email               string `json:"email,omitempty" validate:"required,email"`
 	Password            string `json:"password,omitempty" validate:"required"`
 	TransactionPassword string `json:"transactionPassword,omitempty" validate:"required"` // 交易密码仅用来加解密 PrivateKey
-	Role                string `json:"role,omitempty" validate:"required"`
+	Role                string `json:"role,omitempty" validate:"required,oneof=OrganizationAdmin NetworkAdmin User"`
 }
 
 func (u *User) Create(req *CreateRequest) error {
-	user := newUserByCreateRequest(req)
+	u.initByCreateRequest(req)
 
 	sigPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {
@@ -69,10 +70,10 @@ func (u *User) Create(req *CreateRequest) error {
 			"encryption tls key failed", err)
 	}
 
-	user.ProtectedSigPrivateKey = base64.StdEncoding.EncodeToString(protectedSigPrivateKey)
-	user.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
+	u.ProtectedSigPrivateKey = base64.StdEncoding.EncodeToString(protectedSigPrivateKey)
+	u.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
 
-	if err = user.create(); err != nil {
+	if err = u.create(); err != nil {
 		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
 			"failed to create user", err)
 	}
@@ -81,9 +82,9 @@ func (u *User) Create(req *CreateRequest) error {
 }
 
 func (u *User) GetDetailByID(id string) error {
-	user := newUserByID(id)
+	u.initUserByID(id)
 
-	if err := user.findByID(); err != nil {
+	if err := u.findByID(); err != nil {
 		if err == storage.ErrNotFound {
 			return u.error(http.StatusNotFound, errors.UserNotFount,
 				fmt.Sprintf("user [%v] not found", id), err)

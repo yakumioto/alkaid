@@ -31,17 +31,47 @@ func (r *ResolveVersion) HandlerFunc() gin.HandlerFunc {
 		// XXX: 是否需要基于特定的供应商实现 Accept 的解析
 		// eg：application/vnd.[alkaid][.version][+json]
 		// 感觉不是太有必要
-
-		mimeType := strings.SplitN(ctx.GetHeader("Accept"), "/", 2)[1]
-		data := strings.SplitN(mimeType, "+", 2)
-
-		version := strings.SplitN(data[0], ".", 3)[2]
-		property := data[1]
-
-		ctx.Set("Version", version)
-		ctx.Set("Property", property)
-
-		log.Debugf("resolve version middleware: version is [%v], property is [%v]", version, property)
+		accept := ctx.GetHeader("Accept")
+		r.handler(ctx, accept)
 		ctx.Next()
 	}
+}
+
+// handler 处理 accept 的 调用版本以及格式化方式
+// case: 没有 Accept
+// case: application/json
+// case: application/vnd.alkaid+json
+// case: application/vnd.alkaid.v3+json
+func (r *ResolveVersion) handler(ctx *gin.Context, accept string) {
+	var (
+		version string
+		format  string
+	)
+	if accept == "" {
+		return
+	}
+
+	data := strings.SplitN(accept, "/", 2)
+	if len(data) != 2 || data[0] != "application" {
+		return
+	}
+
+	// 处理需要返回的格式
+	data = strings.SplitN(data[1], "+", 2)
+	if len(data) != 2 {
+		format = data[0]
+		ctx.Set("AcceptFormat", format)
+	} else {
+		format = data[1]
+		ctx.Set("AcceptFormat", format)
+	}
+
+	data = strings.SplitN(data[0], ".", 3)
+	if len(data) == 3 {
+		version = data[3]
+		ctx.Set("AcceptVersion", version)
+		return
+	}
+
+	log.Debugf("resolve version middleware: version is [%v], format is [%v]", version, format)
 }

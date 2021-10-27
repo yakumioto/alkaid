@@ -17,6 +17,10 @@ import (
 
 const (
 	Namespace = "User"
+
+	RoleOrganization = "OrganizationAdmin"
+	RoleNetworkAdmin = "NetworkAdmin"
+	RoleUser         = "User"
 )
 
 type User struct {
@@ -24,7 +28,7 @@ type User struct {
 	ResourceID             string `json:"resourceId,omitempty"`
 	Name                   string `json:"name,omitempty"`
 	Email                  string `json:"email,omitempty"`
-	Password               string `json:"password,omitempty"`
+	Password               string `json:"-"`
 	Role                   string `json:"role,omitempty"`
 	ProtectedSigPrivateKey string `json:"protectedSigPrivateKey,omitempty"`
 	ProtectedTLSPrivateKey string `json:"protectedTlsPrivateKey,omitempty"`
@@ -33,18 +37,16 @@ type User struct {
 	UpdatedAt              int64  `json:"updatedAt,omitempty"`
 }
 
-func newUserByCreateRequest(req *CreateRequest) *User {
-	return &User{
-		ID:       req.ID,
-		Email:    req.Email,
-		Password: util.HashPassword(req.Password, req.Email, 10000),
-	}
+func (u *User) initByCreateRequest(req *CreateRequest) {
+	u.ID = req.ID
+	u.Email = req.Email
+	u.Name = req.Name
+	u.Role = req.Role
+	u.Password = util.HashPassword(req.Password, req.Email, 10000)
 }
 
-func newUserByID(id string) *User {
-	return &User{
-		ID: id,
-	}
+func (u *User) initUserByID(id string) {
+	u.ID = id
 }
 
 func (u *User) create() error {
@@ -56,5 +58,5 @@ func (u *User) create() error {
 }
 
 func (u *User) findByID() error {
-	return storage.FindByID(u)
+	return storage.FindByID(u, u.ID)
 }

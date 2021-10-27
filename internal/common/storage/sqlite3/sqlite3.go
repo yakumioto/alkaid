@@ -31,6 +31,10 @@ func NewDB(path string) (*sqlite3, error) {
 	}, nil
 }
 
+func (s *sqlite3) AutoMigrate(dst ...interface{}) error {
+	return s.db.AutoMigrate(dst...)
+}
+
 func (s *sqlite3) Create(value interface{}) error {
 	if tx := s.db.Create(value); tx.Error != nil {
 		return tx.Error

@@ -32,7 +32,7 @@ func (h *Health) Method() string {
 func (h *Health) HandlerFuncChain() []gin.HandlerFunc {
 	return []gin.HandlerFunc{
 		func(ctx *gin.Context) {
-			if ctx.GetString("Version") != versions.V1 {
+			if ctx.GetString("AcceptVersion") != versions.V1 {
 				ctx.Next()
 				return
 			}

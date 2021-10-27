@@ -1,12 +1,16 @@
 # 角色路由权限
 p, root::role, *, *, *, allow
 
+p, organizationAdministrator::role, *, /users, POST, allow
+p, organizationAdministrator::role, *, /networks, POST, allow
 p, organizationAdministrator::role, *, /organizations/:id, GET, allow
 p, organizationAdministrator::role, *, /organizations/:id, POST, allow
 p, organizationAdministrator::role, *, /organizations/:id, PATCH, allow
 p, organizationAdministrator::role, *, /organizations/:organizationId/users, *, allow
 
-p, networkAdministrator::role, *, /networks/:id, *, allow
+p, networkAdministrator::role, *, /networks/:id, GET, allow
+p, networkAdministrator::role, *, /networks/:id, POST, allow
+p, networkAdministrator::role, *, /networks/:id, PATCH, allow
 p, networkAdministrator::role, *, /services/:id, *, allow
 p, networkAdministrator::role, *, /channels/:id, *, allow
 p, networkAdministrator::role, *, /contracts/:id, *, allow

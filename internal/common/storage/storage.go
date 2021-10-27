@@ -32,6 +32,7 @@ func Initialize(storage Storage) {
 }
 
 type Storage interface {
+	AutoMigrate(dst ...interface{}) error
 	Create(value interface{}) error
 	Update(values interface{}, options *UpdateOptions) error
 	FindByID(dest interface{}, conditions ...interface{}) error
@@ -39,6 +40,14 @@ type Storage interface {
 	Delete(value interface{}, conditions ...interface{}) error
 	Begin() Storage
 	Commit() error
+}
+
+func AutoMigrate(dst ...interface{}) error {
+	if err := checkGlobal(); err != nil {
+		return err
+	}
+
+	return global.AutoMigrate(dst...)
 }
 
 func Create(value interface{}) error {

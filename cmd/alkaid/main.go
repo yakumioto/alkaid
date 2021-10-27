@@ -20,6 +20,7 @@ import (
 	"github.com/yakumioto/alkaid/internal/restful"
 	"github.com/yakumioto/alkaid/internal/restful/controllers"
 	"github.com/yakumioto/alkaid/internal/restful/middlewares"
+	"github.com/yakumioto/alkaid/internal/services/users"
 )
 
 func main() {
@@ -41,6 +42,10 @@ func main() {
 	}
 
 	storage.Initialize(db)
+	if err := storage.AutoMigrate(
+		new(users.User)); err != nil {
+		log.Panicf("storage auto migrate error: %v", err)
+	}
 
 	service := restful.NewService(
 		restful.WithMode(viper.GetString("restful.mode")),

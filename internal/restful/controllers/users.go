@@ -33,27 +33,27 @@ func (c *CreateUser) Method() string {
 
 func (c *CreateUser) HandlerFuncChain() []gin.HandlerFunc {
 	handler := func(ctx *gin.Context) {
-		property := ctx.GetString("Property")
+		format := ctx.GetString("AcceptFormat")
 
 		req := new(users.CreateRequest)
 		if err := ctx.ShouldBindJSON(req); err != nil {
-			util.Render(ctx, property, err).Abort()
+			util.Render(ctx, format, err).Abort()
 			return
 		}
 
 		user := new(users.User)
 
 		if err := user.Create(req); err != nil {
-			util.Render(ctx, property, err).Abort()
+			util.Render(ctx, format, err).Abort()
 			return
 		}
 
-		util.Render(ctx, property, user)
+		util.Render(ctx, format, user)
 	}
 
 	return []gin.HandlerFunc{
 		func(ctx *gin.Context) {
-			if ctx.GetString("Version") != versions.V1 {
+			if ctx.GetString("AcceptVersion") != versions.V1 {
 				ctx.Next()
 				return
 			}
