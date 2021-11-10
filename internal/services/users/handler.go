@@ -26,7 +26,7 @@ type CreateRequest struct {
 	Email               string `json:"email,omitempty" validate:"required,email"`
 	Password            string `json:"password,omitempty" validate:"required"`
 	TransactionPassword string `json:"transactionPassword,omitempty" validate:"required"` // 交易密码仅用来加解密 PrivateKey
-	Role                string `json:"role,omitempty" validate:"required,oneof=OrganizationAdmin NetworkAdmin User"`
+	Role                string `json:"role,omitempty" validate:"required,oneof=organizationAdmin networkAdmin user"`
 }
 
 func (u *User) Create(req *CreateRequest) error {

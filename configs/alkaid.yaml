@@ -5,6 +5,11 @@ restful:
   request:
     timeout: 5s
 
+auth:
+  jwt:
+    secret: $$ji2Noc4Y9Fk5ug7v%RPi!N@fYrm%%mhTA3zGPxQ^VPfRSw35B%*7@%dKzfKhiU # jwt secret
+    expires: 1d #
+
 logging:
   level : info # panic, fatal, error, warn, info, debug, trace
 

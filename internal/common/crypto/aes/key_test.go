@@ -24,7 +24,7 @@ func TestAesCBCPrivateKey_Encrypt(t *testing.T) {
 }
 
 func TestAesCBCPrivateKey_Decrypt(t *testing.T) {
-	ciphertext, _ := base64.StdEncoding.DecodeString("AgAAAAAAAAAAABV1g1cM9Ojzph0623F+LcDSVd0dZhpn8lXeI4jr5NZT")
+	ciphertext, _ := base64.StdEncoding.DecodeString("AAAAAAAAAAAAAOqju1sRnH0oOMdiJuO2XKY7UReOuV42/bpJcYXohLhf")
 	ack := &aesCBCPrivateKey{privateKey: []byte("test key"), algorithm: crypto.AES256}
 	text, err := ack.Decrypt(ciphertext)
 	assert.NoError(t, err)

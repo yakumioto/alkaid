@@ -9,6 +9,8 @@
 package users
 
 import (
+	"errors"
+	"strconv"
 	"time"
 
 	"github.com/yakumioto/alkaid/internal/common/storage"
@@ -18,10 +20,56 @@ import (
 const (
 	Namespace = "User"
 
-	RoleOrganization = "OrganizationAdmin"
-	RoleNetworkAdmin = "NetworkAdmin"
-	RoleUser         = "User"
+	RoleRoot Role = iota
+	RoleOrganization
+	RoleNetworkAdmin
+	RoleUser
 )
+
+var TimeNowFunc = func() int64 {
+	return time.Now().Unix()
+}
+
+var roleNames = []string{
+	"root",
+	"organizationAdmin",
+	"networkAdmin",
+	"user",
+}
+
+var roleMap = map[string]Role{
+	"root":              RoleRoot,
+	"organizationAdmin": RoleOrganization,
+	"networkAdmin":      RoleNetworkAdmin,
+	"user":              RoleUser,
+}
+
+func LookRole(str string) Role {
+	role, ok := roleMap[str]
+	if !ok {
+		return -1
+	}
+
+	return role
+}
+
+type Role int
+
+func (r Role) String() string {
+	if RoleRoot <= r && r <= RoleUser {
+		return roleNames[r]
+	}
+
+	return "%!Role(" + strconv.Itoa(int(r)) + ")"
+}
+
+func (r Role) Less(role Role) bool {
+	if r == -1 {
+		return true
+	}
+
+	return role < r
+}
 
 type User struct {
 	ID                     string `json:"id,omitempty"`
@@ -59,4 +107,35 @@ func (u *User) create() error {
 
 func (u *User) findByID() error {
 	return storage.FindByID(u, u.ID)
+}
+
+func NewUserContext(user *User) *UserContext {
+	return &UserContext{
+		ID:         user.ID,
+		ResourceID: user.ResourceID,
+		Role:       LookRole(user.Role),
+	}
+}
+
+type UserContext struct {
+	ID         string `json:"id,omitempty"`
+	ResourceID string `json:"resource_id,omitempty"`
+	Role       Role   `json:"role,omitempty"`
+	ExpiresAt  int64  `json:"expires_at,omitempty"`
+}
+
+func (u *UserContext) Valid() error {
+	if !u.verifyExpiresAt() {
+		return errors.New("token is expired")
+	}
+
+	return nil
+}
+
+func (u *UserContext) verifyExpiresAt() bool {
+	return TimeNowFunc() > u.ExpiresAt
+}
+
+func (u *UserContext) SetExpiresAt(expiresAt int64) {
+	u.ExpiresAt = expiresAt
 }

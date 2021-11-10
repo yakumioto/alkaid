@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2021. The Alkaid Authors. All rights reserved.
+ * Use of this source code is governed by a MIT-style
+ * license that can be found in the LICENSE file.
+ *
+ * Alkaid is a BaaS service based on Hyperledger Fabric.
+ */
+
+package jwt
+
+import (
+	"testing"
+
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
+	"github.com/yakumioto/alkaid/internal/services/users"
+)
+
+func testInit() {
+	viper.Set("auth.jwt.secret", "secret")
+	viper.Set("auth.jwt.expires", "1d")
+	Initialize()
+}
+
+func TestNewTokenWithUser(t *testing.T) {
+	user := &users.User{
+		ID:         "yakumioto",
+		ResourceID: "users-njoVd5PKVywnZdgmhTC8EV",
+		Role:       users.RoleRoot.String(),
+	}
+	token, err := NewTokenWithUser(user, 1636527720)
+	assert.NoError(t, err, "new token error: %v", err)
+	t.Logf("token is: %v", token)
+}
+
+func TestVerifyTokenWithUser(t *testing.T) {
+	tokenString := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Inlha3VtaW90byIsInJlc291cmNlX2lkIjoidXNlcnMtbmpvVmQ1UEtWeXduWmRnbWhUQzhFViIsInJvbGUiOjIsImV4cGlyZXNfYXQiOjE2MzY1Mjc3MjB9.lvXELJMiXB969x545CZngmCnSOTgd8Hb_O0Av5f_Pw8`
+	users.TimeNowFunc = func() int64 {
+		return 1636527721
+	}
+
+	_, err := VerifyTokenWithUser(tokenString)
+	assert.NoError(t, err)
+}
