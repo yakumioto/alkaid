@@ -22,7 +22,7 @@ type keyImporter struct{}
 
 func (kg *keyImporter) KeyImport(raw interface{}, opts crypto.KeyImportOpts) (crypto.Key, error) {
 	privateKey, ok := raw.([]byte)
-	if !ok && privateKey != nil {
+	if !ok || privateKey == nil {
 		return nil, fmt.Errorf("only supports []byte type of key")
 	}
 

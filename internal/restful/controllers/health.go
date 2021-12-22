@@ -15,39 +15,40 @@ import (
 	"github.com/yakumioto/alkaid/internal/versions"
 )
 
-type Health struct{}
+type Health struct {
+	Controllers
+}
 
-func (h *Health) Name() string {
+func (c *Health) Name() string {
 	return "check_health"
 }
 
-func (h *Health) Path() string {
+func (c *Health) Path() string {
 	return "/health"
 }
 
-func (h *Health) Method() string {
+func (c *Health) Method() string {
 	return http.MethodGet
 }
 
-func (h *Health) HandlerFuncChain() []gin.HandlerFunc {
+func (c *Health) HandlerFuncChain() []gin.HandlerFunc {
+	handler := func(ctx *gin.Context) {
+		c.Render(ctx, gin.H{
+			"status":  "ok",
+			"version": versions.V1,
+		})
+	}
 	return []gin.HandlerFunc{
 		func(ctx *gin.Context) {
-			if ctx.GetString("AcceptVersion") != versions.V1 {
-				ctx.Next()
+			if !c.MatchVersion(ctx, versions.V1) {
 				return
 			}
 
-			ctx.JSON(http.StatusOK, gin.H{
-				"status":  "ok",
-				"version": versions.V1,
-			})
-
+			handler(ctx)
 			ctx.Abort()
 		},
 		func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{
-				"status": "ok",
-			})
+			handler(ctx)
 		},
 	}
 }

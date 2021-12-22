@@ -78,11 +78,11 @@ func (s *sqlite3) FindByQuery(dest interface{}, options *storage.QueryOptions) e
 	}
 
 	if or := options.Or(); or != nil {
-		tx.Where(or.Query, or.Args)
+		tx.Or(or.Query, or.Args)
 	}
 
 	if not := options.Not(); not != nil {
-		tx.Where(not.Query, not.Args)
+		tx.Not(not.Query, not.Args)
 	}
 
 	if tx = tx.Find(dest); tx.Error != nil {

@@ -12,12 +12,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yakumioto/alkaid/internal/common/util"
 	"github.com/yakumioto/alkaid/internal/services/users"
 	"github.com/yakumioto/alkaid/internal/versions"
 )
 
-type CreateUser struct{}
+type CreateUser struct {
+	Controllers
+}
 
 func (c *CreateUser) Name() string {
 	return "create_user"
@@ -33,28 +34,25 @@ func (c *CreateUser) Method() string {
 
 func (c *CreateUser) HandlerFuncChain() []gin.HandlerFunc {
 	handler := func(ctx *gin.Context) {
-		format := ctx.GetString("AcceptFormat")
-
 		req := new(users.CreateRequest)
 		if err := ctx.ShouldBindJSON(req); err != nil {
-			util.Render(ctx, format, err).Abort()
+			c.Render(ctx, err).Abort()
 			return
 		}
 
 		user := new(users.User)
 
-		if err := user.Create(req); err != nil {
-			util.Render(ctx, format, err).Abort()
+		if err := user.Create(req, nil); err != nil {
+			c.Render(ctx, err).Abort()
 			return
 		}
 
-		util.Render(ctx, format, user)
+		c.Render(ctx, user)
 	}
 
 	return []gin.HandlerFunc{
 		func(ctx *gin.Context) {
-			if ctx.GetString("AcceptVersion") != versions.V1 {
-				ctx.Next()
+			if !c.MatchVersion(ctx, versions.V1) {
 				return
 			}
 
@@ -67,39 +65,38 @@ func (c *CreateUser) HandlerFuncChain() []gin.HandlerFunc {
 	}
 }
 
-type GetUserDetailByID struct{}
+type GetUserDetailByID struct {
+	Controllers
+}
 
-func (f *GetUserDetailByID) Name() string {
+func (c *GetUserDetailByID) Name() string {
 	return "find_user_by_id"
 }
 
-func (f *GetUserDetailByID) Path() string {
+func (c *GetUserDetailByID) Path() string {
 	return "/users/:id"
 }
 
-func (f *GetUserDetailByID) Method() string {
+func (c *GetUserDetailByID) Method() string {
 	return http.MethodGet
 }
 
-func (f *GetUserDetailByID) HandlerFuncChain() []gin.HandlerFunc {
+func (c *GetUserDetailByID) HandlerFuncChain() []gin.HandlerFunc {
 	handler := func(ctx *gin.Context) {
-		property := ctx.GetString("Property")
-
 		id := ctx.Param("id")
 
 		user := new(users.User)
 		if err := user.GetDetailByID(id); err != nil {
-			util.Render(ctx, property, err).Abort()
+			c.Render(ctx, err).Abort()
 			return
 		}
 
-		util.Render(ctx, property, user)
+		c.Render(ctx, user)
 	}
 
 	return []gin.HandlerFunc{
 		func(ctx *gin.Context) {
-			if ctx.GetString("Version") != versions.V1 {
-				ctx.Next()
+			if !c.MatchVersion(ctx, versions.V1) {
 				return
 			}
 

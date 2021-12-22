@@ -23,6 +23,7 @@ func testInit() {
 }
 
 func TestNewTokenWithUser(t *testing.T) {
+	testInit()
 	user := &users.User{
 		ID:         "yakumioto",
 		ResourceID: "users-njoVd5PKVywnZdgmhTC8EV",
@@ -34,7 +35,8 @@ func TestNewTokenWithUser(t *testing.T) {
 }
 
 func TestVerifyTokenWithUser(t *testing.T) {
-	tokenString := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Inlha3VtaW90byIsInJlc291cmNlX2lkIjoidXNlcnMtbmpvVmQ1UEtWeXduWmRnbWhUQzhFViIsInJvbGUiOjIsImV4cGlyZXNfYXQiOjE2MzY1Mjc3MjB9.lvXELJMiXB969x545CZngmCnSOTgd8Hb_O0Av5f_Pw8`
+	testInit()
+	tokenString := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Inlha3VtaW90byIsInJlc291cmNlX2lkIjoidXNlcnMtbmpvVmQ1UEtWeXduWmRnbWhUQzhFViIsInJvbGUiOjIsImV4cGlyZXNfYXQiOjE2MzY1Mjc3MjB9.Oyw-59XhRxCLbXEqu7ugUSdPOXoVcp9NBlPbYW4J_Fk`
 	users.TimeNowFunc = func() int64 {
 		return 1636527721
 	}

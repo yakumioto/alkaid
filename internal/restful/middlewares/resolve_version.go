@@ -38,10 +38,9 @@ func (r *ResolveVersion) HandlerFunc() gin.HandlerFunc {
 }
 
 // handler 处理 accept 的 调用版本以及格式化方式
-// case: 没有 Accept
+// case: No Accept
 // case: application/json
-// case: application/vnd.alkaid+json
-// case: application/vnd.alkaid.v3+json
+// case: application/vnd.alkaid[.version][+json,xml,yaml,javascript]
 func (r *ResolveVersion) handler(ctx *gin.Context, accept string) {
 	var (
 		version string
@@ -58,19 +57,15 @@ func (r *ResolveVersion) handler(ctx *gin.Context, accept string) {
 
 	// 处理需要返回的格式
 	data = strings.SplitN(data[1], "+", 2)
-	if len(data) != 2 {
-		format = data[0]
-		ctx.Set("AcceptFormat", format)
-	} else {
+	if len(data) == 2 {
 		format = data[1]
 		ctx.Set("AcceptFormat", format)
 	}
 
 	data = strings.SplitN(data[0], ".", 3)
 	if len(data) == 3 {
-		version = data[3]
+		version = data[2]
 		ctx.Set("AcceptVersion", version)
-		return
 	}
 
 	log.Debugf("resolve version middleware: version is [%v], format is [%v]", version, format)

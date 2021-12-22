@@ -294,6 +294,8 @@ components:
           type: string
         id:
           type: string
+        organizationId:
+          type: string
         name:
           type: string
         email:

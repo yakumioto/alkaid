@@ -21,6 +21,19 @@ import (
 	"github.com/yakumioto/alkaid/internal/common/util"
 )
 
+type randomIVFunc func(len int) ([]byte, error)
+
+var (
+	randomIV randomIVFunc = func(len int) ([]byte, error) {
+		iv := make([]byte, len)
+		if _, err := rand.Read(iv); err != nil {
+			return nil, err
+		}
+
+		return iv, nil
+	}
+)
+
 type aesCBCPrivateKey struct {
 	privateKey []byte
 	algorithm  crypto.Algorithm
@@ -60,7 +73,7 @@ func (a *aesCBCPrivateKey) Verify(_, _ []byte) bool {
 func (a *aesCBCPrivateKey) Encrypt(text []byte) ([]byte, error) {
 	paddedText := pkcs7Padding(text)
 
-	iv, err := a.randomIV(aes.BlockSize)
+	iv, err := randomIV(aes.BlockSize)
 	if err != nil {
 		return nil, fmt.Errorf("random iv error: %v", err)
 	}
@@ -104,15 +117,6 @@ func (a *aesCBCPrivateKey) Decrypt(ciphertext []byte) ([]byte, error) {
 	mode.CryptBlocks(paddedText, src)
 
 	return pkcs7UnPadding(paddedText), nil
-}
-
-func (a *aesCBCPrivateKey) randomIV(len int) ([]byte, error) {
-	iv := make([]byte, len)
-	if _, err := rand.Read(iv); err != nil {
-		return nil, err
-	}
-
-	return iv, nil
 }
 
 func (a *aesCBCPrivateKey) stretchKey(iv []byte) []byte {

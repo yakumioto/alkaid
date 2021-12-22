@@ -22,15 +22,16 @@ import (
 
 type CreateRequest struct {
 	ID                  string `json:"id,omitempty" validate:"required"`
+	OrganizationID      string `json:"organizationId" validate:"required"`
 	Name                string `json:"name" validate:"required"`
-	Email               string `json:"email,omitempty" validate:"required,email"`
-	Password            string `json:"password,omitempty" validate:"required"`
-	TransactionPassword string `json:"transactionPassword,omitempty" validate:"required"` // 交易密码仅用来加解密 PrivateKey
-	Role                string `json:"role,omitempty" validate:"required,oneof=organizationAdmin networkAdmin user"`
+	Email               string `json:"email" validate:"required,email"`
+	Password            string `json:"password" validate:"required"`
+	TransactionPassword string `json:"transactionPassword" validate:"required"` // 交易密码仅用来加解密 PrivateKey
+	Role                string `json:"role" validate:"required,oneof=user networkAdministrator organizationAdministrator"`
 }
 
-func (u *User) Create(req *CreateRequest) error {
-	u.initByCreateRequest(req)
+func (u *User) Create(req *CreateRequest, userCtx *UserContext) error {
+	u.initByCreateRequest(req, userCtx)
 
 	sigPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {

@@ -11,12 +11,36 @@ package aes
 import (
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/yakumioto/alkaid/internal/common/crypto"
 )
 
-func TestAesKeyImport_KeyImport(t *testing.T) {
-	ki := &keyImporter{}
-	_, err := ki.KeyImport([]byte("test"), &crypto.AES128KeyImportOpts{})
-	assert.NoError(t, err)
+func TestKeyImport(t *testing.T) {
+	tcs := []struct {
+		qPassword interface{}
+		aError    error
+	}{
+		{
+			[]byte("test_key"),
+			nil,
+		},
+		{
+			struct {
+			}{},
+			errors.New("only supports []byte type of key"),
+		},
+	}
+
+	for _, tc := range tcs {
+		ki := &keyImporter{}
+		_, err := ki.KeyImport(tc.qPassword, &crypto.AES128KeyImportOpts{})
+		if tc.aError == nil {
+			assert.NoError(t, err)
+			continue
+		}
+
+		assert.Contains(t, err.Error(), tc.aError.Error())
+	}
+
 }

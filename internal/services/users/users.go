@@ -18,11 +18,11 @@ import (
 )
 
 const (
-	Namespace = "User"
+	ResourceNamespace = "User"
 
 	RoleRoot Role = iota
-	RoleOrganization
-	RoleNetworkAdmin
+	RoleOrganizationAdministrator
+	RoleNetworkAdministrator
 	RoleUser
 )
 
@@ -38,16 +38,16 @@ var roleNames = []string{
 }
 
 var roleMap = map[string]Role{
-	"root":              RoleRoot,
-	"organizationAdmin": RoleOrganization,
-	"networkAdmin":      RoleNetworkAdmin,
-	"user":              RoleUser,
+	"root":                      RoleRoot,
+	"organizationAdministrator": RoleOrganizationAdministrator,
+	"networkAdministrator":      RoleNetworkAdministrator,
+	"user":                      RoleUser,
 }
 
 func LookRole(str string) Role {
 	role, ok := roleMap[str]
 	if !ok {
-		return -1
+		return RoleUser
 	}
 
 	return role
@@ -63,17 +63,18 @@ func (r Role) String() string {
 	return "%!Role(" + strconv.Itoa(int(r)) + ")"
 }
 
-func (r Role) Less(role Role) bool {
-	if r == -1 {
-		return true
-	}
+func (r Role) Ge(role Role) bool {
+	return role >= r
+}
 
-	return role < r
+func (r Role) Le(role Role) bool {
+	return role <= r
 }
 
 type User struct {
 	ID                     string `json:"id,omitempty"`
 	ResourceID             string `json:"resourceId,omitempty"`
+	OrganizationID         string `json:"organizationId,omitempty"`
 	Name                   string `json:"name,omitempty"`
 	Email                  string `json:"email,omitempty"`
 	Password               string `json:"-"`
@@ -85,12 +86,24 @@ type User struct {
 	UpdatedAt              int64  `json:"updatedAt,omitempty"`
 }
 
-func (u *User) initByCreateRequest(req *CreateRequest) {
+func (u *User) initByCreateRequest(req *CreateRequest, userCtx *UserContext) error {
+	if !userCtx.validRole(req.Role) {
+		return errors.New("verifying new user role error")
+	}
+
+	// 只有 root 用户有权限创建其他组织的 user
+	if !userCtx.validOrganization() {
+		req.OrganizationID = userCtx.OrganizationID
+	}
+
 	u.ID = req.ID
+	u.OrganizationID = req.OrganizationID
 	u.Email = req.Email
 	u.Name = req.Name
 	u.Role = req.Role
 	u.Password = util.HashPassword(req.Password, req.Email, 10000)
+
+	return nil
 }
 
 func (u *User) initUserByID(id string) {
@@ -98,7 +111,7 @@ func (u *User) initUserByID(id string) {
 }
 
 func (u *User) create() error {
-	u.ResourceID = util.GenResourceID(Namespace)
+	u.ResourceID = util.GenResourceID(ResourceNamespace)
 	u.CreatedAt = time.Now().Unix()
 	u.UpdatedAt = time.Now().Unix()
 
@@ -111,17 +124,19 @@ func (u *User) findByID() error {
 
 func NewUserContext(user *User) *UserContext {
 	return &UserContext{
-		ID:         user.ID,
-		ResourceID: user.ResourceID,
-		Role:       LookRole(user.Role),
+		ID:             user.ID,
+		ResourceID:     user.ResourceID,
+		OrganizationID: user.OrganizationID,
+		Role:           LookRole(user.Role),
 	}
 }
 
 type UserContext struct {
-	ID         string `json:"id,omitempty"`
-	ResourceID string `json:"resource_id,omitempty"`
-	Role       Role   `json:"role,omitempty"`
-	ExpiresAt  int64  `json:"expires_at,omitempty"`
+	ID             string `json:"id"`
+	ResourceID     string `json:"resourceId"`
+	OrganizationID string `json:"organizationId"`
+	Role           Role   `json:"role"`
+	ExpiresAt      int64  `json:"expiresAt"`
 }
 
 func (u *UserContext) Valid() error {
@@ -138,4 +153,20 @@ func (u *UserContext) verifyExpiresAt() bool {
 
 func (u *UserContext) SetExpiresAt(expiresAt int64) {
 	u.ExpiresAt = expiresAt
+}
+
+func (u *UserContext) validRole(role string) bool {
+	if !u.Role.Le(LookRole(role)) {
+		return false
+	}
+
+	return true
+}
+
+func (u *UserContext) validOrganization() bool {
+	if u.Role == RoleRoot {
+		return true
+	}
+
+	return true
 }
