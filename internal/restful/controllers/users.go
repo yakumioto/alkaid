@@ -42,7 +42,8 @@ func (c *CreateUser) HandlerFuncChain() []gin.HandlerFunc {
 
 		user := new(users.User)
 
-		if err := user.Create(req, nil); err != nil {
+		userCtx, _ := ctx.Get("UserContext")
+		if err := user.Create(req, userCtx.(*users.UserContext)); err != nil {
 			c.Render(ctx, err).Abort()
 			return
 		}

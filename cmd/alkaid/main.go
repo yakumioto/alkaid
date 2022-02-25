@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/yakumioto/alkaid/internal/common/jwt"
 	"github.com/yakumioto/alkaid/internal/common/log"
 	"github.com/yakumioto/alkaid/internal/common/storage"
 	"github.com/yakumioto/alkaid/internal/common/storage/sqlite3"
@@ -24,38 +25,26 @@ import (
 )
 
 func main() {
-	var (
-		db  storage.Storage
-		err error
-	)
 
 	initConfig()
 
 	log.Initialize(viper.GetString("logging.level"))
 
-	switch viper.GetString("database.use") {
-	case sqlite3.Driver:
-		db, err = sqlite3.NewDB(viper.GetString("database.sqlite3.path"))
-		if err != nil {
-			log.Panicf("new sqlite3 database error: %v", err)
-		}
-	}
+	initStorage()
 
-	storage.Initialize(db)
-	if err := storage.AutoMigrate(
-		new(users.User)); err != nil {
-		log.Panicf("storage auto migrate error: %v", err)
-	}
+	jwt.Initialize(viper.GetString("auth.jwt.secret"), viper.GetDuration("auth.jwt.expires"))
 
 	service := restful.NewService(
 		restful.WithMode(viper.GetString("restful.mode")),
 		restful.WithRequestTimeout(viper.GetDuration("restful.request.timeout")),
 	)
+
 	service.RegisterMiddlewares(
 		new(middlewares.Logger),
 		new(middlewares.Recovery),
 		new(middlewares.ResolveVersion),
 	)
+	
 	service.RegisterControllers(
 		new(controllers.Health),
 		new(controllers.CreateUser),
@@ -82,5 +71,25 @@ func initConfig() {
 
 	if err := viper.ReadInConfig(); err != nil {
 		stdLog.Panicf("Fatal error config file: %v", err)
+	}
+}
+
+func initStorage() {
+	var (
+		db  storage.Storage
+		err error
+	)
+
+	switch viper.GetString("database.use") {
+	case sqlite3.Driver:
+		db, err = sqlite3.NewDB(viper.GetString("database.sqlite3.path"))
+		if err != nil {
+			log.Panicf("new sqlite3 database error: %v", err)
+		}
+	}
+	storage.Initialize(db)
+	if err := storage.AutoMigrate(
+		new(users.User)); err != nil {
+		log.Panicf("storage auto migrate error: %v", err)
 	}
 }

@@ -1,23 +1,23 @@
 # 角色路由权限
 p, root::role, *, *, *, allow
 
-p, organizationAdministrator::role, *, /users, POST, allow
-p, organizationAdministrator::role, *, /networks, POST, allow
-p, organizationAdministrator::role, *, /organizations/:id, GET, allow
-p, organizationAdministrator::role, *, /organizations/:id, POST, allow
-p, organizationAdministrator::role, *, /organizations/:id, PATCH, allow
-p, organizationAdministrator::role, *, /organizations/:organizationId/users, *, allow
+p, organization::role, *, /users, POST, allow
+p, organization::role, *, /networks, POST, allow
+p, organization::role, *, /organizations/:id, GET, allow
+p, organization::role, *, /organizations/:id, POST, allow
+p, organization::role, *, /organizations/:id, PATCH, allow
+p, organization::role, *, /organizations/:organizationId/users, *, allow
 
-p, networkAdministrator::role, *, /networks/:id, GET, allow
-p, networkAdministrator::role, *, /networks/:id, POST, allow
-p, networkAdministrator::role, *, /networks/:id, PATCH, allow
-p, networkAdministrator::role, *, /services/:id, *, allow
-p, networkAdministrator::role, *, /channels/:id, *, allow
-p, networkAdministrator::role, *, /contracts/:id, *, allow
-p, networkAdministrator::role, *, /organizations/:organizationId/networks, *, allow
-p, networkAdministrator::role, *, /organizations/:organizationId/networks/:networkId/services, *, allow
-p, networkAdministrator::role, *, /organizations/:organizationId/networks/:networkId/channels, *, allow
-p, networkAdministrator::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, *, allow
+p, network::role, *, /networks/:id, GET, allow
+p, network::role, *, /networks/:id, POST, allow
+p, network::role, *, /networks/:id, PATCH, allow
+p, network::role, *, /services/:id, *, allow
+p, network::role, *, /channels/:id, *, allow
+p, network::role, *, /contracts/:id, *, allow
+p, network::role, *, /organizations/:organizationId/networks, *, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/services, *, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/channels, *, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, *, allow
 
 p, user::role, *, /users/:id, GET, allow
 p, user::role, *, /users/:id, POST, allow
@@ -33,9 +33,9 @@ p, user::role, *, /organizations/:organizationId/networks/:networkId/services, G
 p, user::role, *, /organizations/:organizationId/networks/:networkId/channels, GET, allow
 p, user::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, GET, allow
 
-g, organizationAdministrator::role, networkAdministrator::role, *
-g, organizationAdministrator::role, user::role, *
-g, networkAdministrator::role, user::role, *
+g, organization::role, network::role, *
+g, organization::role, user::role, *
+g, network::role, user::role, *
 
 # TODO: 动态生成
 # 根据用户允许访问的资源动态添加

@@ -20,6 +20,10 @@ import (
 	"github.com/yakumioto/alkaid/internal/errors"
 )
 
+var (
+	logger = log.GetPackageLogger("services.users")
+)
+
 type CreateRequest struct {
 	ID                  string `json:"id,omitempty" validate:"required"`
 	OrganizationID      string `json:"organizationId" validate:"required"`
@@ -31,43 +35,48 @@ type CreateRequest struct {
 }
 
 func (u *User) Create(req *CreateRequest, userCtx *UserContext) error {
-	u.initByCreateRequest(req, userCtx)
+	if err := u.initByCreateRequest(req, userCtx); err != nil {
+		logger.Errorf("[%v] init create request error: %v", userCtx.ResourceID, err)
+		return errors.NewError(http.StatusBadRequest, errors.ErrUserCreateVerifying,
+			"init create request error")
+	}
 
 	sigPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {
-		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+		logger.Errorf("[]")
+		return u.error(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to generate signature key", err)
 	}
 	sigPrivateKeyPem, err := sigPrivateKey.Bytes()
 	if err != nil {
-		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+		return u.error(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to convert the signature key to pem format", err)
 	}
 
 	tlsPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {
-		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+		return u.error(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to generate tls key", err)
 	}
 	tlsPrivateKeyPem, err := tlsPrivateKey.Bytes()
 	if err != nil {
-		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+		return u.error(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to convert the tls key to pem format", err)
 	}
 
 	aesKey, err := factory.CryptoKeyImport(req.TransactionPassword, crypto.AES256)
 	if err != nil {
-		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+		return u.error(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to import encryption key", err)
 	}
 	protectedSigPrivateKey, err := aesKey.Encrypt(sigPrivateKeyPem)
 	if err != nil {
-		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+		return u.error(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"encryption signing key failed", err)
 	}
 	protectedTLSPrivateKey, err := aesKey.Encrypt(tlsPrivateKeyPem)
 	if err != nil {
-		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+		return u.error(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"encryption tls key failed", err)
 	}
 
@@ -75,7 +84,7 @@ func (u *User) Create(req *CreateRequest, userCtx *UserContext) error {
 	u.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
 
 	if err = u.create(); err != nil {
-		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+		return u.error(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to create user", err)
 	}
 
@@ -87,17 +96,16 @@ func (u *User) GetDetailByID(id string) error {
 
 	if err := u.findByID(); err != nil {
 		if err == storage.ErrNotFound {
-			return u.error(http.StatusNotFound, errors.UserNotFount,
+			return u.error(http.StatusNotFound, errors.ErrUserNotFount,
 				fmt.Sprintf("user [%v] not found", id), err)
 		}
-		return u.error(http.StatusInternalServerError, errors.ServerUnknownError,
+		return u.error(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			fmt.Sprintf("failed to query user [%v]", id), err)
 	}
 
 	return nil
 }
 
-func (u *User) error(statusCode int, code errors.Code, msg string, err error) error {
-	log.Errorf("%s: %v", msg, err)
-	return errors.NewError(statusCode, code, msg)
+func (u *User) error(statusCode int, code errors.Code, format string, args ...interface{}) error {
+	return errors.NewError(statusCode, code, fmt.Sprintf(format, args...))
 }

@@ -21,8 +21,8 @@ const (
 	ResourceNamespace = "User"
 
 	RoleRoot Role = iota
-	RoleOrganizationAdministrator
-	RoleNetworkAdministrator
+	RoleOrganization
+	RoleNetwork
 	RoleUser
 )
 
@@ -38,10 +38,10 @@ var roleNames = []string{
 }
 
 var roleMap = map[string]Role{
-	"root":                      RoleRoot,
-	"organizationAdministrator": RoleOrganizationAdministrator,
-	"networkAdministrator":      RoleNetworkAdministrator,
-	"user":                      RoleUser,
+	"root":         RoleRoot,
+	"organization": RoleOrganization,
+	"network":      RoleNetwork,
+	"user":         RoleUser,
 }
 
 func LookRole(str string) Role {

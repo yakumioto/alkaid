@@ -11,7 +11,9 @@ package errors
 type Code int
 
 const (
-	ServerUnknownError Code = 100001
+	ErrServerUnknownError Code = 100001
+	ErrUnauthorized       Code = 100002
 
-	UserNotFount Code = 200001
+	ErrUserNotFount        Code = 200001
+	ErrUserCreateVerifying Code = 200002
 )

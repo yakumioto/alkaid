@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yakumioto/alkaid/internal/common/util"
 )
 
 const (
@@ -155,4 +156,23 @@ func (s *service) Run(addr string) error {
 	}
 
 	return s.engine.Run(addr)
+}
+
+type Base struct{}
+
+func (c *Base) RenderFormat(ctx *gin.Context) string {
+	return ctx.GetString("AcceptFormat")
+}
+
+func (c *Base) MatchVersion(ctx *gin.Context, version string) bool {
+	if ctx.GetString("AcceptVersion") != version {
+		ctx.Next()
+		return false
+	}
+
+	return true
+}
+
+func (c *Base) Render(ctx *gin.Context, obj interface{}) *gin.Context {
+	return util.Render(ctx, c.RenderFormat(ctx), obj)
 }

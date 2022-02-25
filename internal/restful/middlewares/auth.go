@@ -9,10 +9,22 @@
 package middlewares
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
+	"github.com/yakumioto/alkaid/internal/common/jwt"
+	"github.com/yakumioto/alkaid/internal/common/log"
+	"github.com/yakumioto/alkaid/internal/errors"
+	"github.com/yakumioto/alkaid/internal/restful"
+)
+
+var (
+	logger = log.GetPackageLogger("middlewares.auth")
 )
 
 type Auth struct {
+	restful.Base
 }
 
 func (a *Auth) Name() string {
@@ -24,6 +36,33 @@ func (a *Auth) Sequence() int {
 }
 
 func (a *Auth) HandlerFunc() gin.HandlerFunc {
-	// TODO implement me
-	panic("implement me")
+	return func(c *gin.Context) {
+		authorization := c.GetHeader("Authorization")
+		contents := strings.SplitN(authorization, " ", 2)
+		if len(contents) != 2 {
+			logger.Errorf("Authorization header incorrect format")
+			a.Render(c, errors.NewError(http.StatusUnauthorized, errors.ErrUnauthorized,
+				"Authorization header incorrect format"))
+			c.Abort()
+			return
+		}
+
+		typ := contents[0]
+		credentials := contents[1]
+
+		switch typ {
+		case "Bearer":
+			userCtx, err := jwt.VerifyTokenWithUser(credentials)
+			if err != nil {
+				logger.Errorf("JWT verify error: %v", err)
+				a.Render(c, errors.NewError(http.StatusForbidden, errors.ErrUnauthorized,
+					"jwt verification failed"))
+				c.Abort()
+				return
+			}
+			c.Set("UserContext", userCtx)
+		}
+
+		c.Next()
+	}
 }

@@ -10,16 +10,16 @@ package jwt
 
 import (
 	"testing"
+	"time"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/yakumioto/alkaid/internal/common/log"
 	"github.com/yakumioto/alkaid/internal/services/users"
 )
 
 func testInit() {
-	viper.Set("auth.jwt.secret", "secret")
-	viper.Set("auth.jwt.expires", "1d")
-	Initialize()
+	log.Initialize("debug")
+	Initialize("secret", time.Hour*24)
 }
 
 func TestNewTokenWithUser(t *testing.T) {

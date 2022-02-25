@@ -1,6 +1,6 @@
 ---
 restful:
-  mode: release
+  mode: debug
   address: 0.0.0.0:8080
   request:
     timeout: 5s
@@ -8,7 +8,7 @@ restful:
 auth:
   jwt:
     secret: $$ji2Noc4Y9Fk5ug7v%RPi!N@fYrm%%mhTA3zGPxQ^VPfRSw35B%*7@%dKzfKhiU # jwt secret
-    expires: 1d #
+    expires: 1d # jwt expires
 
 logging:
   level : debug # panic, fatal, error, warn, info, debug, trace

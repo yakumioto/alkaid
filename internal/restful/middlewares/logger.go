@@ -16,6 +16,7 @@ import (
 )
 
 type Logger struct {
+	logger log.StdLogger
 }
 
 func (l *Logger) Name() string {
@@ -27,6 +28,8 @@ func (l *Logger) Sequence() int {
 }
 
 func (l *Logger) HandlerFunc() gin.HandlerFunc {
+	l.logger = log.GetPackageLogger("middlewares.logger")
+
 	return func(c *gin.Context) {
 		// Start timer
 		start := time.Now()
@@ -42,7 +45,7 @@ func (l *Logger) HandlerFunc() gin.HandlerFunc {
 			path = path + "?" + raw
 		}
 
-		log.Debugf("Status Code: %d | Time Consuming: %v | Client IP: %s | Request Method: %s | Request Path: %s",
+		l.logger.Debugf("Status Code: %d | Time Consuming: %v | Client IP: %s | Request Method: %s | Request Path: %s",
 			c.Writer.Status(),
 			stop.Sub(start),
 			c.ClientIP(),

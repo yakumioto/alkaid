@@ -15,8 +15,7 @@ import (
 )
 
 var (
-	once   sync.Once
-	logger *Logger
+	once sync.Once
 )
 
 type StdLogger interface {
@@ -27,16 +26,12 @@ type StdLogger interface {
 	Fatalf(format string, args ...interface{})
 	Panicf(format string, args ...interface{})
 
-	Debug(args ...interface{})
-	Info(args ...interface{})
-	Warn(args ...interface{})
-	Error(args ...interface{})
-	Fatal(args ...interface{})
-	Panic(args ...interface{})
-}
-
-type Logger struct {
-	*logrus.Logger
+	Debugln(args ...interface{})
+	Infoln(args ...interface{})
+	Warnln(args ...interface{})
+	Errorln(args ...interface{})
+	Fatalln(args ...interface{})
+	Panicln(args ...interface{})
 }
 
 func Initialize(level string) {
@@ -46,60 +41,58 @@ func Initialize(level string) {
 			lvl = logrus.DebugLevel
 		}
 
-		if logger == nil {
-			l := logrus.New()
-			logger = &Logger{
-				Logger: l,
-			}
-			l.SetLevel(lvl)
-		}
+		logrus.SetLevel(lvl)
 	})
 }
 
+func GetPackageLogger(name string) StdLogger {
+	return logrus.WithField("package", name)
+}
+
 func Debugf(format string, args ...interface{}) {
-	logger.Debugf(format, args...)
+	logrus.Debugf(format, args...)
 }
 
 func Infof(format string, args ...interface{}) {
-	logger.Infof(format, args...)
+	logrus.Infof(format, args...)
 }
 
 func Warnf(format string, args ...interface{}) {
-	logger.Warnf(format, args...)
+	logrus.Warnf(format, args...)
 }
 
 func Errorf(format string, args ...interface{}) {
-	logger.Errorf(format, args...)
+	logrus.Errorf(format, args...)
 }
 
 func Fatalf(format string, args ...interface{}) {
-	logger.Fatalf(format, args...)
+	logrus.Fatalf(format, args...)
 }
 
 func Panicf(format string, args ...interface{}) {
-	logger.Panicf(format, args...)
+	logrus.Panicf(format, args...)
 }
 
-func Debug(args ...interface{}) {
-	logger.Debugln(args...)
+func Debugln(args ...interface{}) {
+	logrus.Debugln(args...)
 }
 
-func Info(args ...interface{}) {
-	logger.Infoln(args...)
+func Infoln(args ...interface{}) {
+	logrus.Infoln(args...)
 }
 
-func Warn(args ...interface{}) {
-	logger.Warnln(args...)
+func Warnln(args ...interface{}) {
+	logrus.Warnln(args...)
 }
 
-func Error(args ...interface{}) {
-	logger.Errorln(args...)
+func Errorln(args ...interface{}) {
+	logrus.Errorln(args...)
 }
 
-func Fatal(args ...interface{}) {
-	logger.Fatalln(args...)
+func Fatalln(args ...interface{}) {
+	logrus.Fatalln(args...)
 }
 
-func Panic(args ...interface{}) {
-	logger.Panicln(args...)
+func Panicln(args ...interface{}) {
+	logrus.Panicln(args...)
 }
