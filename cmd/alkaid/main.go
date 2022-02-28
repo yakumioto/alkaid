@@ -49,6 +49,7 @@ func main() {
 	service.RegisterControllers(
 		new(controllers.Health),
 		new(controllers.InitializeSystem),
+		new(controllers.Login),
 		new(controllers.CreateUser),
 		new(controllers.GetUserDetailByID),
 	)

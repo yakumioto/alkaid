@@ -8,15 +8,11 @@
 
 package controllers
 
-import (
-	"github.com/gin-gonic/gin"
-)
+import "github.com/yakumioto/alkaid/internal/common/log"
 
-type Controller interface {
-	RenderFormat() string
-	MatchVersion(version string) bool
-	Render(obj interface{}) *gin.Context
-}
+var (
+	logger = log.GetPackageLogger("restful.controllers")
+)
 
 // type Controllers struct{}
 //

@@ -16,22 +16,13 @@ import (
 	"github.com/yakumioto/alkaid/internal/common/factory"
 	"github.com/yakumioto/alkaid/internal/common/log"
 	"github.com/yakumioto/alkaid/internal/common/storage"
+	"github.com/yakumioto/alkaid/internal/common/util"
 	"github.com/yakumioto/alkaid/internal/errors"
 )
 
 var (
 	logger = log.GetPackageLogger("services.users")
 )
-
-type CreateRequest struct {
-	ID                  string `json:"id,omitempty" validate:"required"`
-	OrganizationID      string `json:"organizationId" validate:"required"`
-	Name                string `json:"name" validate:"required"`
-	Email               string `json:"email" validate:"required,email"`
-	Password            string `json:"password" validate:"required"`
-	TransactionPassword string `json:"transactionPassword" validate:"required"` // 交易密码仅用来加解密 PrivateKey
-	Role                string `json:"role" validate:"required,oneof=user networkAdministrator organizationAdministrator"`
-}
 
 func InitializeRootUser(u *User) error {
 	if err := u.create(); err != nil {
@@ -41,6 +32,16 @@ func InitializeRootUser(u *User) error {
 	}
 
 	return nil
+}
+
+type CreateRequest struct {
+	ID                  string `json:"id,omitempty" validate:"required"`
+	OrganizationID      string `json:"organizationId" validate:"required"`
+	Name                string `json:"name" validate:"required"`
+	Email               string `json:"email" validate:"required,email"`
+	Password            string `json:"password" validate:"required"`
+	TransactionPassword string `json:"transactionPassword" validate:"required"` // 交易密码仅用来加解密 PrivateKey
+	Role                string `json:"role" validate:"required,oneof=user networkAdministrator organizationAdministrator"`
 }
 
 func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
@@ -109,9 +110,8 @@ func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
 }
 
 func GetDetailByID(id string) (*User, error) {
-	u := newUserByID(id)
-
-	if err := u.findByID(); err != nil {
+	user, err := FindByIDOrEmail(id)
+	if err != nil {
 		if err == storage.ErrNotFound {
 			logger.Warnf("[%v] user not found", id)
 			return nil, errors.NewError(http.StatusNotFound, errors.ErrUserNotFount,
@@ -122,5 +122,33 @@ func GetDetailByID(id string) (*User, error) {
 			"server unknown error")
 	}
 
-	return u, nil
+	return user, nil
+}
+
+type LoginRequest struct {
+	ID       string `json:"id,omitempty"`
+	Password string `json:"password,omitempty"`
+}
+
+func Login(req *LoginRequest) (*User, error) {
+	user, err := FindByIDOrEmail(req.ID)
+	if err != nil {
+		if err == storage.ErrNotFound {
+			logger.Infof("[%v] user not found", req.ID)
+			return nil, errors.NewError(http.StatusNotFound, errors.ErrUserNotFount,
+				"user not found")
+		}
+
+		logger.Errorf("[%v] query user error: %v", req.ID, err)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"server unknown error")
+	}
+
+	if !util.ValidatePassword(req.Password, user.Email, user.Password) {
+		logger.Infof("[%v] wrong user password", req.ID)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"wrong user password")
+	}
+
+	return user, nil
 }

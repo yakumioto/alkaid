@@ -25,7 +25,7 @@ func (i *InitializeSystem) Name() string {
 }
 
 func (i *InitializeSystem) Path() string {
-	return "/systems/initialize"
+	return "/initialize"
 }
 
 func (i *InitializeSystem) Method() string {

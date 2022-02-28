@@ -10,12 +10,72 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yakumioto/alkaid/internal/common/jwt"
+	"github.com/yakumioto/alkaid/internal/errors"
 	"github.com/yakumioto/alkaid/internal/restful"
 	"github.com/yakumioto/alkaid/internal/services/users"
 	"github.com/yakumioto/alkaid/internal/versions"
 )
+
+type Login struct {
+}
+
+func (l *Login) Name() string {
+	return "login"
+}
+
+func (l *Login) Path() string {
+	return "/login"
+}
+
+func (l *Login) Method() string {
+	return http.MethodPost
+}
+
+func (l *Login) HandlerFuncChain() []gin.HandlerFunc {
+	handler := func(ctx *restful.Context) {
+		req := new(users.LoginRequest)
+		if err := ctx.ShouldBindJSON(req); err != nil {
+			ctx.Render(err).Abort()
+			return
+		}
+		user, err := users.Login(req)
+		if err != nil {
+			ctx.Render(err).Abort()
+			return
+		}
+
+		token, err := jwt.NewTokenWithUser(user, time.Now().Unix())
+		if err != nil {
+			logger.Errorf("[%v] new jwt token error: %v", req.ID, err)
+			ctx.Render(errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+				"server unknown error")).Abort()
+		}
+
+		ctx.Render(gin.H{
+			"token": token,
+		})
+	}
+
+	return []gin.HandlerFunc{
+		func(c *gin.Context) {
+			ctx := restful.NewContext(c)
+			if !ctx.MatchVersion(versions.V1) {
+				return
+			}
+
+			handler(ctx)
+			ctx.Abort()
+		},
+		func(c *gin.Context) {
+			ctx := restful.NewContext(c)
+			handler(ctx)
+		},
+	}
+}
 
 type CreateUser struct {
 }

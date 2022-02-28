@@ -106,20 +106,25 @@ func newUserByCreateRequest(req *CreateRequest, userCtx *UserContext) (*User, er
 	}, nil
 }
 
-func newUserByID(id string) *User {
-	return &User{
-		ID: id,
-	}
-}
-
 func (u *User) create() error {
 	u.ResourceID = util.GenResourceID(ResourceNamespace)
 	u.Password = util.HashPassword(u.Password, u.Email, 10000)
 	return storage.Create(u)
 }
 
-func (u *User) findByID() error {
-	return storage.FindByID(u, u.ID)
+func FindByIDOrEmail(id string) (*User, error) {
+	user := new(User)
+	return user, storage.FindByQuery(user, storage.NewQueryOptions().
+		SetWhere(&User{ID: id}).
+		SetOr(&User{Email: id}))
+}
+
+type UserContext struct {
+	ID             string `json:"id"`
+	ResourceID     string `json:"resourceId"`
+	OrganizationID string `json:"organizationId"`
+	Role           Role   `json:"role"`
+	ExpiresAt      int64  `json:"expiresAt"`
 }
 
 func NewUserContext(user *User) *UserContext {
@@ -129,14 +134,6 @@ func NewUserContext(user *User) *UserContext {
 		OrganizationID: user.OrganizationID,
 		Role:           LookRole(user.Role),
 	}
-}
-
-type UserContext struct {
-	ID             string `json:"id"`
-	ResourceID     string `json:"resourceId"`
-	OrganizationID string `json:"organizationId"`
-	Role           Role   `json:"role"`
-	ExpiresAt      int64  `json:"expiresAt"`
 }
 
 func (u *UserContext) Valid() error {
@@ -159,7 +156,6 @@ func (u *UserContext) validRole(role string) bool {
 	if !u.Role.LE(LookRole(role)) {
 		return false
 	}
-
 	return true
 }
 
