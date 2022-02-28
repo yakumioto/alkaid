@@ -1,4 +1,5 @@
 # 角色路由权限
+p, *, *, *, /system/
 p, root::role, *, *, *, allow
 
 p, organization::role, *, /users, POST, allow

@@ -17,9 +17,9 @@ import (
 	"github.com/yakumioto/alkaid/internal/common/util"
 )
 
-const (
-	ResourceNamespace = "User"
+const ResourceNamespace = "User"
 
+const (
 	RoleRoot Role = iota
 	RoleOrganization
 	RoleNetwork
@@ -32,8 +32,8 @@ var TimeNowFunc = func() int64 {
 
 var roleNames = []string{
 	"root",
-	"organizationAdmin",
-	"networkAdmin",
+	"organization",
+	"network",
 	"user",
 }
 
@@ -63,32 +63,32 @@ func (r Role) String() string {
 	return "%!Role(" + strconv.Itoa(int(r)) + ")"
 }
 
-func (r Role) Ge(role Role) bool {
+func (r Role) GE(role Role) bool {
 	return role >= r
 }
 
-func (r Role) Le(role Role) bool {
+func (r Role) LE(role Role) bool {
 	return role <= r
 }
 
 type User struct {
-	ID                     string `json:"id,omitempty"`
-	ResourceID             string `json:"resourceId,omitempty"`
+	ID                     string `json:"id,omitempty" gorm:"primaryKey"`
+	ResourceID             string `json:"resourceId,omitempty" gorm:"uniqueIndex"`
 	OrganizationID         string `json:"organizationId,omitempty"`
 	Name                   string `json:"name,omitempty"`
-	Email                  string `json:"email,omitempty"`
+	Email                  string `json:"email,omitempty" gorm:"uniqueIndex"`
 	Password               string `json:"-"`
 	Role                   string `json:"role,omitempty"`
 	ProtectedSigPrivateKey string `json:"protectedSigPrivateKey,omitempty"`
 	ProtectedTLSPrivateKey string `json:"protectedTlsPrivateKey,omitempty"`
 	Status                 string `json:"status,omitempty"`
-	CreatedAt              int64  `json:"createdAt,omitempty"`
-	UpdatedAt              int64  `json:"updatedAt,omitempty"`
+	CreatedAt              int64  `json:"createdAt,omitempty" gorm:"autoCreateTime"`
+	UpdatedAt              int64  `json:"updatedAt,omitempty" gorm:"autoUpdateTime"`
 }
 
-func (u *User) initByCreateRequest(req *CreateRequest, userCtx *UserContext) error {
+func newUserByCreateRequest(req *CreateRequest, userCtx *UserContext) (*User, error) {
 	if !userCtx.validRole(req.Role) {
-		return errors.New("verifying new user role error")
+		return nil, errors.New("verifying new user role error")
 	}
 
 	// 只有 root 用户有权限创建其他组织的 user
@@ -96,25 +96,25 @@ func (u *User) initByCreateRequest(req *CreateRequest, userCtx *UserContext) err
 		req.OrganizationID = userCtx.OrganizationID
 	}
 
-	u.ID = req.ID
-	u.OrganizationID = req.OrganizationID
-	u.Email = req.Email
-	u.Name = req.Name
-	u.Role = req.Role
-	u.Password = util.HashPassword(req.Password, req.Email, 10000)
-
-	return nil
+	return &User{
+		ID:             req.ID,
+		OrganizationID: req.OrganizationID,
+		Email:          req.Email,
+		Name:           req.Name,
+		Role:           req.Role,
+		Password:       req.Password,
+	}, nil
 }
 
-func (u *User) initUserByID(id string) {
-	u.ID = id
+func newUserByID(id string) *User {
+	return &User{
+		ID: id,
+	}
 }
 
 func (u *User) create() error {
 	u.ResourceID = util.GenResourceID(ResourceNamespace)
-	u.CreatedAt = time.Now().Unix()
-	u.UpdatedAt = time.Now().Unix()
-
+	u.Password = util.HashPassword(u.Password, u.Email, 10000)
 	return storage.Create(u)
 }
 
@@ -156,7 +156,7 @@ func (u *UserContext) SetExpiresAt(expiresAt int64) {
 }
 
 func (u *UserContext) validRole(role string) bool {
-	if !u.Role.Le(LookRole(role)) {
+	if !u.Role.LE(LookRole(role)) {
 		return false
 	}
 
@@ -167,6 +167,5 @@ func (u *UserContext) validOrganization() bool {
 	if u.Role == RoleRoot {
 		return true
 	}
-
-	return true
+	return false
 }

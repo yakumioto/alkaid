@@ -158,21 +158,36 @@ func (s *service) Run(addr string) error {
 	return s.engine.Run(addr)
 }
 
-type Base struct{}
-
-func (c *Base) RenderFormat(ctx *gin.Context) string {
-	return ctx.GetString("AcceptFormat")
+type Base interface {
+	RenderFormat() string
+	MatchVersion(version string) bool
+	Render(obj interface{}) *gin.Context
 }
 
-func (c *Base) MatchVersion(ctx *gin.Context, version string) bool {
-	if ctx.GetString("AcceptVersion") != version {
-		ctx.Next()
+type Context struct {
+	Base
+	*gin.Context
+}
+
+func NewContext(ctx *gin.Context) *Context {
+	return &Context{
+		Context: ctx,
+	}
+}
+
+func (c *Context) RenderFormat() string {
+	return c.GetString("AcceptFormat")
+}
+
+func (c *Context) MatchVersion(version string) bool {
+	if c.GetString("AcceptVersion") != version {
+		c.Next()
 		return false
 	}
 
 	return true
 }
 
-func (c *Base) Render(ctx *gin.Context, obj interface{}) *gin.Context {
-	return util.Render(ctx, c.RenderFormat(ctx), obj)
+func (c *Context) Render(obj interface{}) *gin.Context {
+	return util.Render(c.Context, c.RenderFormat(), obj)
 }

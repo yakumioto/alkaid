@@ -12,11 +12,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yakumioto/alkaid/internal/restful"
 	"github.com/yakumioto/alkaid/internal/versions"
 )
 
 type Health struct {
-	Controllers
 }
 
 func (c *Health) Name() string {
@@ -32,22 +32,24 @@ func (c *Health) Method() string {
 }
 
 func (c *Health) HandlerFuncChain() []gin.HandlerFunc {
-	handler := func(ctx *gin.Context) {
-		c.Render(ctx, gin.H{
+	handler := func(ctx *restful.Context) {
+		ctx.Render(gin.H{
 			"status":  "ok",
 			"version": versions.V1,
 		})
 	}
 	return []gin.HandlerFunc{
-		func(ctx *gin.Context) {
-			if !c.MatchVersion(ctx, versions.V1) {
+		func(c *gin.Context) {
+			ctx := restful.NewContext(c)
+			if !ctx.MatchVersion(versions.V1) {
 				return
 			}
 
 			handler(ctx)
 			ctx.Abort()
 		},
-		func(ctx *gin.Context) {
+		func(c *gin.Context) {
+			ctx := restful.NewContext(c)
 			handler(ctx)
 		},
 	}

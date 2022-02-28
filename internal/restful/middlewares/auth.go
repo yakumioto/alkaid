@@ -24,7 +24,6 @@ var (
 )
 
 type Auth struct {
-	restful.Base
 }
 
 func (a *Auth) Name() string {
@@ -37,11 +36,12 @@ func (a *Auth) Sequence() int {
 
 func (a *Auth) HandlerFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := restful.NewContext(c)
 		authorization := c.GetHeader("Authorization")
 		contents := strings.SplitN(authorization, " ", 2)
 		if len(contents) != 2 {
 			logger.Errorf("Authorization header incorrect format")
-			a.Render(c, errors.NewError(http.StatusUnauthorized, errors.ErrUnauthorized,
+			ctx.Render(errors.NewError(http.StatusUnauthorized, errors.ErrUnauthorized,
 				"Authorization header incorrect format"))
 			c.Abort()
 			return
@@ -55,7 +55,7 @@ func (a *Auth) HandlerFunc() gin.HandlerFunc {
 			userCtx, err := jwt.VerifyTokenWithUser(credentials)
 			if err != nil {
 				logger.Errorf("JWT verify error: %v", err)
-				a.Render(c, errors.NewError(http.StatusForbidden, errors.ErrUnauthorized,
+				ctx.Render(errors.NewError(http.StatusForbidden, errors.ErrUnauthorized,
 					"jwt verification failed"))
 				c.Abort()
 				return

@@ -10,30 +10,29 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/yakumioto/alkaid/internal/common/util"
 )
 
 type Controller interface {
-	RenderFormat(c *gin.Context) string
-	MatchVersion(c *gin.Context, version string) bool
-	Render(c *gin.Context, obj interface{}) *gin.Context
+	RenderFormat() string
+	MatchVersion(version string) bool
+	Render(obj interface{}) *gin.Context
 }
 
-type Controllers struct{}
-
-func (c *Controllers) RenderFormat(ctx *gin.Context) string {
-	return ctx.GetString("AcceptFormat")
-}
-
-func (c *Controllers) MatchVersion(ctx *gin.Context, version string) bool {
-	if ctx.GetString("AcceptVersion") != version {
-		ctx.Next()
-		return false
-	}
-
-	return true
-}
-
-func (c *Controllers) Render(ctx *gin.Context, obj interface{}) *gin.Context {
-	return util.Render(ctx, c.RenderFormat(ctx), obj)
-}
+// type Controllers struct{}
+//
+// func (c *Controllers) RenderFormat(ctx *gin.Context) string {
+// 	return ctx.GetString("AcceptFormat")
+// }
+//
+// func (c *Controllers) MatchVersion(ctx *gin.Context, version string) bool {
+// 	if ctx.GetString("AcceptVersion") != version {
+// 		ctx.Next()
+// 		return false
+// 	}
+//
+// 	return true
+// }
+//
+// func (c *Controllers) Render(ctx *gin.Context, obj interface{}) *gin.Context {
+// 	return util.Render(ctx, c.RenderFormat(ctx), obj)
+// }

@@ -13,6 +13,7 @@ type Code int
 const (
 	ErrServerUnknownError Code = 100001
 	ErrUnauthorized       Code = 100002
+	ErrForbidden          Code = 100003
 
 	ErrUserNotFount        Code = 200001
 	ErrUserCreateVerifying Code = 200002

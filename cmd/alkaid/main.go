@@ -21,6 +21,7 @@ import (
 	"github.com/yakumioto/alkaid/internal/restful"
 	"github.com/yakumioto/alkaid/internal/restful/controllers"
 	"github.com/yakumioto/alkaid/internal/restful/middlewares"
+	"github.com/yakumioto/alkaid/internal/services/systems"
 	"github.com/yakumioto/alkaid/internal/services/users"
 )
 
@@ -44,9 +45,10 @@ func main() {
 		new(middlewares.Recovery),
 		new(middlewares.ResolveVersion),
 	)
-	
+
 	service.RegisterControllers(
 		new(controllers.Health),
+		new(controllers.InitializeSystem),
 		new(controllers.CreateUser),
 		new(controllers.GetUserDetailByID),
 	)
@@ -89,7 +91,9 @@ func initStorage() {
 	}
 	storage.Initialize(db)
 	if err := storage.AutoMigrate(
-		new(users.User)); err != nil {
+		new(systems.System),
+		new(users.User),
+	); err != nil {
 		log.Panicf("storage auto migrate error: %v", err)
 	}
 }

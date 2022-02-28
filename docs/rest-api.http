@@ -1,2 +1,9 @@
-POST http://localhost:8080/users
+POST http://localhost:8080/systems/initialize
 Content-Type: application/json
+
+{
+  "id": "root",
+  "name": "root",
+  "email": "root@alkaid.com",
+  "password": "root"
+}

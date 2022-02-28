@@ -12,12 +12,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yakumioto/alkaid/internal/restful"
 	"github.com/yakumioto/alkaid/internal/services/users"
 	"github.com/yakumioto/alkaid/internal/versions"
 )
 
 type CreateUser struct {
-	Controllers
 }
 
 func (c *CreateUser) Name() string {
@@ -33,41 +33,41 @@ func (c *CreateUser) Method() string {
 }
 
 func (c *CreateUser) HandlerFuncChain() []gin.HandlerFunc {
-	handler := func(ctx *gin.Context) {
+	handler := func(ctx *restful.Context) {
 		req := new(users.CreateRequest)
 		if err := ctx.ShouldBindJSON(req); err != nil {
-			c.Render(ctx, err).Abort()
+			ctx.Render(err).Abort()
 			return
 		}
-
-		user := new(users.User)
 
 		userCtx, _ := ctx.Get("UserContext")
-		if err := user.Create(req, userCtx.(*users.UserContext)); err != nil {
-			c.Render(ctx, err).Abort()
+		user, err := users.Create(req, userCtx.(*users.UserContext))
+		if err != nil {
+			ctx.Render(err).Abort()
 			return
 		}
 
-		c.Render(ctx, user)
+		ctx.Render(user)
 	}
 
 	return []gin.HandlerFunc{
-		func(ctx *gin.Context) {
-			if !c.MatchVersion(ctx, versions.V1) {
+		func(c *gin.Context) {
+			ctx := restful.NewContext(c)
+			if !ctx.MatchVersion(versions.V1) {
 				return
 			}
 
 			handler(ctx)
 			ctx.Abort()
 		},
-		func(ctx *gin.Context) {
+		func(c *gin.Context) {
+			ctx := restful.NewContext(c)
 			handler(ctx)
 		},
 	}
 }
 
 type GetUserDetailByID struct {
-	Controllers
 }
 
 func (c *GetUserDetailByID) Name() string {
@@ -83,28 +83,30 @@ func (c *GetUserDetailByID) Method() string {
 }
 
 func (c *GetUserDetailByID) HandlerFuncChain() []gin.HandlerFunc {
-	handler := func(ctx *gin.Context) {
+	handler := func(ctx *restful.Context) {
 		id := ctx.Param("id")
 
-		user := new(users.User)
-		if err := user.GetDetailByID(id); err != nil {
-			c.Render(ctx, err).Abort()
+		user, err := users.GetDetailByID(id)
+		if err != nil {
+			ctx.Render(err).Abort()
 			return
 		}
 
-		c.Render(ctx, user)
+		ctx.Render(user)
 	}
 
 	return []gin.HandlerFunc{
-		func(ctx *gin.Context) {
-			if !c.MatchVersion(ctx, versions.V1) {
+		func(c *gin.Context) {
+			ctx := restful.NewContext(c)
+			if !ctx.MatchVersion(versions.V1) {
 				return
 			}
 
 			handler(ctx)
 			ctx.Abort()
 		},
-		func(ctx *gin.Context) {
+		func(c *gin.Context) {
+			ctx := restful.NewContext(c)
 			handler(ctx)
 		},
 	}
