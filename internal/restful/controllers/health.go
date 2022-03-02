@@ -32,25 +32,19 @@ func (c *Health) Method() string {
 }
 
 func (c *Health) HandlerFuncChain() []gin.HandlerFunc {
-	handler := func(ctx *restful.Context) {
+	v0Handler := func(ctx *restful.Context) {
+		ctx.Render(gin.H{
+			"status":  "ok",
+			"version": versions.V0,
+		})
+	}
+
+	v1handler := func(ctx *restful.Context) {
 		ctx.Render(gin.H{
 			"status":  "ok",
 			"version": versions.V1,
 		})
 	}
-	return []gin.HandlerFunc{
-		func(c *gin.Context) {
-			ctx := restful.NewContext(c)
-			if !ctx.MatchVersion(versions.V1) {
-				return
-			}
 
-			handler(ctx)
-			ctx.Abort()
-		},
-		func(c *gin.Context) {
-			ctx := restful.NewContext(c)
-			handler(ctx)
-		},
-	}
+	return restful.GenHandlerFuncChain(v1handler, v0Handler)
 }

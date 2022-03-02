@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yakumioto/alkaid/internal/common/util"
+	"github.com/yakumioto/alkaid/internal/versions"
 )
 
 const (
@@ -40,6 +41,8 @@ type Controller interface {
 	Method() string
 	HandlerFuncChain() []gin.HandlerFunc
 }
+
+type HandlerFunc func(ctx *Context)
 
 type middlewares []Middleware
 
@@ -190,4 +193,36 @@ func (c *Context) MatchVersion(version string) bool {
 
 func (c *Context) Render(obj interface{}) *gin.Context {
 	return util.Render(c.Context, c.RenderFormat(), obj)
+}
+
+func GenHandlerFuncChain(defaultFunc HandlerFunc, vers ...HandlerFunc) []gin.HandlerFunc {
+	chain := make([]gin.HandlerFunc, 0)
+	for ver, handler := range vers {
+		version := versions.Latest
+		handler := handler
+
+		switch ver {
+		case 0:
+			version = versions.V0
+		case 1:
+			version = versions.V1
+		}
+
+		chain = append(chain, func(c *gin.Context) {
+			ctx := NewContext(c)
+			if !ctx.MatchVersion(version) {
+				return
+			}
+
+			handler(ctx)
+			ctx.Abort()
+		})
+	}
+
+	chain = append(chain, func(c *gin.Context) {
+		ctx := NewContext(c)
+		defaultFunc(ctx)
+	})
+
+	return chain
 }

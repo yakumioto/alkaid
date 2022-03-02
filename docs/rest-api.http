@@ -1,3 +1,7 @@
+### health
+GET http://localhost:8080/health
+Accept: application/vnd.alkaid.v1+xml
+
 ### initialize
 POST http://localhost:8080/initialize
 Content-Type: application/json
@@ -9,20 +13,19 @@ Content-Type: application/json
   "password": "root"
 }
 
-### login by id
+### login by id or email.
 POST http://localhost:8080/login
 Content-Type: application/json
 
 {
-  "id": "root",
-  "password": "root"
+  "id": "{{username}}",
+  "password": "{{password}}"
 }
 
-### login by email
-POST http://localhost:8080/login
-Content-Type: application/json
+> {% client.global.set("auth_token", response.body.token); %}
 
-{
-  "id": "root@alkaid.com",
-  "password": "root"
-}
+### get user by id.
+GET http://localhost:8080/users/root
+Authorization: Bearer {{auth_token}}
+
+###

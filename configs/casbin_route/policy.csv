@@ -1,5 +1,14 @@
-# 角色路由权限
-p, *, *, *, /system/
+# 角色定义
+
+g, organization::role, network::role, *
+g, organization::role, user::role, *
+g, network::role, user::role, *
+
+# 角色路由权限定义
+p, *, *, /health, GET, allow
+p, *, *, /initialize, POST, allow
+p, *, *, /login, POST, allow
+
 p, root::role, *, *, *, allow
 
 p, organization::role, *, /users, POST, allow
@@ -34,14 +43,8 @@ p, user::role, *, /organizations/:organizationId/networks/:networkId/services, G
 p, user::role, *, /organizations/:organizationId/networks/:networkId/channels, GET, allow
 p, user::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, GET, allow
 
-g, organization::role, network::role, *
-g, organization::role, user::role, *
-g, network::role, user::role, *
-
 # TODO: 动态生成
 # 根据用户允许访问的资源动态添加
 # example：
 # g, exampleUser, user::role, exampleOrganization
 # p, exampleUser, exampleOrganization, b3a1f95f-9e05-420f-872c-d09944974539, *, allow
-
-p, exampleUser, exampleOrganization, b3a1f95f-9e05-420f-872c-d09944974539, *, allow

@@ -44,6 +44,7 @@ func main() {
 		new(middlewares.Logger),
 		new(middlewares.Recovery),
 		new(middlewares.ResolveVersion),
+		middlewares.NewAuth(viper.GetString("auth.casbin.model"), viper.GetString("auth.casbin.policy")),
 	)
 
 	service.RegisterControllers(

@@ -131,6 +131,7 @@ type LoginRequest struct {
 }
 
 func Login(req *LoginRequest) (*User, error) {
+	logger.Debugf("entry ")
 	user, err := FindByIDOrEmail(req.ID)
 	if err != nil {
 		if err == storage.ErrNotFound {
@@ -150,5 +151,6 @@ func Login(req *LoginRequest) (*User, error) {
 			"wrong user password")
 	}
 
+	logger.Debugf("user: %v", user)
 	return user, nil
 }

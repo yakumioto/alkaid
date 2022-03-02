@@ -23,6 +23,32 @@ tags:
     description: 网络中的节点
 
 paths:
+  /login:
+    post:
+      tags:
+        - User
+      summary: 用户登陆
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: succcess
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
   /users:
     post:
       tags:

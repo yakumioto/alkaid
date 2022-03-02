@@ -13,15 +13,18 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/yakumioto/alkaid/internal/common/log"
 	"github.com/yakumioto/alkaid/internal/services/users"
 )
 
 var (
-	once sync.Once
-	t    *JWT
+	logger = log.GetPackageLogger("common.jwt")
+	once   sync.Once
+	t      *JWT
 )
 
 func Initialize(secret string, expires time.Duration) {
+	logger.Infof("jwt woken expires is %v", expires)
 	once.Do(func() {
 		if t == nil {
 			t = NewJWT(secret, expires)

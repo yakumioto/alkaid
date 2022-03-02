@@ -6,9 +6,12 @@ restful:
     timeout: 5s
 
 auth:
+  casbin:
+    model: configs/casbin_route/model.conf
+    policy: configs/casbin_route/policy.csv
   jwt:
-    secret: $$ji2Noc4Y9Fk5ug7v%RPi!N@fYrm%%mhTA3zGPxQ^VPfRSw35B%*7@%dKzfKhiU # jwt secret
-    expires: 1d # jwt expires
+    secret: '$$ji2Noc4Y9Fk5ug7v%RPi!N@fYrm%%mhTA3zGPxQ^VPfRSw35B%*7@%dKzfKhiU' # jwt secret
+    expires: 24h # jwt expires
 
 logging:
   level : debug # panic, fatal, error, warn, info, debug, trace

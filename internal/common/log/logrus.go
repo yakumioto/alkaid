@@ -41,6 +41,7 @@ func Initialize(level string) {
 			lvl = logrus.DebugLevel
 		}
 
+		logrus.Infof("log level is: %v", level)
 		logrus.SetLevel(lvl)
 	})
 }

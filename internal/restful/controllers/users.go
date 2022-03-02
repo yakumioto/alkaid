@@ -39,7 +39,8 @@ func (l *Login) HandlerFuncChain() []gin.HandlerFunc {
 	handler := func(ctx *restful.Context) {
 		req := new(users.LoginRequest)
 		if err := ctx.ShouldBindJSON(req); err != nil {
-			ctx.Render(err).Abort()
+			ctx.Render(errors.NewErrorf(http.StatusBadRequest, errors.ErrBadRequestParameters,
+				"%v", err)).Abort()
 			return
 		}
 		user, err := users.Login(req)

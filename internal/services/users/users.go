@@ -145,7 +145,7 @@ func (u *UserContext) Valid() error {
 }
 
 func (u *UserContext) verifyExpiresAt() bool {
-	return TimeNowFunc() > u.ExpiresAt
+	return TimeNowFunc() < u.ExpiresAt
 }
 
 func (u *UserContext) SetExpiresAt(expiresAt int64) {
