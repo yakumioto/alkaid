@@ -1,8 +1,8 @@
-### health
+### 健康检测接口
 GET http://localhost:8080/health
-Accept: application/vnd.alkaid.v1+xml
+Accept: application/vnd.alkaid.v0+xml
 
-### initialize
+### 系统初始化接口
 POST http://localhost:8080/initialize
 Content-Type: application/json
 
@@ -13,7 +13,7 @@ Content-Type: application/json
   "password": "root"
 }
 
-### login by id or email.
+### 登陆接口，支持 username 和 email
 POST http://localhost:8080/login
 Content-Type: application/json
 
@@ -24,7 +24,22 @@ Content-Type: application/json
 
 > {% client.global.set("auth_token", response.body.token); %}
 
-### get user by id.
+### 注册用户接口
+POST http://localhost:8080/users
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "id": "org1admin",
+  "organizationId": "org1",
+  "name": "admin",
+  "email": "user1@org1.com",
+  "password": "org1admin",
+  "transactionPassword": "123456",
+  "role": "organization"
+}
+
+### 查询用户信息接口
 GET http://localhost:8080/users/root
 Authorization: Bearer {{auth_token}}
 

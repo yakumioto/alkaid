@@ -14,7 +14,7 @@ auth:
     expires: 24h # jwt expires
 
 logging:
-  level : debug # panic, fatal, error, warn, info, debug, trace
+  level : trace # panic, fatal, error, warn, info, debug, trace
 
 database:
   use: sqlite3

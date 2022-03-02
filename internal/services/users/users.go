@@ -64,11 +64,11 @@ func (r Role) String() string {
 }
 
 func (r Role) GE(role Role) bool {
-	return role >= r
+	return r >= role
 }
 
 func (r Role) LE(role Role) bool {
-	return role <= r
+	return r <= role
 }
 
 type User struct {
@@ -153,6 +153,7 @@ func (u *UserContext) SetExpiresAt(expiresAt int64) {
 }
 
 func (u *UserContext) validRole(role string) bool {
+	logger.Tracef("user context role is %v, create user role is: %v", u.Role.String(), role)
 	if !u.Role.LE(LookRole(role)) {
 		return false
 	}

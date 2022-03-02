@@ -25,6 +25,7 @@ type StdLogger interface {
 	Errorf(format string, args ...interface{})
 	Fatalf(format string, args ...interface{})
 	Panicf(format string, args ...interface{})
+	Tracef(format string, args ...interface{})
 
 	Debugln(args ...interface{})
 	Infoln(args ...interface{})
@@ -32,6 +33,7 @@ type StdLogger interface {
 	Errorln(args ...interface{})
 	Fatalln(args ...interface{})
 	Panicln(args ...interface{})
+	Traceln(args ...interface{})
 }
 
 func Initialize(level string) {

@@ -41,13 +41,13 @@ type CreateRequest struct {
 	Email               string `json:"email" validate:"required,email"`
 	Password            string `json:"password" validate:"required"`
 	TransactionPassword string `json:"transactionPassword" validate:"required"` // 交易密码仅用来加解密 PrivateKey
-	Role                string `json:"role" validate:"required,oneof=user networkAdministrator organizationAdministrator"`
+	Role                string `json:"role" validate:"required,oneof=user network organization"`
 }
 
 func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
 	u, err := newUserByCreateRequest(req, userCtx)
 	if err != nil {
-		logger.Errorf("[%v] init create request error: %v", u.ID, err)
+		logger.Errorf("[%v] init create request error: %v", req.ID, err)
 		return nil, errors.NewError(http.StatusBadRequest, errors.ErrUserCreateVerifying,
 			"init create request error")
 	}
@@ -78,7 +78,7 @@ func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
 			"failed to convert the tls key to pem format")
 	}
 
-	aesKey, err := factory.CryptoKeyImport(req.TransactionPassword, crypto.AES256)
+	aesKey, err := factory.CryptoKeyImport([]byte(req.TransactionPassword), crypto.AES256)
 	if err != nil {
 		logger.Errorf("[%v] import transaction password error: %v", u.ID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
@@ -131,7 +131,6 @@ type LoginRequest struct {
 }
 
 func Login(req *LoginRequest) (*User, error) {
-	logger.Debugf("entry ")
 	user, err := FindByIDOrEmail(req.ID)
 	if err != nil {
 		if err == storage.ErrNotFound {
