@@ -24,24 +24,13 @@ var (
 	logger = log.GetPackageLogger("services.users")
 )
 
-func InitializeRootUser(u *User) error {
-	if err := u.create(); err != nil {
-		logger.Errorf("[%v] initialize root user error: %v", u.ID, err)
-		return errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
-			"failed to initialize root user")
-	}
-
-	return nil
-}
-
 type CreateRequest struct {
-	ID                  string `json:"id,omitempty" validate:"required"`
-	OrganizationID      string `json:"organizationId" validate:"required"`
+	ID                  string `json:"id" validate:"required"`
 	Name                string `json:"name" validate:"required"`
 	Email               string `json:"email" validate:"required,email"`
+	Root                bool   `json:"root"`
 	Password            string `json:"password" validate:"required"`
 	TransactionPassword string `json:"transactionPassword" validate:"required"` // 交易密码仅用来加解密 PrivateKey
-	Role                string `json:"role" validate:"required,oneof=user network organization"`
 }
 
 func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
@@ -97,10 +86,10 @@ func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
 			"encryption tls key failed")
 	}
 
-	u.ProtectedSigPrivateKey = base64.StdEncoding.EncodeToString(protectedSigPrivateKey)
+	u.ProtectedSignPrivateKey = base64.StdEncoding.EncodeToString(protectedSigPrivateKey)
 	u.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
 
-	if err = u.create(); err != nil {
+	if err = u.Create(); err != nil {
 		logger.Errorf("[%v] create user error: %v", u.ID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to create user")
@@ -110,7 +99,7 @@ func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
 }
 
 func GetDetailByID(id string) (*User, error) {
-	user, err := FindByIDOrEmail(id)
+	user, err := FindByIDOrEmailOrResourceID(id)
 	if err != nil {
 		if err == storage.ErrNotFound {
 			logger.Warnf("[%v] user not found", id)
@@ -131,7 +120,7 @@ type LoginRequest struct {
 }
 
 func Login(req *LoginRequest) (*User, error) {
-	user, err := FindByIDOrEmail(req.ID)
+	user, err := FindByIDOrEmailOrResourceID(req.ID)
 	if err != nil {
 		if err == storage.ErrNotFound {
 			logger.Infof("[%v] user not found", req.ID)

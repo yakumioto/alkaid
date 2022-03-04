@@ -40,7 +40,7 @@ Authorization: Bearer {{auth_token}}
 }
 
 ### 查询用户信息接口
-GET http://localhost:8080/users/root
+GET http://localhost:8080/users/root@alkaid.com
 Authorization: Bearer {{auth_token}}
 
 ###

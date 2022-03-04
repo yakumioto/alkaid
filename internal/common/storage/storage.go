@@ -127,7 +127,7 @@ func NewUpdateOptions(query interface{}, args ...interface{}) *UpdateOptions {
 type QueryOptions struct {
 	where  *condition
 	not    *condition
-	or     *condition
+	ors    []*condition
 	order  interface{}
 	limit  int
 	offset int
@@ -140,56 +140,61 @@ func NewQueryOptions() *QueryOptions {
 	}
 }
 
-func (q *QueryOptions) Where() *condition {
+func (q *QueryOptions) GetWhere() *condition {
 	return q.where
 }
 
-func (q *QueryOptions) SetWhere(query interface{}, args ...interface{}) *QueryOptions {
+func (q *QueryOptions) Where(query interface{}, args ...interface{}) *QueryOptions {
 	q.where = &condition{Query: query, Args: args}
 	return q
 }
 
-func (q *QueryOptions) Or() *condition {
-	return q.or
+func (q *QueryOptions) GetOrs() []*condition {
+	return q.ors
 }
 
-func (q *QueryOptions) SetOr(query interface{}, args ...interface{}) *QueryOptions {
-	q.or = &condition{Query: query, Args: args}
+func (q *QueryOptions) Or(query interface{}, args ...interface{}) *QueryOptions {
+	if q.ors == nil {
+		q.ors = make([]*condition, 0)
+	}
+
+	q.ors = append(q.ors, &condition{Query: query, Args: args})
+
 	return q
 }
 
-func (q *QueryOptions) Not() *condition {
+func (q *QueryOptions) GetNot() *condition {
 	return q.not
 }
 
-func (q *QueryOptions) SetNot(query interface{}, args ...interface{}) *QueryOptions {
+func (q *QueryOptions) Not(query interface{}, args ...interface{}) *QueryOptions {
 	q.not = &condition{Query: query, Args: args}
 	return q
 }
 
-func (q *QueryOptions) Order() interface{} {
+func (q *QueryOptions) GetOrder() interface{} {
 	return q.order
 }
 
-func (q *QueryOptions) SetOrder(order interface{}) *QueryOptions {
+func (q *QueryOptions) Order(order interface{}) *QueryOptions {
 	q.order = order
 	return q
 }
 
-func (q *QueryOptions) Limit() int {
+func (q *QueryOptions) GetLimit() int {
 	return q.limit
 }
 
-func (q *QueryOptions) SetLimit(limit int) *QueryOptions {
+func (q *QueryOptions) Limit(limit int) *QueryOptions {
 	q.limit = limit
 	return q
 }
 
-func (q *QueryOptions) Offset() int {
+func (q *QueryOptions) GetOffset() int {
 	return q.offset
 }
 
-func (q *QueryOptions) SetOffset(offset int) *QueryOptions {
+func (q *QueryOptions) Offset(offset int) *QueryOptions {
 	q.offset = offset
 	return q
 }

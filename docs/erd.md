@@ -3,7 +3,6 @@ erDiagram
     USER {
         string resourceId
         string id
-        string organizationId
         string name
         string email
         string password

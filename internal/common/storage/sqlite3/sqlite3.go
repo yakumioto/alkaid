@@ -71,17 +71,19 @@ func (s *sqlite3) FindByQuery(dest interface{}, options *storage.QueryOptions) e
 		options = storage.NewQueryOptions()
 	}
 
-	tx := s.db.Order(options.Order()).Limit(options.Limit()).Offset(options.Offset())
+	tx := s.db.Order(options.GetOrder()).Limit(options.GetLimit()).Offset(options.GetOffset())
 
-	if where := options.Where(); where != nil {
+	if where := options.GetWhere(); where != nil {
 		tx.Where(where.Query, where.Args)
 	}
 
-	if or := options.Or(); or != nil {
-		tx.Or(or.Query, or.Args)
+	if ors := options.GetOrs(); ors != nil {
+		for _, or := range ors {
+			tx.Or(or.Query, or.Args)
+		}
 	}
 
-	if not := options.Not(); not != nil {
+	if not := options.GetNot(); not != nil {
 		tx.Not(not.Query, not.Args)
 	}
 
