@@ -46,7 +46,7 @@ func SystemInit(req *InitRequest) (*System, error) {
 
 	// 处理未初始化情况
 	user := &users.User{
-		ID:       req.ID,
+		UserID:   req.ID,
 		Name:     req.Name,
 		Email:    req.Email,
 		Root:     true,
@@ -54,14 +54,14 @@ func SystemInit(req *InitRequest) (*System, error) {
 	}
 
 	if err := user.Create(); err != nil {
-		logger.Errorf("[%v] initialize root user error: %v", user.ID, err)
+		logger.Errorf("[%v] initialize root user error: %v", user.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to initialize root user")
 	}
 
 	sys := newSystem(KSystemInitialized, VSystemInitialized)
 	if err := sys.create(); err != nil {
-		logger.Errorf("[%v] create system error: %v", sys.ID, err)
+		logger.Errorf("[%v] create system error: %v", sys.Key, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to create user")
 	}

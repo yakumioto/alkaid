@@ -21,8 +21,21 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lithammer/shortuuid"
 	"github.com/yakumioto/alkaid/internal/errors"
+	"golang.org/x/crypto/hkdf"
 	"golang.org/x/crypto/pbkdf2"
 )
+
+func GetStretchedKey(masterKey []byte) []byte {
+	encData := make([]byte, 32)
+	macData := make([]byte, 32)
+	_, _ = hkdf.Expand(sha256.New, masterKey, []byte("enc")).Read(encData)
+	_, _ = hkdf.Expand(sha256.New, masterKey, []byte("mac")).Read(macData)
+	return append(encData, macData...)
+}
+
+func GetMasterKey(password, salt string) []byte {
+	return pbkdf2.Key([]byte(password), []byte(salt), 100000, 32, sha256.New)
+}
 
 func HashPassword(password, salt string, iter int) string {
 	passwordHash := pbkdf2.Key([]byte(password), []byte(salt), iter, 32, sha256.New)

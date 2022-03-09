@@ -25,11 +25,11 @@ func testInit() {
 func TestNewTokenWithUser(t *testing.T) {
 	testInit()
 	user := &users.User{
-		ID:         "yakumioto",
+		UserID:     "yakumioto",
 		ResourceID: "users-njoVd5PKVywnZdgmhTC8EV",
 		Role:       users.RoleRoot.String(),
 	}
-	token, err := NewTokenWithUser(user, 1636527720)
+	token, err := NewTokenWithUserContext(user, 1636527720)
 	assert.NoError(t, err, "new token error: %v", err)
 	t.Logf("token is: %v", token)
 }

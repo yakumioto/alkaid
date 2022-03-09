@@ -32,8 +32,8 @@ func Initialize(secret string, expires time.Duration) {
 	})
 }
 
-func NewTokenWithUser(user *users.User, now int64) (string, error) {
-	return t.NewTokenWithUser(user, now)
+func NewTokenWithUserContext(ctx *users.UserContext, now int64) (string, error) {
+	return t.NewTokenWithUserContext(ctx, now)
 }
 
 func VerifyTokenWithUser(tokenString string) (*users.UserContext, error) {
@@ -52,11 +52,10 @@ func NewJWT(secret string, expires time.Duration) *JWT {
 	}
 }
 
-func (t *JWT) NewTokenWithUser(user *users.User, now int64) (string, error) {
-	ctx := users.NewUserContext(user)
-	ctx.SetExpiresAt(now + int64(t.expires.Seconds()))
+func (t *JWT) NewTokenWithUserContext(userCtx *users.UserContext, now int64) (string, error) {
+	userCtx.SetExpiresAt(now + int64(t.expires.Seconds()))
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, ctx)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, userCtx)
 	return token.SignedString(t.secret)
 }
 

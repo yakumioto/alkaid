@@ -30,6 +30,8 @@ var TimeNowFunc = func() int64 {
 	return time.Now().Unix()
 }
 
+type Role int
+
 var roleNames = []string{
 	"root",
 	"organization",
@@ -53,8 +55,6 @@ func LookRole(str string) Role {
 	return role
 }
 
-type Role int
-
 func (r Role) String() string {
 	if RoleRoot <= r && r <= RoleUser {
 		return roleNames[r]
@@ -74,27 +74,32 @@ func (r Role) LE(role Role) bool {
 // User 实体用户，每个用户会生成两对公私密钥，用于签名以及通讯认证。
 // 所以在创建用户时需要填入一个交易密码，此交易密码用来加解密上述两对密钥。
 type User struct {
-	ResourceID              string `json:"resourceID,omitempty" gorm:"primaryKey"`
-	ID                      string `json:"id,omitempty" gorm:"uniqueIndex"`
+	ResourceID              string `json:"resourceId,omitempty" gorm:"primaryKey"`
+	UserID                  string `json:"userId,omitempty" gorm:"uniqueIndex"`
 	Name                    string `json:"name,omitempty"`
 	Email                   string `json:"email,omitempty" gorm:"uniqueIndex"`
 	Password                string `json:"-"`
 	Root                    bool   `json:"root,omitempty"`
+	ProtectedSymmetricKey   string `json:"protectedSymmetricKey,omitempty"`
 	ProtectedSignPrivateKey string `json:"protectedSignPrivateKey,omitempty"`
+	SignPublicKey           string `json:"signPublicKey,omitempty"`
 	ProtectedTLSPrivateKey  string `json:"protectedTlsPrivateKey,omitempty"`
+	TLSPublicKey            string `json:"tlsPublicKey,omitempty"`
+	ProtectedRSAPrivateKey  string `json:"protectedRSAPrivateKey,omitempty"`
+	RSAPublicKey            string `json:"rsaPublicKey,omitempty"`
 	Deactivate              bool   `json:"deactivate,omitempty"`
 	CreatedAt               int64  `json:"createdAt,omitempty" gorm:"autoCreateTime"`
 	UpdatedAt               int64  `json:"updatedAt,omitempty" gorm:"autoUpdateTime"`
 	DeactivateAt            int64  `json:"deactivateAt,omitempty"`
 }
 
-func newUserByCreateRequest(req *CreateRequest, userCtx *UserContext) (*User, error) {
+func newUserByCreateRequest(req *CreateRequest) *User {
 	return &User{
-		ID:       req.ID,
+		UserID:   req.UserID,
 		Email:    req.Email,
 		Name:     req.Name,
 		Password: req.Password,
-	}, nil
+	}
 }
 
 func (u *User) Create() error {
@@ -103,31 +108,74 @@ func (u *User) Create() error {
 	return storage.Create(u)
 }
 
-func FindByIDOrEmailOrResourceID(id string) (*User, error) {
+func FindUserByID(id string) (*User, error) {
 	user := new(User)
 	return user, storage.FindByQuery(user,
 		storage.NewQueryOptions().
-			Or(&User{ID: id}).
+			Or(&User{UserID: id}).
 			Or(&User{Email: id}).
 			Or(&User{ResourceID: id}))
 }
 
-type UserContext struct {
-	ID            string `json:"id,omitempty"`
-	ResourceID    string `json:"resourceID,omitempty"`
-	Root          bool   `json:"root,omitempty"`
-	Organizations struct {
-		OrganizationResourceID string `json:"organizationResourceID,omitempty"`
-		Role                   Role   `json:"role"`
-	}
-	ExpiredAt int64 `json:"expiredAt"`
+type UserOrganizations struct {
+	ResourceID     string `json:"resourceId,omitempty" gorm:"primaryKey"`
+	UserID         string `json:"UserId,omitempty" gorm:"index"`
+	OrganizationID string `json:"OrganizationId,omitempty" gorm:"index"`
+	Role           Role   `json:"role,omitempty"`
+	Status         string `json:"status,omitempty"`
+	Deactivate     bool   `json:"deactivate,omitempty"`
+	CreatedAt      int64  `json:"createdAt,omitempty" gorm:"autoCreateTime"`
+	UpdatedAt      int64  `json:"updatedAt,omitempty" gorm:"autoUpdateTime"`
+	DeactivateAt   int64  `json:"deactivateAt,omitempty"`
 }
 
-func NewUserContext(user *User) *UserContext {
-	return &UserContext{
-		ID:         user.ID,
-		ResourceID: user.ResourceID,
+func FindUserOrganizationsByUserID(id string) ([]*UserOrganizations, error) {
+	organizations := make([]*UserOrganizations, 0)
+	return organizations, storage.FindByQuery(&organizations,
+		storage.NewQueryOptions().
+			Where(UserOrganizations{UserID: id}))
+}
+
+type UserContext struct {
+	ID            string          `json:"id,omitempty"`
+	Root          bool            `json:"root,omitempty"`
+	Organizations []*organization `json:"organizations,omitempty"`
+	ExpiredAt     int64           `json:"expiredAt"`
+}
+
+type organization struct {
+	OrganizationID string `json:"organizationId,omitempty"`
+	Role           Role   `json:"role"`
+}
+
+func NewUserContext(user *User, orgs []*UserOrganizations) *UserContext {
+	organizations := make([]*organization, 0)
+	for _, org := range orgs {
+		organizations = append(organizations, &organization{
+			OrganizationID: org.OrganizationID,
+			Role:           org.Role,
+		})
 	}
+
+	return &UserContext{
+		ID:            user.UserID,
+		Root:          user.Root,
+		Organizations: organizations,
+	}
+}
+
+func (u *UserContext) Role(orgID string) string {
+	if u.Root {
+		return RoleRoot.String()
+	}
+
+	for _, org := range u.Organizations {
+		if org.OrganizationID == orgID {
+			return org.Role.String()
+		}
+	}
+
+	return RoleUser.String()
 }
 
 func (u *UserContext) Valid() error {
@@ -144,16 +192,4 @@ func (u *UserContext) verifyExpiresAt() bool {
 
 func (u *UserContext) SetExpiresAt(expiredAt int64) {
 	u.ExpiredAt = expiredAt
-}
-
-type UserOrganizations struct {
-	ResourceID             string `json:"resourceId,omitempty" gorm:"primaryKey"`
-	UserResourceID         string `json:"userResourceID,omitempty" gorm:"index"`
-	OrganizationResourceID string `json:"organizationResourceID,omitempty" gorm:"index"`
-	Role                   Role   `json:"role,omitempty"`
-	Status                 string `json:"status,omitempty"`
-	Deactivate             bool   `json:"deactivate,omitempty"`
-	CreatedAt              int64  `json:"createdAt,omitempty" gorm:"autoCreateTime"`
-	UpdatedAt              int64  `json:"updatedAt,omitempty" gorm:"autoUpdateTime"`
-	DeactivateAt           int64  `json:"deactivateAt,omitempty"`
 }

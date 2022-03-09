@@ -8,13 +8,11 @@ g, network::role, user::role, *
 p, *, *, /health, GET, allow
 p, *, *, /initialize, POST, allow
 p, *, *, /login, POST, allow
+p, *, *, /users, POST, allow
 
 p, root::role, *, *, *, allow
-
-p, organization::role, *, /users, POST, allow
 p, organization::role, *, /networks, POST, allow
 p, organization::role, *, /organizations/:id, GET, allow
-p, organization::role, *, /organizations/:id, POST, allow
 p, organization::role, *, /organizations/:id, PATCH, allow
 p, organization::role, *, /organizations/:organizationId/users, *, allow
 
@@ -32,6 +30,7 @@ p, network::role, *, /organizations/:organizationId/networks/:networkId/channels
 p, user::role, *, /users/:id, GET, allow
 p, user::role, *, /users/:id, POST, allow
 p, user::role, *, /users/:id, PATCH, allow
+p, user::role, *, /organizations, POST, allow
 p, user::role, *, /organizations/:id, GET, allow
 p, user::role, *, /networks/:id, GET, allow
 p, user::role, *, /services/:id, GET, allow

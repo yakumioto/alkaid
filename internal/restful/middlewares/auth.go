@@ -92,8 +92,9 @@ func (a *Auth) HandlerFunc() gin.HandlerFunc {
 			c.Set("UserContext", userCtx)
 		}
 
-		if ok, _ := a.enforcer.Enforce(fmt.Sprintf(
-			"%v::role", userCtx.Role.String()), userCtx.ResourceID, ctx.FullPath(), ctx.Request.Method); !ok {
+		if ok, _ := a.enforcer.Enforce(
+			fmt.Sprintf("%v::role", userCtx.Role(ctx.GetString("organizationId"))),
+			userCtx.ID, ctx.FullPath(), ctx.Request.Method); !ok {
 			ctx.Render(errors.NewError(http.StatusUnauthorized, errors.ErrUnauthorized,
 				"no access"))
 			ctx.Abort()

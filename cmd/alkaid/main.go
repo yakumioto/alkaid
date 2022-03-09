@@ -95,6 +95,7 @@ func initStorage() {
 	if err := storage.AutoMigrate(
 		new(systems.System),
 		new(users.User),
+		new(users.UserOrganizations),
 	); err != nil {
 		log.Panicf("storage auto migrate error: %v", err)
 	}

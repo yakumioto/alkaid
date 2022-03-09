@@ -43,13 +43,13 @@ func (l *Login) HandlerFuncChain() []gin.HandlerFunc {
 				"%v", err)).Abort()
 			return
 		}
-		user, err := users.Login(req)
+		user, organizations, err := users.Login(req)
 		if err != nil {
 			ctx.Render(err).Abort()
 			return
 		}
 
-		token, err := jwt.NewTokenWithUser(user, time.Now().Unix())
+		token, err := jwt.NewTokenWithUserContext(users.NewUserContext(user, organizations), time.Now().Unix())
 		if err != nil {
 			logger.Errorf("[%v] new jwt token error: %v", req.ID, err)
 			ctx.Render(errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
@@ -101,8 +101,7 @@ func (c *CreateUser) HandlerFuncChain() []gin.HandlerFunc {
 			return
 		}
 
-		userCtx, _ := ctx.Get("UserContext")
-		user, err := users.Create(req, userCtx.(*users.UserContext))
+		user, err := users.Create(req)
 		if err != nil {
 			ctx.Render(err).Abort()
 			return

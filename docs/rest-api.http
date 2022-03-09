@@ -1,6 +1,6 @@
 ### 健康检测接口
 GET http://localhost:8080/health
-Accept: application/vnd.alkaid.v0+xml
+Accept: application/vnd.alkaid.v1+xml
 
 ### 系统初始化接口
 POST http://localhost:8080/initialize
@@ -31,12 +31,10 @@ Authorization: Bearer {{auth_token}}
 
 {
   "id": "org1admin",
-  "organizationId": "org1",
   "name": "admin",
   "email": "user1@org1.com",
   "password": "org1admin",
-  "transactionPassword": "123456",
-  "role": "organization"
+  "transactionPassword": "123456"
 }
 
 ### 查询用户信息接口

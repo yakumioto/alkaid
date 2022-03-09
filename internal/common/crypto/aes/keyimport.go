@@ -21,9 +21,30 @@ func NewKeyImporter() *keyImporter {
 type keyImporter struct{}
 
 func (kg *keyImporter) KeyImport(raw interface{}, opts crypto.KeyImportOpts) (crypto.Key, error) {
-	privateKey, ok := raw.([]byte)
-	if !ok || privateKey == nil {
-		return nil, fmt.Errorf("only supports []byte type of key")
+	var privateKey []byte
+
+	switch key := raw.(type) {
+	case []byte:
+		privateKey = key
+	case string:
+		privateKey = []byte(key)
+	default:
+		return nil, fmt.Errorf("only supports string or []byte type of key")
+	}
+
+	keyLen := 0
+
+	switch opts.Algorithm() {
+	case crypto.AES128:
+		keyLen = 128 / 8
+	case crypto.AES192:
+		keyLen = 192 / 8
+	case crypto.AES256:
+		keyLen = 256 / 8
+	}
+
+	if len(privateKey) != keyLen {
+		return nil, fmt.Errorf("the required key length is %v", keyLen)
 	}
 
 	switch opts.Algorithm() {

@@ -25,7 +25,7 @@ var (
 )
 
 type CreateRequest struct {
-	ID                  string `json:"id" validate:"required"`
+	UserID              string `json:"userId" validate:"required"`
 	Name                string `json:"name" validate:"required"`
 	Email               string `json:"email" validate:"required,email"`
 	Root                bool   `json:"root"`
@@ -33,55 +33,50 @@ type CreateRequest struct {
 	TransactionPassword string `json:"transactionPassword" validate:"required"` // 交易密码仅用来加解密 PrivateKey
 }
 
-func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
-	u, err := newUserByCreateRequest(req, userCtx)
-	if err != nil {
-		logger.Errorf("[%v] init create request error: %v", req.ID, err)
-		return nil, errors.NewError(http.StatusBadRequest, errors.ErrUserCreateVerifying,
-			"init create request error")
-	}
+func Create(req *CreateRequest) (*User, error) {
+	u := newUserByCreateRequest(req)
 
-	sigPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
+	signPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {
-		logger.Errorf("[%v] generate signature key error: %v", u.ID, err)
+		logger.Errorf("[%v] generate signature key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to generate signature key")
 	}
-	sigPrivateKeyPem, err := sigPrivateKey.Bytes()
+	sigPrivateKeyPem, err := signPrivateKey.Bytes()
 	if err != nil {
-		logger.Errorf("[%v] convert the signature key to pem format error: %v", u.ID, err)
+		logger.Errorf("[%v] convert the signature key to pem format error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to convert the signature key to pem format")
 	}
 
 	tlsPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
 	if err != nil {
-		logger.Errorf("[%v] generate tls key error: %v", u.ID, err)
+		logger.Errorf("[%v] generate tls key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to generate tls key")
 	}
 	tlsPrivateKeyPem, err := tlsPrivateKey.Bytes()
 	if err != nil {
-		logger.Errorf("[%v] convert the tls key to pem format error: %v", u.ID, err)
+		logger.Errorf("[%v] convert the tls key to pem format error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to convert the tls key to pem format")
 	}
 
 	aesKey, err := factory.CryptoKeyImport([]byte(req.TransactionPassword), crypto.AES256)
 	if err != nil {
-		logger.Errorf("[%v] import transaction password error: %v", u.ID, err)
+		logger.Errorf("[%v] import transaction password error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to import transaction password key")
 	}
 	protectedSigPrivateKey, err := aesKey.Encrypt(sigPrivateKeyPem)
 	if err != nil {
-		logger.Errorf("[%v] encryption signing key error: %v", u.ID, err)
+		logger.Errorf("[%v] encryption signing key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"encryption signing key failed")
 	}
 	protectedTLSPrivateKey, err := aesKey.Encrypt(tlsPrivateKeyPem)
 	if err != nil {
-		logger.Errorf("[%v] encryption tls key error: %v", u.ID, err)
+		logger.Errorf("[%v] encryption tls key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"encryption tls key failed")
 	}
@@ -90,7 +85,7 @@ func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
 	u.ProtectedTLSPrivateKey = base64.StdEncoding.EncodeToString(protectedTLSPrivateKey)
 
 	if err = u.Create(); err != nil {
-		logger.Errorf("[%v] create user error: %v", u.ID, err)
+		logger.Errorf("[%v] create user error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to create user")
 	}
@@ -99,7 +94,7 @@ func Create(req *CreateRequest, userCtx *UserContext) (*User, error) {
 }
 
 func GetDetailByID(id string) (*User, error) {
-	user, err := FindByIDOrEmailOrResourceID(id)
+	user, err := FindUserByID(id)
 	if err != nil {
 		if err == storage.ErrNotFound {
 			logger.Warnf("[%v] user not found", id)
@@ -119,26 +114,32 @@ type LoginRequest struct {
 	Password string `json:"password,omitempty"`
 }
 
-func Login(req *LoginRequest) (*User, error) {
-	user, err := FindByIDOrEmailOrResourceID(req.ID)
+func Login(req *LoginRequest) (*User, []*UserOrganizations, error) {
+	user, err := FindUserByID(req.ID)
 	if err != nil {
 		if err == storage.ErrNotFound {
 			logger.Infof("[%v] user not found", req.ID)
-			return nil, errors.NewError(http.StatusNotFound, errors.ErrUserNotFount,
+			return nil, nil, errors.NewError(http.StatusNotFound, errors.ErrUserNotFount,
 				"user not found")
 		}
 
 		logger.Errorf("[%v] query user error: %v", req.ID, err)
-		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+		return nil, nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"server unknown error")
 	}
 
 	if !util.ValidatePassword(req.Password, user.Email, user.Password) {
 		logger.Infof("[%v] wrong user password", req.ID)
-		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+		return nil, nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"wrong user password")
 	}
 
-	logger.Debugf("user: %v", user)
-	return user, nil
+	organizations, err := FindUserOrganizationsByUserID(user.UserID)
+	if err != nil && err != storage.ErrNotFound {
+		logger.Errorf("[%v] query user organizations error: %v", req.ID, err)
+		return nil, nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"server unknown error")
+	}
+
+	return user, organizations, nil
 }

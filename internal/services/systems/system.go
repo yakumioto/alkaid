@@ -19,7 +19,7 @@ var (
 )
 
 type System struct {
-	ID        string `json:"id,omitempty" gorm:"primaryKey"`
+	Key       string `json:"key,omitempty" gorm:"primaryKey"`
 	Value     string `json:"value,omitempty"`
 	CreatedAt int64  `json:"createdAt,omitempty" gorm:"autoCreateTime"`
 	UpdatedAt int64  `json:"updatedAt,omitempty" gorm:"autoUpdateTime"`
@@ -27,14 +27,14 @@ type System struct {
 
 func newSystem(k, v string) *System {
 	return &System{
-		ID:    k,
+		Key:   k,
 		Value: v,
 	}
 }
 
 func newSystemByID(id string) *System {
 	return &System{
-		ID: id,
+		Key: id,
 	}
 }
 
@@ -43,5 +43,5 @@ func (s *System) create() error {
 }
 
 func (s *System) findByID() error {
-	return storage.FindByID(s, s.ID)
+	return storage.FindByID(s, s.Key)
 }

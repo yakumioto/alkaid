@@ -77,9 +77,8 @@ func (a *aesCBCPrivateKey) Encrypt(text []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("random iv error: %v", err)
 	}
-	stretchKey := a.stretchKey(iv)
 
-	block, err := aes.NewCipher(stretchKey)
+	block, err := aes.NewCipher(a.privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("new chipher error: %v", err)
 	}
@@ -101,13 +100,11 @@ func (a *aesCBCPrivateKey) Decrypt(ciphertext []byte) ([]byte, error) {
 	iv := ciphertext[10 : 10+16]
 	src := ciphertext[10+16:]
 
-	stretchKey := a.stretchKey(iv)
-
 	if typ != crypto.AESCBCType {
 		return nil, fmt.Errorf("type does not match: %v", typ)
 	}
 
-	block, err := aes.NewCipher(stretchKey)
+	block, err := aes.NewCipher(a.privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("new chipher error: %v", err)
 	}
@@ -117,21 +114,6 @@ func (a *aesCBCPrivateKey) Decrypt(ciphertext []byte) ([]byte, error) {
 	mode.CryptBlocks(paddedText, src)
 
 	return pkcs7UnPadding(paddedText), nil
-}
-
-func (a *aesCBCPrivateKey) stretchKey(iv []byte) []byte {
-	keyLen := 0
-
-	switch a.algorithm {
-	case crypto.AES128:
-		keyLen = 128 / 8
-	case crypto.AES192:
-		keyLen = 192 / 8
-	case crypto.AES256:
-		keyLen = 256 / 8
-	}
-
-	return util.PBKDF2WithSha256(a.privateKey, iv, keyLen)
 }
 
 func pkcs7Padding(src []byte) []byte {
