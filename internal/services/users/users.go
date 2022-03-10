@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/yakumioto/alkaid/internal/common/storage"
-	"github.com/yakumioto/alkaid/internal/common/util"
+	"github.com/yakumioto/alkaid/internal/common/utils"
 )
 
 const ResourceNamespace = "User"
@@ -103,8 +103,8 @@ func newUserByCreateRequest(req *CreateRequest) *User {
 }
 
 func (u *User) Create() error {
-	u.ResourceID = util.GenResourceID(ResourceNamespace)
-	u.Password = util.HashPassword(u.Password, u.Email, 10000)
+	u.ResourceID = utils.GenResourceID(ResourceNamespace)
+	u.Password = utils.HashPassword(u.Password, u.Email, 10000)
 	return storage.Create(u)
 }
 

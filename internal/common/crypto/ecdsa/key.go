@@ -35,11 +35,8 @@ func (e *ecdsaPrivateKey) Bytes() ([]byte, error) {
 }
 
 func (e *ecdsaPrivateKey) SKI() []byte {
-	raw := elliptic.Marshal(e.privateKey.Curve, e.privateKey.PublicKey.X, e.privateKey.PublicKey.Y)
-
-	// Hash it
-	hash := sha256.Sum256(raw)
-	return hash[:]
+	pubKey, _ := e.PublicKey()
+	return pubKey.SKI()
 }
 
 func (e *ecdsaPrivateKey) Symmetric() bool {
@@ -75,7 +72,7 @@ type ecdsaPublicKey struct {
 }
 
 func (e *ecdsaPublicKey) Bytes() ([]byte, error) {
-	pkcs8Encoded, err := x509.MarshalPKCS8PrivateKey(e.publicKey)
+	pkcs8Encoded, err := x509.MarshalPKIXPublicKey(e.publicKey)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to marshal public key")
 	}

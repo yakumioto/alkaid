@@ -6,7 +6,7 @@
  * Alkaid is a BaaS service based on Hyperledger Fabric.
  */
 
-package util
+package utils
 
 import (
 	"crypto/sha256"

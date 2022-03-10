@@ -9,25 +9,27 @@
 package aes
 
 import (
+	"crypto/sha256"
 	"fmt"
 
 	"github.com/yakumioto/alkaid/internal/common/crypto"
+	"golang.org/x/crypto/pbkdf2"
 )
 
-func NewKeyImporter() *keyImporter {
-	return &keyImporter{}
+func NewKey(raw interface{}, opts crypto.KeyImportOpts) (crypto.Key, error) {
+	return new(keyImporter).KeyImport(raw, opts)
 }
 
 type keyImporter struct{}
 
 func (kg *keyImporter) KeyImport(raw interface{}, opts crypto.KeyImportOpts) (crypto.Key, error) {
-	var privateKey []byte
+	var key []byte
 
-	switch key := raw.(type) {
+	switch raw := raw.(type) {
 	case []byte:
-		privateKey = key
+		key = raw
 	case string:
-		privateKey = []byte(key)
+		key = []byte(raw)
 	default:
 		return nil, fmt.Errorf("only supports string or []byte type of key")
 	}
@@ -35,23 +37,22 @@ func (kg *keyImporter) KeyImport(raw interface{}, opts crypto.KeyImportOpts) (cr
 	keyLen := 0
 
 	switch opts.Algorithm() {
-	case crypto.AES128:
+	case crypto.AesCbc128:
 		keyLen = 128 / 8
-	case crypto.AES192:
+	case crypto.AesCbc192:
 		keyLen = 192 / 8
-	case crypto.AES256:
+	case crypto.AesCbc256:
 		keyLen = 256 / 8
 	}
 
-	if len(privateKey) != keyLen {
-		return nil, fmt.Errorf("the required key length is %v", keyLen)
+	if len(key) != keyLen {
+		key = pbkdf2.Key(key, key, 1000, keyLen, sha256.New)
 	}
 
 	switch opts.Algorithm() {
-	case crypto.AES128, crypto.AES192, crypto.AES256:
-		return &aesCBCPrivateKey{
-			privateKey: privateKey,
-			algorithm:  opts.Algorithm(),
+	case crypto.AesCbc128, crypto.AesCbc192, crypto.AesCbc256:
+		return &CBCKey{
+			key: key,
 		}, nil
 	}
 

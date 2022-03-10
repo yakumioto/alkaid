@@ -13,10 +13,10 @@ import (
 	"net/http"
 
 	"github.com/yakumioto/alkaid/internal/common/crypto"
-	"github.com/yakumioto/alkaid/internal/common/factory"
+	"github.com/yakumioto/alkaid/internal/common/crypto/factory"
 	"github.com/yakumioto/alkaid/internal/common/log"
 	"github.com/yakumioto/alkaid/internal/common/storage"
-	"github.com/yakumioto/alkaid/internal/common/util"
+	"github.com/yakumioto/alkaid/internal/common/utils"
 	"github.com/yakumioto/alkaid/internal/errors"
 )
 
@@ -36,7 +36,7 @@ type CreateRequest struct {
 func Create(req *CreateRequest) (*User, error) {
 	u := newUserByCreateRequest(req)
 
-	signPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
+	signPrivateKey, err := factory.CryptoKeyGen(crypto.EcdsaP256)
 	if err != nil {
 		logger.Errorf("[%v] generate signature key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
@@ -49,7 +49,7 @@ func Create(req *CreateRequest) (*User, error) {
 			"failed to convert the signature key to pem format")
 	}
 
-	tlsPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
+	tlsPrivateKey, err := factory.CryptoKeyGen(crypto.EcdsaP256)
 	if err != nil {
 		logger.Errorf("[%v] generate tls key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
@@ -62,7 +62,7 @@ func Create(req *CreateRequest) (*User, error) {
 			"failed to convert the tls key to pem format")
 	}
 
-	aesKey, err := factory.CryptoKeyImport([]byte(req.TransactionPassword), crypto.AES256)
+	aesKey, err := factory.CryptoKeyImport([]byte(req.TransactionPassword), crypto.AesCbc256)
 	if err != nil {
 		logger.Errorf("[%v] import transaction password error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
@@ -128,7 +128,7 @@ func Login(req *LoginRequest) (*User, []*UserOrganizations, error) {
 			"server unknown error")
 	}
 
-	if !util.ValidatePassword(req.Password, user.Email, user.Password) {
+	if !utils.ValidatePassword(req.Password, user.Email, user.Password) {
 		logger.Infof("[%v] wrong user password", req.ID)
 		return nil, nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"wrong user password")

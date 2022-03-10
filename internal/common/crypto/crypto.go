@@ -8,10 +8,13 @@
 
 package crypto
 
-type KeyType int
+type EncType int
 
 const (
-	AESCBCType KeyType = iota
+	AesCbc256B64 = iota
+	AesCbc256HmacSha256B64
+	Rsa2048OaepSha256B64
+	Rsa2048OaepSha256HmacShaB64
 )
 
 type Key interface {

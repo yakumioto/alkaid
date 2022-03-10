@@ -13,7 +13,7 @@ import (
 	"net/http"
 
 	"github.com/yakumioto/alkaid/internal/common/crypto"
-	"github.com/yakumioto/alkaid/internal/common/factory"
+	"github.com/yakumioto/alkaid/internal/common/crypto/factory"
 	"github.com/yakumioto/alkaid/internal/common/log"
 	"github.com/yakumioto/alkaid/internal/errors"
 )
@@ -39,7 +39,7 @@ type CreateRequest struct {
 func Create(req *CreateRequest) (*Organization, error) {
 	org := newOrganizationByCreateRequest(req)
 
-	signCAPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
+	signCAPrivateKey, err := factory.CryptoKeyGen(crypto.EcdsaP256)
 	if err != nil {
 		logger.Errorf("[%v] generate signature key error: %v", req.OrganizationID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
@@ -52,7 +52,7 @@ func Create(req *CreateRequest) (*Organization, error) {
 			"failed to convert the signature key to pem format")
 	}
 
-	tlsCAPrivateKey, err := factory.CryptoKeyGen(crypto.ECDSAP256)
+	tlsCAPrivateKey, err := factory.CryptoKeyGen(crypto.EcdsaP256)
 	if err != nil {
 		logger.Errorf("[%v] generate tls key error: %v", req.OrganizationID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
@@ -65,7 +65,7 @@ func Create(req *CreateRequest) (*Organization, error) {
 			"failed to convert the tls key to pem format")
 	}
 
-	aesKey, err := factory.CryptoKeyImport([]byte(req.TransactionPassword), crypto.AES256)
+	aesKey, err := factory.CryptoKeyImport([]byte(req.TransactionPassword), crypto.AesCbc256)
 	if err != nil {
 		logger.Errorf("[%v] import transaction password error: %v", req.OrganizationID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,

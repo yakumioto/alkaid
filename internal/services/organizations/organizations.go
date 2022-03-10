@@ -10,7 +10,7 @@ package organizations
 
 import (
 	"github.com/yakumioto/alkaid/internal/common/storage"
-	"github.com/yakumioto/alkaid/internal/common/util"
+	"github.com/yakumioto/alkaid/internal/common/utils"
 )
 
 const ResourceNamespace = "Organization"
@@ -60,7 +60,7 @@ func newOrganizationByCreateRequest(req *CreateRequest) *Organization {
 }
 
 func (o *Organization) Create() error {
-	o.ResourceID = util.GenResourceID(ResourceNamespace)
+	o.ResourceID = utils.GenResourceID(ResourceNamespace)
 	o.SetCountry(o.Country)
 	o.SetProvince(o.Province)
 	o.SetLocality(o.Locality)

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yakumioto/alkaid/internal/common/util"
+	"github.com/yakumioto/alkaid/internal/common/utils"
 	"github.com/yakumioto/alkaid/internal/versions"
 )
 
@@ -192,7 +192,7 @@ func (c *Context) MatchVersion(version string) bool {
 }
 
 func (c *Context) Render(obj interface{}) *gin.Context {
-	return util.Render(c.Context, c.RenderFormat(), obj)
+	return utils.Render(c.Context, c.RenderFormat(), obj)
 }
 
 func GenHandlerFuncChain(defaultFunc HandlerFunc, vers ...HandlerFunc) []gin.HandlerFunc {

@@ -18,10 +18,10 @@ import (
 
 func CryptoKeyGen(algorithm crypto.Algorithm) (crypto.Key, error) {
 	switch algorithm {
-	case crypto.ECDSAP256:
-		return ecdsa.NewKeyGenerator().KeyGen(&crypto.ECDSAP256KeyGenOpts{})
-	case crypto.ECDSAP384:
-		return ecdsa.NewKeyGenerator().KeyGen(&crypto.ECDSAP384KeyGenOpts{})
+	case crypto.EcdsaP256:
+		return ecdsa.KeyGen(&crypto.ECDSAP256KeyGenOpts{})
+	case crypto.EcdsaP384:
+		return ecdsa.KeyGen(&crypto.ECDSAP384KeyGenOpts{})
 	}
 
 	return nil, fmt.Errorf("not found key generator: %v", algorithm)
@@ -29,12 +29,14 @@ func CryptoKeyGen(algorithm crypto.Algorithm) (crypto.Key, error) {
 
 func CryptoKeyImport(raw interface{}, algorithm crypto.Algorithm) (crypto.Key, error) {
 	switch algorithm {
-	case crypto.AES128:
-		return aes.NewKeyImporter().KeyImport(raw, &crypto.AES128KeyImportOpts{})
-	case crypto.AES192:
-		return aes.NewKeyImporter().KeyImport(raw, &crypto.AES192KeyImportOpts{})
-	case crypto.AES256:
-		return aes.NewKeyImporter().KeyImport(raw, &crypto.AES256KeyImportOpts{})
+	case crypto.AesCbc128:
+		return aes.NewKey(raw, &crypto.AES128KeyImportOpts{})
+	case crypto.AesCbc192:
+		return aes.NewKey(raw, &crypto.AES192KeyImportOpts{})
+	case crypto.AesCbc256:
+		return aes.NewKey(raw, &crypto.AES256KeyImportOpts{})
+	case crypto.EcdsaP256, crypto.EcdsaP384:
+		return ecdsa.KeyImport(raw)
 	}
 
 	return nil, fmt.Errorf("not found key importer: %v", algorithm)

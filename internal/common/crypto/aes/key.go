@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/yakumioto/alkaid/internal/common/crypto"
-	"github.com/yakumioto/alkaid/internal/common/util"
 )
 
 type randomIVFunc func(len int) ([]byte, error)
@@ -34,43 +33,42 @@ var (
 	}
 )
 
-type aesCBCPrivateKey struct {
-	privateKey []byte
-	algorithm  crypto.Algorithm
+type CBCKey struct {
+	key []byte
 }
 
-func (a *aesCBCPrivateKey) Bytes() ([]byte, error) {
+func (a *CBCKey) Bytes() ([]byte, error) {
 	return nil, errors.New("not supported")
 }
 
-func (a *aesCBCPrivateKey) SKI() []byte {
+func (a *CBCKey) SKI() []byte {
 	hash := sha256.New()
-	hash.Write([]byte{0x01})
-	hash.Write(a.privateKey)
+	// hash.Write([]byte{0x01})
+	hash.Write(a.key)
 	return hash.Sum(nil)
 }
 
-func (a *aesCBCPrivateKey) Symmetric() bool {
+func (a *CBCKey) Symmetric() bool {
 	return true
 }
 
-func (a *aesCBCPrivateKey) Private() bool {
+func (a *CBCKey) Private() bool {
 	return true
 }
 
-func (a *aesCBCPrivateKey) PublicKey() (crypto.Key, error) {
+func (a *CBCKey) PublicKey() (crypto.Key, error) {
 	return nil, errors.New("cannot call this method on a symmetric key")
 }
 
-func (a *aesCBCPrivateKey) Sign(_ []byte) ([]byte, error) {
+func (a *CBCKey) Sign(_ []byte) ([]byte, error) {
 	return nil, errors.New("cannot call this method on a symmetric key")
 }
 
-func (a *aesCBCPrivateKey) Verify(_, _ []byte) bool {
+func (a *CBCKey) Verify(_, _ []byte) bool {
 	return false
 }
 
-func (a *aesCBCPrivateKey) Encrypt(text []byte) ([]byte, error) {
+func (a *CBCKey) Encrypt(text []byte) ([]byte, error) {
 	paddedText := pkcs7Padding(text)
 
 	iv, err := randomIV(aes.BlockSize)
@@ -78,7 +76,7 @@ func (a *aesCBCPrivateKey) Encrypt(text []byte) ([]byte, error) {
 		return nil, fmt.Errorf("random iv error: %v", err)
 	}
 
-	block, err := aes.NewCipher(a.privateKey)
+	block, err := aes.NewCipher(a.key)
 	if err != nil {
 		return nil, fmt.Errorf("new chipher error: %v", err)
 	}
@@ -87,24 +85,18 @@ func (a *aesCBCPrivateKey) Encrypt(text []byte) ([]byte, error) {
 	dst := make([]byte, len(paddedText))
 	mode.CryptBlocks(dst, paddedText)
 
-	ciphertext := make([]byte, 0, 10+len(iv)+len(dst))
-	ciphertext = append(ciphertext, util.GetVarintBytesWithMaxVarintLen64(int64(crypto.AESCBCType))...)
-	ciphertext = append(ciphertext, iv...)
-	ciphertext = append(ciphertext, dst...)
+	ciphertext := bytes.NewBuffer(nil)
+	ciphertext.Write(iv)
+	ciphertext.Write(dst)
 
-	return ciphertext, nil
+	return ciphertext.Bytes(), nil
 }
 
-func (a *aesCBCPrivateKey) Decrypt(ciphertext []byte) ([]byte, error) {
-	typ := crypto.KeyType(util.MustVarint(ciphertext[:10]))
-	iv := ciphertext[10 : 10+16]
-	src := ciphertext[10+16:]
+func (a *CBCKey) Decrypt(ciphertext []byte) ([]byte, error) {
+	iv := ciphertext[0:16]
+	src := ciphertext[16:]
 
-	if typ != crypto.AESCBCType {
-		return nil, fmt.Errorf("type does not match: %v", typ)
-	}
-
-	block, err := aes.NewCipher(a.privateKey)
+	block, err := aes.NewCipher(a.key)
 	if err != nil {
 		return nil, fmt.Errorf("new chipher error: %v", err)
 	}
