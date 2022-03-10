@@ -39,5 +39,5 @@ func (kg *keyGenerator) KeyGen(opts crypto.KeyGenOpts) (crypto.Key, error) {
 		return nil, fmt.Errorf("generating ECDSA key for [%v] error: [%s]", curve, err)
 	}
 
-	return &ecdsaPrivateKey{privateKey}, nil
+	return &ecdsaPrivateKey{privateKey: privateKey}, nil
 }

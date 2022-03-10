@@ -8,13 +8,10 @@
 
 package crypto
 
-type EncType int
+import "crypto"
 
-const (
-	AesCbc256B64 = iota
-	AesCbc256HmacSha256B64
-	Rsa2048OaepSha256B64
-	Rsa2048OaepSha256HmacShaB64
+var (
+	SHA256 = crypto.SHA256
 )
 
 type Key interface {

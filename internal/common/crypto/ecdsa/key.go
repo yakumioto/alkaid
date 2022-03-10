@@ -55,8 +55,8 @@ func (e *ecdsaPrivateKey) Sign(digest []byte) ([]byte, error) {
 	return e.privateKey.Sign(rand.Reader, digest, cryptoStd.SHA256)
 }
 
-func (e *ecdsaPrivateKey) Verify(hash, sig []byte) bool {
-	return ecdsa.VerifyASN1(&e.privateKey.PublicKey, hash, sig)
+func (e *ecdsaPrivateKey) Verify(_, _ []byte) bool {
+	return false
 }
 
 func (e *ecdsaPrivateKey) Encrypt(_ []byte) ([]byte, error) {

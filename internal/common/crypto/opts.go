@@ -12,6 +12,10 @@ const (
 	EcdsaP256 Algorithm = "ECDSA_P256"
 	EcdsaP384 Algorithm = "ECDSA_P384"
 
+	Rsa1024 Algorithm = "RSA_1024"
+	Rsa2048 Algorithm = "RSA_2048"
+	Rsa4096 Algorithm = "RSA_4096"
+
 	AesCbc128 Algorithm = "AES_CBC_128"
 	AesCbc192 Algorithm = "AES_CBC_192"
 	AesCbc256 Algorithm = "AES_CBC_256"
@@ -62,4 +66,22 @@ type HMACSha512ImportOpts struct{}
 
 func (opts *HMACSha512ImportOpts) Algorithm() Algorithm {
 	return HmacSha512
+}
+
+type RSA1024KeyImportOpts struct{}
+
+func (opts *RSA1024KeyImportOpts) Algorithm() Algorithm {
+	return Rsa1024
+}
+
+type RSA2048KeyImportOpts struct{}
+
+func (opts *RSA2048KeyImportOpts) Algorithm() Algorithm {
+	return Rsa2048
+}
+
+type RSA4096KeyImportOpts struct{}
+
+func (opts *RSA4096KeyImportOpts) Algorithm() Algorithm {
+	return Rsa4096
 }

@@ -14,64 +14,65 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 
 	"github.com/yakumioto/alkaid/internal/common/crypto"
 )
 
-type rsaPrivateKey struct {
+type PrivateKey struct {
 	privateKey *rsa.PrivateKey
 }
 
-func (r *rsaPrivateKey) Bytes() ([]byte, error) {
-	pkcs8Encoded := x509.MarshalPKCS1PrivateKey(r.privateKey)
-	return pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: pkcs8Encoded}), nil
+func (r *PrivateKey) Bytes() ([]byte, error) {
+	pkcs1Encoded := x509.MarshalPKCS1PrivateKey(r.privateKey)
+	return pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: pkcs1Encoded}), nil
 }
 
-func (r *rsaPrivateKey) SKI() []byte {
+func (r *PrivateKey) SKI() []byte {
 	pubKey, _ := r.PublicKey()
 	return pubKey.SKI()
 }
 
-func (r *rsaPrivateKey) Symmetric() bool {
+func (r *PrivateKey) Symmetric() bool {
 	return false
 }
 
-func (r *rsaPrivateKey) Private() bool {
+func (r *PrivateKey) Private() bool {
 	return true
 }
 
-func (r *rsaPrivateKey) PublicKey() (crypto.Key, error) {
-	return &rsaPublicKey{publicKey: &r.privateKey.PublicKey}, nil
+func (r *PrivateKey) PublicKey() (crypto.Key, error) {
+	return &PublicKey{publicKey: &r.privateKey.PublicKey}, nil
 }
 
-func (r *rsaPrivateKey) Sign(digest []byte) ([]byte, error) {
-	rsa.SignPSS(rand.Reader, r.privateKey, digest)
+func (r *PrivateKey) Sign(digest []byte) ([]byte, error) {
+	return rsa.SignPSS(rand.Reader, r.privateKey, crypto.SHA256, digest, &rsa.PSSOptions{
+		SaltLength: rsa.PSSSaltLengthAuto,
+	})
 }
 
-func (r *rsaPrivateKey) Verify(hash, sig []byte) bool {
-	// TODO implement me
-	panic("implement me")
+func (r *PrivateKey) Verify(_, _ []byte) bool {
+	return false
 }
 
-func (r *rsaPrivateKey) Encrypt(src []byte) ([]byte, error) {
-	// TODO implement me
-	panic("implement me")
+func (r *PrivateKey) Encrypt(_ []byte) ([]byte, error) {
+	return nil, errors.New("not supported")
 }
 
-func (r *rsaPrivateKey) Decrypt(src []byte) ([]byte, error) {
+func (r *PrivateKey) Decrypt(src []byte) ([]byte, error) {
 	return rsa.DecryptOAEP(sha256.New(), rand.Reader, r.privateKey, src, nil)
 }
 
-type rsaPublicKey struct {
+type PublicKey struct {
 	publicKey *rsa.PublicKey
 }
 
-func (r *rsaPublicKey) Bytes() ([]byte, error) {
-	// TODO implement me
-	panic("implement me")
+func (r *PublicKey) Bytes() ([]byte, error) {
+	pkcs1Encoded := x509.MarshalPKCS1PublicKey(r.publicKey)
+	return pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pkcs1Encoded}), nil
 }
 
-func (r *rsaPublicKey) SKI() []byte {
+func (r *PublicKey) SKI() []byte {
 	if r.publicKey == nil {
 		return nil
 	}
@@ -82,36 +83,36 @@ func (r *rsaPublicKey) SKI() []byte {
 	return hash[:]
 }
 
-func (r *rsaPublicKey) Symmetric() bool {
-	// TODO implement me
-	panic("implement me")
+func (r *PublicKey) Symmetric() bool {
+	return false
 }
 
-func (r *rsaPublicKey) Private() bool {
-	// TODO implement me
-	panic("implement me")
+func (r *PublicKey) Private() bool {
+	return false
 }
 
-func (r *rsaPublicKey) PublicKey() (crypto.Key, error) {
-	// TODO implement me
-	panic("implement me")
+func (r *PublicKey) PublicKey() (crypto.Key, error) {
+	return r, nil
 }
 
-func (r *rsaPublicKey) Sign(digest []byte) ([]byte, error) {
-	// TODO implement me
-	panic("implement me")
+func (r *PublicKey) Sign(_ []byte) ([]byte, error) {
+	return nil, errors.New("not supported")
 }
 
-func (r *rsaPublicKey) Verify(hash, sig []byte) bool {
-	// TODO implement me
-	panic("implement me")
+func (r *PublicKey) Verify(hash, sig []byte) bool {
+	if err := rsa.VerifyPSS(r.publicKey, crypto.SHA256, hash, sig, &rsa.PSSOptions{
+		SaltLength: rsa.PSSSaltLengthAuto,
+	}); err != nil {
+		return false
+	}
+
+	return true
 }
 
-func (r *rsaPublicKey) Encrypt(src []byte) ([]byte, error) {
+func (r *PublicKey) Encrypt(src []byte) ([]byte, error) {
 	return rsa.EncryptOAEP(sha256.New(), rand.Reader, r.publicKey, src, nil)
 }
 
-func (r *rsaPublicKey) Decrypt(src []byte) ([]byte, error) {
-	// TODO implement me
-	panic("implement me")
+func (r *PublicKey) Decrypt(_ []byte) ([]byte, error) {
+	return nil, errors.New("not supported")
 }
