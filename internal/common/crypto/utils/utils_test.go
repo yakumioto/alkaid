@@ -9,8 +9,9 @@
 package utils
 
 import (
-	"github.com/yakumioto/alkaid/internal/common/crypto/rsa"
 	"testing"
+
+	"github.com/yakumioto/alkaid/internal/common/crypto/rsa"
 
 	"github.com/yakumioto/alkaid/internal/common/crypto"
 	"github.com/yakumioto/alkaid/internal/common/crypto/aes"
@@ -33,6 +34,9 @@ func TestEncrypt(t *testing.T) {
 		t.Log(err)
 	}
 	t.Log(ciphertext)
-	data, _ = Decrypt(ciphertext, rPrivKey, hKey)
+	data, err = Decrypt(ciphertext, rPrivKey, hKey)
+	if err != nil {
+		t.Log(err)
+	}
 	t.Log(string(data))
 }

@@ -151,7 +151,7 @@ func Decrypt(text string, keys ...crypto.Key) ([]byte, error) {
 
 		return dataBytes, nil
 	case Rsa2048OaepSha256HmacShaB64:
-		if hk == nil || ak == nil {
+		if hk == nil || rk == nil {
 			return nil, errors.New("not found aes key or hmac key")
 		}
 		sigBytes, err := base64.StdEncoding.DecodeString(sigtext)
