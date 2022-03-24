@@ -10,16 +10,21 @@ package utils
 
 import (
 	"bytes"
+	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/lithammer/shortuuid"
 	"github.com/yakumioto/alkaid/internal/common/crypto"
 	"github.com/yakumioto/alkaid/internal/common/crypto/aes"
 	"github.com/yakumioto/alkaid/internal/common/crypto/hmac"
 	"github.com/yakumioto/alkaid/internal/common/crypto/rsa"
+	"golang.org/x/crypto/hkdf"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 type EncType int
@@ -30,6 +35,78 @@ const (
 	Rsa2048OaepSha256B64
 	Rsa2048OaepSha256HmacShaB64
 )
+
+type StretchedKey struct {
+	Enc []byte
+	Mac []byte
+}
+
+func GetStretchedKey(masterKey []byte) (*StretchedKey, error) {
+	encData := make([]byte, 32)
+	macData := make([]byte, 32)
+	_, err := hkdf.Expand(sha256.New, masterKey, []byte("enc")).Read(encData)
+	if err != nil {
+		return nil, err
+	}
+	_, err = hkdf.Expand(sha256.New, masterKey, []byte("mac")).Read(macData)
+	if err != nil {
+		return nil, err
+	}
+	return &StretchedKey{
+		Enc: encData,
+		Mac: macData,
+	}, nil
+}
+
+func GenSymmetricKey() (*StretchedKey, error) {
+	encData := make([]byte, 32)
+	macData := make([]byte, 32)
+	_, err := rand.Read(encData)
+	if err != nil {
+		return nil, err
+	}
+	_, err = rand.Read(macData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &StretchedKey{
+		Enc: encData,
+		Mac: macData,
+	}, nil
+}
+
+func GetMasterKey(password, salt string) []byte {
+	return pbkdf2.Key([]byte(password), []byte(salt), 100000, 32, sha256.New)
+}
+
+func HashPassword(password, salt string, iter int) string {
+	passwordHash := pbkdf2.Key([]byte(password), []byte(salt), iter, 32, sha256.New)
+	passwordHashBase64 := base64.StdEncoding.EncodeToString(passwordHash)
+	return fmt.Sprintf("%d.%s", iter, passwordHashBase64)
+}
+
+// PBKDF2WithSha256 用于生成扩展密钥
+func PBKDF2WithSha256(password, salt []byte, keyLen int) []byte {
+	return pbkdf2.Key(password, salt, 1, keyLen, sha256.New)
+}
+
+func ValidatePassword(password, salt, passwordHash string) bool {
+	iter, err := strconv.Atoi(strings.SplitN(passwordHash, ".", 2)[0])
+	if err != nil {
+		return false
+	}
+
+	if passwordHash != HashPassword(password, salt, iter) {
+		return false
+	}
+
+	return true
+}
+
+func GenResourceID(namespace string) string {
+	return fmt.Sprintf("%s-%s", namespace, shortuuid.New())
+}
 
 func Encrypt(typ EncType, text []byte, keys ...interface{}) (string, error) {
 	var (

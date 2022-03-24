@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/yakumioto/alkaid/internal/common/crypto/utils"
 	"github.com/yakumioto/alkaid/internal/common/storage"
-	"github.com/yakumioto/alkaid/internal/common/utils"
 )
 
 const ResourceNamespace = "User"
@@ -71,8 +71,7 @@ func (r Role) LE(role Role) bool {
 	return r <= role
 }
 
-// User 实体用户，每个用户会生成两对公私密钥，用于签名以及通讯认证。
-// 所以在创建用户时需要填入一个交易密码，此交易密码用来加解密上述两对密钥。
+// User 实体用户，每个用户会生成三对公私密钥，用于签名，通讯认证以及组织对称密钥管理。
 type User struct {
 	ResourceID              string `json:"resourceId,omitempty" gorm:"primaryKey"`
 	UserID                  string `json:"userId,omitempty" gorm:"uniqueIndex"`
@@ -104,7 +103,8 @@ func newUserByCreateRequest(req *CreateRequest) *User {
 
 func (u *User) Create() error {
 	u.ResourceID = utils.GenResourceID(ResourceNamespace)
-	u.Password = utils.HashPassword(u.Password, u.Email, 10000)
+	u.Password = utils.HashPassword(
+		string(utils.GetMasterKey(u.Password, u.Email)), u.Password, 1)
 	return storage.Create(u)
 }
 
