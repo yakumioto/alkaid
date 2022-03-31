@@ -10,10 +10,10 @@ package factory
 
 import (
 	"fmt"
-
 	"github.com/yakumioto/alkaid/internal/common/crypto"
 	"github.com/yakumioto/alkaid/internal/common/crypto/aes"
 	"github.com/yakumioto/alkaid/internal/common/crypto/ecdsa"
+	"github.com/yakumioto/alkaid/internal/common/crypto/hmac"
 	"github.com/yakumioto/alkaid/internal/common/crypto/rsa"
 )
 
@@ -42,6 +42,10 @@ func CryptoKeyImport(raw interface{}, algorithm crypto.Algorithm) (crypto.Key, e
 		return aes.NewKey(raw, &crypto.AES192KeyImportOpts{})
 	case crypto.AesCbc256:
 		return aes.NewKey(raw, &crypto.AES256KeyImportOpts{})
+	case crypto.HmacSha256:
+		return hmac.NewKey(raw, &crypto.HMACSha256ImportOpts{})
+	case crypto.HmacSha512:
+		return hmac.NewKey(raw, &crypto.HMACSha512ImportOpts{})
 	case crypto.EcdsaP256, crypto.EcdsaP384:
 		return ecdsa.KeyImport(raw)
 	case crypto.Rsa1024, crypto.Rsa2048, crypto.Rsa4096:

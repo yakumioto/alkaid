@@ -41,6 +41,10 @@ type StretchedKey struct {
 	Mac []byte
 }
 
+func (s *StretchedKey) Key() []byte {
+	return append(s.Enc, s.Mac...)
+}
+
 func GetStretchedKey(masterKey []byte) (*StretchedKey, error) {
 	encData := make([]byte, 32)
 	macData := make([]byte, 32)

@@ -94,11 +94,15 @@ type User struct {
 
 func newUserByCreateRequest(req *CreateRequest) *User {
 	return &User{
-		UserID:   req.UserID,
+		UserID:   req.ID,
 		Email:    req.Email,
 		Name:     req.Name,
 		Password: req.Password,
 	}
+}
+
+func (u *User) stretchedKey(password string) (*utils.StretchedKey, error) {
+	return utils.GetStretchedKey(utils.GetMasterKey(password, u.Email))
 }
 
 func (u *User) Create() error {

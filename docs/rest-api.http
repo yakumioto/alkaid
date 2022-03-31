@@ -27,14 +27,13 @@ Content-Type: application/json
 ### 注册用户接口
 POST http://localhost:8080/users
 Content-Type: application/json
-Authorization: Bearer {{auth_token}}
+#Authorization: Bearer {{auth_token}}
 
 {
   "id": "org1admin",
   "name": "admin",
   "email": "user1@org1.com",
-  "password": "org1admin",
-  "transactionPassword": "123456"
+  "password": "org1admin"
 }
 
 ### 查询用户信息接口

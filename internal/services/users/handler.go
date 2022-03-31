@@ -24,7 +24,7 @@ var (
 )
 
 type CreateRequest struct {
-	UserID   string `json:"userId" validate:"required"`
+	ID       string `json:"id" validate:"required"`
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Root     bool   `json:"root"`
@@ -33,7 +33,22 @@ type CreateRequest struct {
 
 func Create(req *CreateRequest) (*User, error) {
 	u := newUserByCreateRequest(req)
-	stretchedKey := utils.GetStretchedKey(utils.GetMasterKey(req.Password, req.Email))
+
+	// 对用户生成扩展密钥
+	stretchedKey, err := u.stretchedKey(req.Password)
+	if err != nil {
+		logger.Errorf("[%v] generate stretch key error: %v", u.UserID, err)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"failed to generate stretch key")
+	}
+
+	// 生成用户唯一的对称密钥
+	symmetricKey, err := utils.GenSymmetricKey()
+	if err != nil {
+		logger.Errorf("[%v] generate symmetric key error: %v", u.UserID, err)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"failed to generate symmetric key")
+	}
 
 	signPrivateKey, err := factory.CryptoKeyGen(crypto.EcdsaP256)
 	if err != nil {
@@ -74,40 +89,87 @@ func Create(req *CreateRequest) (*User, error) {
 			"failed to convert the rsa key to pem format")
 	}
 
-	aesKey, err := factory.CryptoKeyImport(stretchedKey[:32], crypto.AesCbc256)
+	symmetricKeyAesKey, err := factory.CryptoKeyImport(symmetricKey.Enc, crypto.AesCbc256)
 	if err != nil {
 		logger.Errorf("[%v] import aes password error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to import aes password key")
 	}
-	hashKey, err := factory.CryptoKeyImport(stretchedKey[32:], crypto.HmacSha512)
+	symmetricKeyHashKey, err := factory.CryptoKeyImport(symmetricKey.Mac, crypto.HmacSha256)
 	if err != nil {
 		logger.Errorf("[%v] import hash password error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to import hash password key")
 	}
 
-	protectedSignPrivateKey, err := utils.Encrypt(utils.AesCbc256HmacSha256B64, signPrivateKeyPem, aesKey, hashKey)
+	protectedSignPrivateKey, err := utils.Encrypt(utils.AesCbc256HmacSha256B64, signPrivateKeyPem, symmetricKeyAesKey, symmetricKeyHashKey)
 	if err != nil {
-		logger.Errorf("[%v] encryption signing key error: %v", u.UserID, err)
+		logger.Errorf("[%v] encryption signing private key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
-			"encryption signing key failed")
+			"encryption signing private key failed")
 	}
-	protectedTLSPrivateKey, err := utils.Encrypt(utils.AesCbc256HmacSha256B64, tlsPrivateKeyPem, aesKey, hashKey)
+	protectedTLSPrivateKey, err := utils.Encrypt(utils.AesCbc256HmacSha256B64, tlsPrivateKeyPem, symmetricKeyAesKey, symmetricKeyHashKey)
 	if err != nil {
-		logger.Errorf("[%v] encryption tls key error: %v", u.UserID, err)
+		logger.Errorf("[%v] encryption tls private key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
-			"encryption tls key failed")
+			"encryption tls private key failed")
 	}
-	protectedRSAPrivateKey, err := utils.Encrypt(utils.AesCbc256HmacSha256B64, rsaPrivateKeyPem, aesKey, hashKey)
+	protectedRSAPrivateKey, err := utils.Encrypt(utils.AesCbc256HmacSha256B64, rsaPrivateKeyPem, symmetricKeyAesKey, symmetricKeyHashKey)
 	if err != nil {
-		logger.Errorf("[%v] encryption tls rsa error: %v", u.UserID, err)
+		logger.Errorf("[%v] encryption rsa private key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
-			"encryption rsa key failed")
+			"encryption rsa private key failed")
 	}
 	u.ProtectedSignPrivateKey = protectedSignPrivateKey
 	u.ProtectedTLSPrivateKey = protectedTLSPrivateKey
 	u.ProtectedRSAPrivateKey = protectedRSAPrivateKey
+
+	pubKey, _ := signPrivateKey.PublicKey()
+	pubKeyPem, err := pubKey.Bytes()
+	if err != nil {
+		logger.Errorf("[%v] convert the signing public key to pem format error: %v", u.UserID, err)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"failed to convert the signing public key to pem format")
+	}
+	u.SignPublicKey = string(pubKeyPem)
+
+	pubKey, _ = tlsPrivateKey.PublicKey()
+	pubKeyPem, err = pubKey.Bytes()
+	if err != nil {
+		logger.Errorf("[%v] convert the tls public key to pem format error: %v", u.UserID, err)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"failed to convert the tls public key to pem format")
+	}
+	u.TLSPublicKey = string(pubKeyPem)
+
+	pubKey, _ = rsaPrivateKey.PublicKey()
+	pubKeyPem, err = pubKey.Bytes()
+	if err != nil {
+		logger.Errorf("[%v] convert the rsa public key to pem format error: %v", u.UserID, err)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"failed to convert the rsa public key to pem format")
+	}
+	u.RSAPublicKey = string(pubKeyPem)
+
+	stretchedKeyAesKey, err := factory.CryptoKeyImport(stretchedKey.Enc, crypto.AesCbc256)
+	if err != nil {
+		logger.Errorf("[%v] import aes password error: %v", u.UserID, err)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"failed to import aes password key")
+	}
+	stretchedKeyHashKey, err := factory.CryptoKeyImport(stretchedKey.Mac, crypto.HmacSha256)
+	if err != nil {
+		logger.Errorf("[%v] import hash password error: %v", u.UserID, err)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"failed to import hash password key")
+	}
+	protectedSymmetricKey, err := utils.Encrypt(utils.AesCbc256HmacSha256B64, symmetricKey.Key(), stretchedKeyAesKey, stretchedKeyHashKey)
+	if err != nil {
+		logger.Errorf("[%v] encryption symmetric key error: %v", u.UserID, err)
+		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
+			"encryption symmetric key failed")
+	}
+	u.ProtectedSymmetricKey = protectedSymmetricKey
 
 	if err = u.Create(); err != nil {
 		logger.Errorf("[%v] create user error: %v", u.UserID, err)
