@@ -24,6 +24,7 @@ const (
 	RoleOrganization
 	RoleNetwork
 	RoleUser
+	RoleNone
 )
 
 var TimeNowFunc = func() int64 {
@@ -37,6 +38,7 @@ var roleNames = []string{
 	"organization",
 	"network",
 	"user",
+	"none",
 }
 
 var roleMap = map[string]Role{
@@ -44,6 +46,7 @@ var roleMap = map[string]Role{
 	"organization": RoleOrganization,
 	"network":      RoleNetwork,
 	"user":         RoleUser,
+	"none":         RoleNone,
 }
 
 func LookRole(str string) Role {
@@ -179,7 +182,7 @@ func (u *UserContext) Role(orgID string) string {
 		}
 	}
 
-	return RoleUser.String()
+	return RoleNone.String()
 }
 
 func (u *UserContext) Valid() error {

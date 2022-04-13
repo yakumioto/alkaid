@@ -1,8 +1,8 @@
-# 角色定义
-
+# 角色权限继承
 g, organization::role, network::role, *
 g, organization::role, user::role, *
 g, network::role, user::role, *
+g, user::role, none::role, *
 
 # 角色路由权限定义
 p, *, *, /health, GET, allow
@@ -11,36 +11,56 @@ p, *, *, /login, POST, allow
 p, *, *, /users, POST, allow
 
 p, root::role, *, *, *, allow
-p, organization::role, *, /networks, POST, allow
-p, organization::role, *, /organizations/:id, GET, allow
-p, organization::role, *, /organizations/:id, PATCH, allow
-p, organization::role, *, /organizations/:organizationId/users, *, allow
 
-p, network::role, *, /networks/:id, GET, allow
-p, network::role, *, /networks/:id, POST, allow
-p, network::role, *, /networks/:id, PATCH, allow
-p, network::role, *, /services/:id, *, allow
-p, network::role, *, /channels/:id, *, allow
-p, network::role, *, /contracts/:id, *, allow
-p, network::role, *, /organizations/:organizationId/networks, *, allow
-p, network::role, *, /organizations/:organizationId/networks/:networkId/services, *, allow
-p, network::role, *, /organizations/:organizationId/networks/:networkId/channels, *, allow
-p, network::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, *, allow
+p, organization::role, *, /organizations/:organizationId/users, POST, allow
+p, organization::role, *, /organizations/:organizationId/users, GET, allow
+p, organization::role, *, /organizations/:organizationId/users/:userId, DELETE, allow
+p, organization::role, *, /organizations/:organizationId/users/:userId, PATCH, allow
+p, organization::role, *, /organizations/:organizationId/users/:userId, GET, allow
+p, organization::role, *, /organizations/:organizationId/clusters, POST, allow
+p, organization::role, *, /organizations/:organizationId/clusters/:clusterId, DELETE, allow
+p, organization::role, *, /organizations/:organizationId/clusters/:clusterId, PATCH, allow
 
-p, user::role, *, /users/:id, GET, allow
-p, user::role, *, /users/:id, POST, allow
-p, user::role, *, /users/:id, PATCH, allow
-p, user::role, *, /organizations, POST, allow
-p, user::role, *, /organizations/:id, GET, allow
-p, user::role, *, /networks/:id, GET, allow
-p, user::role, *, /services/:id, GET, allow
-p, user::role, *, /channels/:id, GET, allow
-p, user::role, *, /contracts/:id, GET, allow
-p, user::role, *, /contracts/:id/execute, POST, allow
-p, user::role, *, /organizations/:organizationId/networks, GET, allow
-p, user::role, *, /organizations/:organizationId/networks/:networkId/services, GET, allow
-p, user::role, *, /organizations/:organizationId/networks/:networkId/channels, GET, allow
-p, user::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, GET, allow
+p, network::role, *, /organizations/:organizationId/contracts, POST, allow
+p, network::role, *, /organizations/:organizationId/contracts/:contractId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/contracts/:contractId, PATCH, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/services, POST, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/services/:serviceId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/services/:serviceId, PATCH, allow·
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks, POST, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId, PATCH, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services, POST, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services/:serviceId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services/:serviceId, PATCH, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels, POST, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId, PATCH, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts, POST, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts/:contractId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts/:contractId, PATCH, allow
+
+p, user::role, *, /organizations/:organizationId/clusters, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services/:serviceId, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts/:contractId, GET, allow
+p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts/:contractId/transactions, POST, allow
+
+p, none::role, *, /users/:id, POST, allow
+p, none::role, *, /users/:id, DELETE, allow
+p, none::role, *, /users/:id, PATCH, allow
+p, none::role, *, /users/:id, GET, allow
+p, none::role, *, /organizations, POST, allow
+p, none::role, *, /organizations, GET, allow
+p, none::role, *, /organizations/:organizationId, POST, allow
+p, none::role, *, /organizations/:organizationId, GET, allow
+
 
 # TODO: 动态生成
 # 根据用户允许访问的资源动态添加
