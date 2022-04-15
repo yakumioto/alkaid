@@ -100,11 +100,12 @@ func newUserByCreateRequest(req *CreateRequest) *User {
 		UserID:   req.ID,
 		Email:    req.Email,
 		Name:     req.Name,
+		Root:     req.Root,
 		Password: req.Password,
 	}
 }
 
-func (u *User) stretchedKey(password string) (*utils.StretchedKey, error) {
+func (u *User) StretchedKey(password string) (*utils.StretchedKey, error) {
 	return utils.GetStretchedKey(utils.GetMasterKey(password, u.Email))
 }
 

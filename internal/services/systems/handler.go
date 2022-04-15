@@ -45,15 +45,14 @@ func SystemInit(req *InitRequest) (*System, error) {
 	}
 
 	// 处理未初始化情况
-	user := &users.User{
-		UserID:   req.ID,
+	user, err := users.Create(&users.CreateRequest{
+		ID:       req.ID,
 		Name:     req.Name,
 		Email:    req.Email,
 		Root:     true,
 		Password: req.Password,
-	}
-
-	if err := user.Create(); err != nil {
+	})
+	if err != nil {
 		logger.Errorf("[%v] initialize root user error: %v", user.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
 			"failed to initialize root user")

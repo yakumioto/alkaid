@@ -24,7 +24,7 @@ var (
 )
 
 func Initialize(secret string, expires time.Duration) {
-	logger.Infof("jwt woken expires is %v", expires)
+	logger.Infof("jwt token expires is %v", expires)
 	once.Do(func() {
 		if t == nil {
 			t = NewJWT(secret, expires)

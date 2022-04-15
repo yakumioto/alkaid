@@ -11,6 +11,7 @@ p, *, *, /login, POST, allow
 p, *, *, /users, POST, allow
 
 p, root::role, *, *, *, allow
+p, root::role, *, /users, GET, allow
 
 p, organization::role, *, /organizations/:organizationId/users, POST, allow
 p, organization::role, *, /organizations/:organizationId/users, GET, allow
@@ -27,30 +28,30 @@ p, network::role, *, /organizations/:organizationId/contracts/:contractId, PATCH
 p, network::role, *, /organizations/:organizationId/clusters/:clusterId/services, POST, allow
 p, network::role, *, /organizations/:organizationId/clusters/:clusterId/services/:serviceId, DELETE, allow
 p, network::role, *, /organizations/:organizationId/clusters/:clusterId/services/:serviceId, PATCH, allow·
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks, POST, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId, DELETE, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId, PATCH, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services, POST, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services/:serviceId, DELETE, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services/:serviceId, PATCH, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels, POST, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId, DELETE, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId, PATCH, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts, POST, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts/:contractId, DELETE, allow
-p, network::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts/:contractId, PATCH, allow
+p, network::role, *, /organizations/:organizationId/networks, POST, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId, PATCH, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/services, POST, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/services/:serviceId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/services/:serviceId, PATCH, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/channels, POST, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId, PATCH, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, POST, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts/:contractId, DELETE, allow
+p, network::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts/:contractId, PATCH, allow
 
 p, user::role, *, /organizations/:organizationId/clusters, GET, allow
 p, user::role, *, /organizations/:organizationId/clusters/:clusterId, GET, allow
-p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks, GET, allow
-p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId, GET, allow
-p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services, GET, allow
-p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/services/:serviceId, GET, allow
-p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels, GET, allow
-p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId, GET, allow
-p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts, GET, allow
-p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts/:contractId, GET, allow
-p, user::role, *, /organizations/:organizationId/clusters/:clusterId/networks/:networkId/channels/:channelId/contracts/:contractId/transactions, POST, allow
+p, user::role, *, /organizations/:organizationId/networks, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/services, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/services/:serviceId, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/channels, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts/:contractId, GET, allow
+p, user::role, *, /organizations/:organizationId/networks/:networkId/channels/:channelId/contracts/:contractId/transactions, POST, allow
 
 p, none::role, *, /users/:id, POST, allow
 p, none::role, *, /users/:id, DELETE, allow

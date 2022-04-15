@@ -27,15 +27,15 @@ type CreateRequest struct {
 	ID       string `json:"id" validate:"required"`
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
-	Root     bool   `json:"root"`
+	Root     bool   `json:"-"`
 	Password string `json:"password" validate:"required"`
 }
 
 func Create(req *CreateRequest) (*User, error) {
 	u := newUserByCreateRequest(req)
 
-	// 对用户生成扩展密钥
-	stretchedKey, err := u.stretchedKey(req.Password)
+	// 生成扩展密钥
+	stretchedKey, err := u.StretchedKey(req.Password)
 	if err != nil {
 		logger.Errorf("[%v] generate stretch key error: %v", u.UserID, err)
 		return nil, errors.NewError(http.StatusInternalServerError, errors.ErrServerUnknownError,
@@ -178,6 +178,10 @@ func Create(req *CreateRequest) (*User, error) {
 	}
 
 	return u, nil
+}
+
+func GetList() ([]*User, error) {
+	return nil, nil
 }
 
 func GetDetailByID(id string) (*User, error) {

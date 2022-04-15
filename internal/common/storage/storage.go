@@ -11,6 +11,8 @@ package storage
 import (
 	"errors"
 	"sync"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -114,6 +116,11 @@ func checkGlobal() error {
 	return nil
 }
 
+type condition struct {
+	Query interface{}
+	Args  []interface{}
+}
+
 type UpdateOptions struct {
 	*condition
 }
@@ -131,6 +138,17 @@ type QueryOptions struct {
 	order  interface{}
 	limit  int
 	offset int
+}
+
+// NewQueryOptionsWithCtx 通过 gin context 获取 options
+// 示例：example.com/users?type=name&q=mioto&createdAt=1649902088&page=20&limit=20
+func NewQueryOptionsWithCtx(ctx *gin.Context) *QueryOptions {
+	// todo: 目前只支持一个字段的模糊查询以及翻页查询
+	// typ := ctx.Query("type")
+	// q := ctx.Query("query")
+	// ctx.BindQuery()
+
+	return NewQueryOptions()
 }
 
 func NewQueryOptions() *QueryOptions {
@@ -197,9 +215,4 @@ func (q *QueryOptions) GetOffset() int {
 func (q *QueryOptions) Offset(offset int) *QueryOptions {
 	q.offset = offset
 	return q
-}
-
-type condition struct {
-	Query interface{}
-	Args  []interface{}
 }

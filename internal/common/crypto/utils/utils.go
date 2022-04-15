@@ -177,7 +177,7 @@ func Decrypt(text string, keys ...crypto.Key) ([]byte, error) {
 		rk      crypto.Key
 		hk      crypto.Key
 		sig     bool
-		sigtext string
+		sigText string
 	)
 
 	for _, key := range keys {
@@ -204,7 +204,7 @@ func Decrypt(text string, keys ...crypto.Key) ([]byte, error) {
 	}
 	ciphertext := texts[1]
 	if sig {
-		sigtext = texts[2]
+		sigText = texts[2]
 	}
 
 	switch EncType(typ) {
@@ -213,7 +213,7 @@ func Decrypt(text string, keys ...crypto.Key) ([]byte, error) {
 			return nil, errors.New("not found aes key or hmac key")
 		}
 
-		sigBytes, err := base64.StdEncoding.DecodeString(sigtext)
+		sigBytes, err := base64.StdEncoding.DecodeString(sigText)
 		if err != nil {
 			return nil, fmt.Errorf("base64 decode sig error: %v", err)
 		}
@@ -235,7 +235,7 @@ func Decrypt(text string, keys ...crypto.Key) ([]byte, error) {
 		if hk == nil || rk == nil {
 			return nil, errors.New("not found aes key or hmac key")
 		}
-		sigBytes, err := base64.StdEncoding.DecodeString(sigtext)
+		sigBytes, err := base64.StdEncoding.DecodeString(sigText)
 		if err != nil {
 			return nil, fmt.Errorf("base64 decode sig error: %v", err)
 		}
