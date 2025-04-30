@@ -1,0 +1,28 @@
+# Go binaries
+/bin/
+/pkg/
+/vendor/
+
+# Go test binary
+*.test
+
+# Coverage files
+*.out
+*.cov
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Other files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+.cursorrules
