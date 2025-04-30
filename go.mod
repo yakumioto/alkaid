@@ -2,6 +2,9 @@ module github.com/yakumioto/alkaid
 
 go 1.22
 
+retract v0.1.0
+retract v0.2.0
+
 require (
 	github.com/casbin/casbin/v2 v2.103.0
 	github.com/gin-gonic/gin v1.10.0
